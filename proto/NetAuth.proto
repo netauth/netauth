@@ -2,6 +2,8 @@
 // definitions needed to auth a user as well as to change the state of
 // a user's account.
 
+syntax = "proto2";
+
 service SystemAuth {
   // AuthEntity takes in an entity with an ID and secret set and will
   // attempt to validate that they are who they say they are.
