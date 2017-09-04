@@ -1,0 +1,127 @@
+// This is the master proto for NetAuth.  It contains the RPC
+// definitions needed to auth a user as well as to change the state of
+// a user's account.
+
+service SystemAuth {
+  // AuthEntity takes in an entity with an ID and secret set and will
+  // attempt to validate that they are who they say they are.
+  rpc AuthEntity(Entity) returns (AuthResult) {}
+
+  // EntityInfo takes in an entity and will try to return as much info
+  // as is known about it.
+  rpc EntityInfo(Entity) returns (EntityMeta) {}
+}
+
+
+// An entity may be a person or a machine actor that wishes to act as
+// some identity.  To do so they will need to transmit an ID and a
+// secret which will be used to verify that they are who they say they
+// are.
+message Entity {
+  // The entity may be identified by a string.  This is most common
+  // for the initial authentication case where a people-entity has
+  // typed a name in and now wishes to be authenticated.
+  optional string ID = 1;
+
+  // An entity might also be identified by a unique ID number.  This
+  // case is most common when some program wishes to get information
+  // about an entity.
+  optional int32 uidNumber = 2;
+
+  // The entity may have a secret which they will use to authenticate
+  // themselves.
+  optional string secret = 3;
+}
+
+// If an entity is trying to authenticate via the AuthEntity RPC, then
+// they will get back an AuthResult message.  This message contains a
+// boolean status of if the authenticate attempt was successful, and a
+// string which may optionally explain an error if something went
+// wrong.
+message AuthResult {
+  // Required is forever, but an AuthResult without a success state
+  // doesn't mean much.  This field must be present in all replies.
+  required bool success = 1;
+
+  // In the failure case a message may be provided detailing the
+  // failure.  This message must not contain secure information and
+  // there must be an expectation that anything placed in this field
+  // will be shown directly to a person or written to a log.
+  optional string msg = 2;
+}
+
+// While machine entities may belong to only one group, people
+// entities often belong to many groups at once.  This message
+// structures the reply for the additional groups.
+message Group {
+  // A group name must satisfy the requirements of the UNIX group
+  // naming conventions.  This should be one word, lower case, with no
+  // spaces and cannot begin with a number.
+  optional string name = 1;
+
+  // Since the name has strict naming requirements, its nice to have a
+  // displayName for the group which has a more friendly display.
+  // Instead of trying to reason out what naacct means, its much nicer
+  // to just know that its "Accounting team - North America"
+  optional string displayName = 2;
+
+  // On *nix systems the group should also have a number.  This number
+  // should be the same across all systems since it may be used for
+  // internal matching of users.
+  optional int32 gidNumber = 3;
+}
+
+message EntityMeta {
+  // What is the entity's Unique ID number.  Systems like NFS care about
+  // this and often require it to be consistent across a fleet of
+  // machines.
+  optional int32 uidNumber = 1;
+
+  // The primary group ID for the entity.  On most UNIX systems this
+  // will map to a group with the same string representation as the
+  // Entity, but it is not uncommon for people-entities in a network
+  // environment to not have a personal primary group and instead
+  // belong to an organization wide primary group.
+  optional int32 pgidNumber = 2;
+
+  // This is an arbitrary field used to store things like the user's
+  // real name.  It is here for consistency, but the name displayed by
+  // the user should really be stored in displayName, with the actual
+  // name stored in legalName (this facilitates a user to have an
+  // arbitrary name displayed if this is permitted by local policy).
+  optional string GECOS = 3;
+
+  // This stores the legal name (if used) that owns this security
+  // entity.  This primarily here for places where knowing the single
+  // owning entity is a requirement for compliance reasons.
+  optional string legalName = 4;
+
+  // This field is for the display value of the legalName.  This lets
+  // the displayed value fluctuate with no connection to the actual
+  // identity of the owning entity.
+  optional string displayName = 5; 
+
+  // Given that the entity identity and auth are provided by the
+  // network, its not unlikely that the home directory for the entity
+  // is as well.  This string contains the fully qualified path to the
+  // home directory.
+  optional string homedir = 6;
+
+  // This string is the canonical 'user command interpreter' specified
+  // in the passwd file.  This value provided by this field must be
+  // safe to use on all target systems as setting this to something
+  // that doesn't exist on the targets will cause the login program to
+  // abort when setting up the environment.
+  optional string shell = 7;
+
+  // This is for the graphical shell, primarily for when the entity is
+  // a person (though machine entities might also need to have a
+  // graphical shell set).  This provides a handy place to store it,
+  // but unfortunately a seperate mechanism is needed to get this into
+  // the systems that actually setup the graphical environment.
+  optional string graphicalShell = 8;
+
+  // Any additional groups the entity belongs to are returned as a
+  // list.
+  repeated Group supplementalGroups = 9;
+}
