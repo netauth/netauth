@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"context"
+
+	pb "github.com/NetAuth/NetAuth/proto"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -18,18 +21,30 @@ var (
 	keyFile  = flag.String("key_file", "", "Path to key file")
 )
 
+type netAuthServer struct{}
+
+func (s *netAuthServer) AuthEntity(ctx context.Context, entity *pb.Entity) (*pb.AuthResult, error) {
+	log.Printf("Authenticating %s", entity.GetID())
+	result := new(pb.AuthResult)
+	return result, nil
+}
+
+func (s *netAuthServer) EntityInfo(ctx context.Context, entity *pb.Entity) (*pb.EntityMeta, error) {
+	return &pb.EntityMeta{}, nil
+}
+
 func main() {
 	flag.Parse()
 
 	log.Println("NetAuth server is starting!")
-	
+
 	// Bind early so that if this fails we can just bail out.
 	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddr, *port))
 	if err != nil {
 		log.Fatalf("could not bind! %v", err)
 	}
 	log.Printf("server bound on %s:%d", *bindAddr, *port)
-	
+
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
 	if *useTLS {
@@ -51,5 +66,6 @@ func main() {
 	// will server forever.
 	log.Println("Server is launching...")
 	grpcServer := grpc.NewServer(opts...)
+	pb.RegisterSystemAuthServer(grpcServer, &netAuthServer{})
 	grpcServer.Serve(sock)
 }
