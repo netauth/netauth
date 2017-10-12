@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -9,63 +10,69 @@ import (
 
 	pb "github.com/NetAuth/NetAuth/proto"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 )
 
 var (
-	serverAddr   = flag.String("server", "localhost", "NetAuth server to contact (localhost)")
-	serverPort   = flag.Int("port", 8080, "Port for the NetAuth Server (8080)")
-	entityID     = flag.String("entity_id", "", "Entity to send")
-	entitySecret = flag.String("entity_secret", "", "Entity secret to send")
+	entity       = new(pb.Entity)
+	serverAddr   = flag.String("server", "localhost", "NetAuth server to contact")
+	serverPort   = flag.Int("port", 8080, "Port for the NetAuth Server")
+	id           = flag.String("entity_id", "", "Entity to send")
+	secret       = flag.String("entity_secret", "", "Entity secret to send")
 	authenticate = flag.Bool("auth", true, "Try to authenticate the entity")
 	getInfo      = flag.Bool("info", false, "Try to get info about the entity")
 	debug        = flag.Bool("debug", false, "Print sensitive information to aid in debugging")
 )
 
-func authEntity() error {
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *serverAddr, *serverPort), grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("did not connect: %s", err)
+func init() {
+	// Init will setup the entity structure based on the values
+	// obtained by flags, or by a stdio reader if values were not
+	// set.
+	flag.Parse()
+
+	entity.ID = proto.String(*id)
+	entity.Secret = proto.String(*secret)
+
+	if entity.GetID() == "" {
+		fmt.Print("Entity: ")
+		reader := bufio.NewReader(os.Stdin)
+		id, _ := reader.ReadString('\n')
+		entity.ID = proto.String(id)
 	}
-	defer conn.Close()
-
-
-
-	return nil
+	if entity.GetSecret() == "" && *authenticate {
+		fmt.Print("Secret: ")
+		reader := bufio.NewReader(os.Stdin)
+		secret, _ := reader.ReadString('\n')
+		entity.Secret = proto.String(secret)
+	}
 }
 
 func main() {
-	flag.Parse()
-
-	reader := bufio.NewReader(os.Stdin)
-	if *entityID == "" {
-		fmt.Print("Entity: ")
-		*entityID, _ = reader.ReadString('\n')
-	}
-	if *entitySecret == "" && *authenticate {
-		fmt.Print("Secret: ")
-		*entitySecret, _ = reader.ReadString('\n')
-	}
-
-	log.Printf("Entity: %s", *entityID)
+	log.Printf("Entity: %s", entity.GetID())
 	if *debug {
-		log.Printf("Entity Secret: %s", *entitySecret)
+		log.Printf("Entity Secret: %s", entity.GetSecret())
 	}
 
-	conn, err := grpc.Dial(*serverAddr)
+	conn, err := grpc.Dial(*serverAddr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Could not connect to NetAuth: %s", err)
 	}
+	log.Printf("Successfully connected to NetAuth server at %s:%d", *serverAddr, *serverPort)
 	defer conn.Close()
 
 	// Create a client to use later on.
 	client := pb.NewSystemAuthClient(conn)
 
 	if *authenticate {
-		log.Printf("Trying to authenticate %s to server %s:%d", *entityID, *serverAddr, *serverPort)
-		err := authEntity()
+		log.Printf("Trying to authenticate %s", entity.GetID())
+		authResult, err := client.AuthEntity(context.Background(), entity)
 		if err != nil {
-			log.Fatalf("could not auth: %s", err)
+			log.Fatalf("Could not auth: %s", err)
 		}
+		if authResult == nil {
+			log.Fatal("recieved nil reply for AuthEntity()")
+		}
+		log.Printf("%v", authResult)
 	}
 }
