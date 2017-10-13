@@ -25,8 +25,7 @@ type netAuthServer struct{}
 
 func (s *netAuthServer) AuthEntity(ctx context.Context, entity *pb.Entity) (*pb.AuthResult, error) {
 	log.Printf("Authenticating %s", entity.GetID())
-	result := new(pb.AuthResult)
-	return result, nil
+	return &pb.AuthResult{}, nil
 }
 
 func (s *netAuthServer) EntityInfo(ctx context.Context, entity *pb.Entity) (*pb.EntityMeta, error) {
