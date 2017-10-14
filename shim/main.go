@@ -54,7 +54,7 @@ func main() {
 		log.Printf("Entity Secret: %s", entity.GetSecret())
 	}
 
-	conn, err := grpc.Dial(*serverAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *serverAddr, *serverPort), grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("Could not connect to NetAuth: %s", err)
 	}
