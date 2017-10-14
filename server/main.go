@@ -7,10 +7,10 @@ import (
 	"net"
 	"context"
 
-	pb "github.com/NetAuth/NetAuth/proto"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+
+	pb "github.com/NetAuth/NetAuth/proto"
 )
 
 var (
@@ -30,6 +30,14 @@ func (s *netAuthServer) AuthEntity(ctx context.Context, entity *pb.Entity) (*pb.
 
 func (s *netAuthServer) EntityInfo(ctx context.Context, entity *pb.Entity) (*pb.EntityMeta, error) {
 	return &pb.EntityMeta{}, nil
+}
+
+func (s *netAuthServer) Ping(ctx context.Context, PingRequest *pb.PingRequest) (*pb.PingResponse, error) {
+	return &pb.PingResponse{}, nil
+}
+
+func newServer() *netAuthServer {
+	return new(netAuthServer)
 }
 
 func main() {
@@ -65,6 +73,6 @@ func main() {
 	// will server forever.
 	log.Println("Server is launching...")
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterSystemAuthServer(grpcServer, &netAuthServer{})
+	pb.RegisterSystemAuthServer(grpcServer, newServer())
 	grpcServer.Serve(sock)
 }

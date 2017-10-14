@@ -8,10 +8,10 @@ import (
 	"log"
 	"os"
 
-	pb "github.com/NetAuth/NetAuth/proto"
-
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
+
+	pb "github.com/NetAuth/NetAuth/proto"
 )
 
 var (
@@ -22,6 +22,7 @@ var (
 	secret       = flag.String("entity_secret", "", "Entity secret to send")
 	authenticate = flag.Bool("auth", true, "Try to authenticate the entity")
 	getInfo      = flag.Bool("info", false, "Try to get info about the entity")
+	ping         = flag.Bool("ping", false, "Ping the server")
 	debug        = flag.Bool("debug", false, "Print sensitive information to aid in debugging")
 )
 
@@ -49,9 +50,11 @@ func init() {
 }
 
 func main() {
-	log.Printf("Entity: %s", entity.GetID())
-	if *debug {
-		log.Printf("Entity Secret: %s", entity.GetSecret())
+	if *authenticate {
+		log.Printf("Entity: %s", entity.GetID())
+		if *debug {
+			log.Printf("Entity Secret: %s", entity.GetSecret())
+		}
 	}
 
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *serverAddr, *serverPort), grpc.WithInsecure())
@@ -74,5 +77,15 @@ func main() {
 			log.Fatal("recieved nil reply for AuthEntity()")
 		}
 		log.Printf("%v", authResult)
+	}
+
+	if *ping {
+		log.Printf("Pinging the server")
+		pingResult, err := client.Ping(context.Background(), &pb.PingRequest{})
+		if err != nil {
+			log.Fatalf("Ping failed: %s", err)
+		}
+		log.Printf("Ping successful?")
+		log.Printf("%s", pingResult)
 	}
 }

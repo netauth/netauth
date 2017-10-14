@@ -12,6 +12,9 @@ service SystemAuth {
   // EntityInfo takes in an entity and will try to return as much info
   // as is known about it.
   rpc EntityInfo(Entity) returns (EntityMeta) {}
+
+  // It is desireable to ping the server for status and health
+  rpc Ping(PingRequest) returns (PingResponse) {}
 }
 
 
@@ -126,4 +129,20 @@ message EntityMeta {
   // Any additional groups the entity belongs to are returned as a
   // list.
   repeated Group supplementalGroups = 9;
+}
+
+// The PingRequest is used to ask the server to return its health
+// status to the requestor.
+message PingRequest {
+  optional string clientID = 1;
+}
+
+// The PingReply is used to tell the client if this server is healthy
+// and ready to serve.
+message PingResponse {
+  // The server will reply healthy=True if it is ready to serve.
+  optional bool healthy = 1;
+
+  // Optionally the server may have a message if it is not healthy.
+  optional string msg = 2;
 }
