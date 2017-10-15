@@ -37,17 +37,19 @@ func init() {
 	entity.ID = proto.String(*id)
 	entity.Secret = proto.String(*secret)
 
-	if entity.GetID() == "" {
-		fmt.Print("Entity: ")
-		reader := bufio.NewReader(os.Stdin)
-		id, _ := reader.ReadString('\n')
-		entity.ID = proto.String(id)
-	}
-	if entity.GetSecret() == "" && *authenticate {
-		fmt.Print("Secret: ")
-		reader := bufio.NewReader(os.Stdin)
-		secret, _ := reader.ReadString('\n')
-		entity.Secret = proto.String(secret)
+	if *authenticate || *getInfo {
+		if entity.GetID() == "" {
+			fmt.Print("Entity: ")
+			reader := bufio.NewReader(os.Stdin)
+			id, _ := reader.ReadString('\n')
+			entity.ID = proto.String(id)
+		}
+		if entity.GetSecret() == "" && *authenticate {
+			fmt.Print("Secret: ")
+			reader := bufio.NewReader(os.Stdin)
+			secret, _ := reader.ReadString('\n')
+			entity.Secret = proto.String(secret)
+		}
 	}
 }
 
@@ -117,11 +119,20 @@ func main() {
 	// means to check the server's health by monitoring systems.
 	if *ping {
 		log.Printf("Pinging the server")
-		pingResult, err := client.Ping(context.Background(), &pb.PingRequest{})
+		request := new(pb.PingRequest)
+		if *clientID == "" {
+			hostname, err := os.Hostname()
+			if err != nil {
+				hostname = "BOGUS_CLIENT"
+			}
+			request.ClientID = proto.String(hostname)
+		} else {
+			request.ClientID = proto.String(*clientID)
+		}
+		pingResult, err := client.Ping(context.Background(), request)
 		if err != nil {
 			log.Fatalf("Ping failed: %s", err)
 		}
-		log.Printf("Ping successful?")
 		log.Printf("%s", pingResult)
 	}
 }
