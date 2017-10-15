@@ -23,8 +23,8 @@ var (
 	authenticate = flag.Bool("auth", true, "Try to authenticate the entity")
 	getInfo      = flag.Bool("info", false, "Try to get info about the entity")
 	ping         = flag.Bool("ping", false, "Ping the server")
-	clientID = flag.String("client_id", "", "ID of the client")
-	serviceID = flag.String("service_id", "authshim", "Service ID of the request")
+	clientID     = flag.String("client_id", "", "ID of the client")
+	serviceID    = flag.String("service_id", "authshim", "Service ID of the request")
 	debug        = flag.Bool("debug", false, "Print sensitive information to aid in debugging")
 )
 
