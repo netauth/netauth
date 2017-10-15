@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
-	"context"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	port     = flag.Int("port", 8080, "Serving port, defaults to 8080")
+	bindPort = flag.Int("port", 8080, "Serving port, defaults to 8080")
 	bindAddr = flag.String("bind", "localhost", "Bind address, defaults to localhost")
 	useTLS   = flag.Bool("tls", false, "Enable TLS, off by default")
 	certFile = flag.String("cert_file", "", "Path to certificate file")
@@ -63,11 +63,11 @@ func main() {
 	log.Println("NetAuth server is starting!")
 
 	// Bind early so that if this fails we can just bail out.
-	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddr, *port))
+	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddr, *bindPort))
 	if err != nil {
 		log.Fatalf("could not bind! %v", err)
 	}
-	log.Printf("server bound on %s:%d", *bindAddr, *port)
+	log.Printf("server bound on %s:%d", *bindAddr, *bindPort)
 
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
@@ -80,7 +80,7 @@ func main() {
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	}
 
-	if ! *useTLS {
+	if !*useTLS {
 		// Not using TLS in an auth server?  For shame...
 		log.Println("launching without TLS! Your passwords will be shipped in the clear!")
 		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")
