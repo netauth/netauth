@@ -7,14 +7,35 @@ syntax = "proto2";
 service SystemAuth {
   // AuthEntity takes in an entity with an ID and secret set and will
   // attempt to validate that they are who they say they are.
-  rpc AuthEntity(Entity) returns (AuthResult) {}
+  rpc AuthEntity(NetAuthRequest) returns (AuthResult) {}
 
   // EntityInfo takes in an entity and will try to return as much info
   // as is known about it.
-  rpc EntityInfo(Entity) returns (EntityMeta) {}
+  rpc EntityInfo(NetAuthRequest) returns (EntityMeta) {}
 
   // It is desireable to ping the server for status and health
   rpc Ping(PingRequest) returns (PingResponse) {}
+}
+
+// An AuthRequest includes an Entity and some information to identify
+// the system that is making the request.
+message NetAuthRequest {
+  // The Entity is obviously the most important part of the
+  // AuthRequest which is the thing we want to authenticate.
+  required Entity entity = 1;
+
+  // Additionally we want to know the client ID that is making the
+  // authentication request.  This is set by the client and must not
+  // be used for any security purposes.  Its intention is to be used
+  // for logging and statistics to find clients with problems.
+  optional string clientID = 2;
+
+  // It would also be nice to know what this authentication is for,
+  // this is again set by the client and shouldn't be used for
+  // security purposes.  The idea here is that if there are multiple
+  // systems all making requests with the same clientID this will
+  // differentiate them.
+  optional string serviceID = 3;
 }
 
 
@@ -46,7 +67,7 @@ message Entity {
 message AuthResult {
   // Required is forever, but an AuthResult without a success state
   // doesn't mean much.  This field must be present in all replies.
-  required bool success = 1;
+  required bool success = 1 [default = false];
 
   // In the failure case a message may be provided detailing the
   // failure.  This message must not contain secure information and
