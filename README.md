@@ -45,8 +45,8 @@ operating system to have good support on its own.  Its not the most
 ideal language for interfacing with PAM or nsswitch, but for writing
 servers that work with gRPC its quite nice.
 
-Why does this communicate using gRPC and not <protocol>?
---------------------------------------------------------
+Why does this communicate using gRPC and not my favorite protocol?
+------------------------------------------------------------------
 
 I like the RPC paradigm, it works well for what I am trying to achieve
 here and can work without any real thought about the transport.  gRPC
@@ -65,8 +65,8 @@ which will be usable as a shim to see if a user is valid.  Of course
 since the protobuf definition is available here you could always write
 your own service that interacts with the NetAuth server.
 
-Do you recommend using NetAuth for <super important thing>?
------------------------------------------------------------
+Do you recommend using NetAuth for super important things?
+----------------------------------------------------------
 
 No, absolutely not.  I am a single engineer working with my own body
 of knowledge.  I do not have a background in crypto or auth systems,
