@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -36,21 +35,6 @@ func init() {
 
 	entity.ID = proto.String(*id)
 	entity.Secret = proto.String(*secret)
-
-	if *authenticate || *getInfo {
-		if entity.GetID() == "" {
-			fmt.Print("Entity: ")
-			reader := bufio.NewReader(os.Stdin)
-			id, _ := reader.ReadString('\n')
-			entity.ID = proto.String(id)
-		}
-		if entity.GetSecret() == "" && *authenticate {
-			fmt.Print("Secret: ")
-			reader := bufio.NewReader(os.Stdin)
-			secret, _ := reader.ReadString('\n')
-			entity.Secret = proto.String(secret)
-		}
-	}
 }
 
 func main() {
