@@ -107,6 +107,6 @@ func main() {
 	// will server forever.
 	log.Println("Server is launching...")
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterSystemAuthServer(grpcServer, newServer())
+	pb.RegisterNetAuthServer(grpcServer, newServer())
 	grpcServer.Serve(sock)
 }

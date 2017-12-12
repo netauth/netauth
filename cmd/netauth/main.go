@@ -73,7 +73,7 @@ func main() {
 	defer conn.Close()
 
 	// Create a client to use later on.
-	client := pb.NewSystemAuthClient(conn)
+	client := pb.NewNetAuthClient(conn)
 
 	// Grab a request object.  Its a few extra bytes that might
 	// not be used, but the PingRequest case is not common so

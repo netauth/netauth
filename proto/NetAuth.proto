@@ -4,7 +4,7 @@
 
 syntax = "proto2";
 
-service SystemAuth {
+service NetAuth {
   // AuthEntity takes in an entity with an ID and secret set and will
   // attempt to validate that they are who they say they are.
   rpc AuthEntity(NetAuthRequest) returns (AuthResult) {}
