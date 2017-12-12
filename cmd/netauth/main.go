@@ -3,12 +3,12 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os"
 
+	"github.com/NetAuth/NetAuth/pkg/client"
+
 	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
 
 	pb "github.com/NetAuth/NetAuth/proto"
 )
@@ -38,26 +38,9 @@ func init() {
 }
 
 func main() {
-
-	// Setup the connection and defer the close.
-	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", *serverAddr, *serverPort), grpc.WithInsecure())
-	if err != nil {
-		log.Fatalf("Could not connect to NetAuth: %s", err)
-	}
-	// This success message is very misleading, in theory if you
-	// see this then a valid connection has been made to the
-	// server, but this isn't really the case.  This will show
-	// connected in all cases where the Dial() function returns
-	// successfully, whether or not it has actually connected to
-	// the NetAuth service is another matter entirely.  In theory
-	// we could fire a PingRequest() before printing this message,
-	// but that's somewhat superfluous when this will all fail out
-	// within the next second if there's a problem.
-	log.Printf("Connected to NetAuth server at %s:%d", *serverAddr, *serverPort)
-	defer conn.Close()
-
-	// Create a client to use later on.
-	client := pb.NewNetAuthClient(conn)
+	// Get a client.  References to the underlying connection will
+	// be cleaned up as the application tears down.
+	client := client.NewClient(*serverAddr, *serverPort)
 
 	// Grab a request object.  Its a few extra bytes that might
 	// not be used, but the PingRequest case is not common so
