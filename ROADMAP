@@ -1,0 +1,58 @@
+NetAuth Roadmap
+
+v0.0.1:
+  * Authentication works
+    * New entities can be added using a super-user account
+    * Entities can be removed with a super-user account
+    * Entities can be authenticated using a known secret
+  * Minimum required entity metadata is available
+    * An entity can be designated a global super-user; this is just a capability
+    * Starting the server with special options will set this capability on this user
+  * Minimum grouping support
+    * A meta group "ALL" will return and contain all known entities of the server.
+
+v0.0.2:
+  * Authentication Enhancements
+    * A super-user can change entities secrets
+  * Full entity metadata support
+    * All fields can be set on all entities using the RPC interface and CLI tools.
+    * metadata can be modified via the CLI by either the owning entity or the super-user
+  * Data Enhancements
+    * Data is persisted to disk
+    * Persistence layer is implemented as a pluggable, runtime selectable backend
+    * A basic backend will be built by default, additional backends available via tags
+
+v0.0.3:
+  * Group support:
+    * Users can be added to flat groups similar to the group file
+    * Querying a user will return the groups for them
+    * entitites can be added to and removed from multiple groups simultaneously via the CLI
+      * multiple RPC calls will be made to the backend, but the CLI will abstract this
+  * Cluster Support:
+    * Multiple write capable masters with access to the data layer are available
+
+v0.0.4:
+  * Group Enhancements:
+    * Groups can be nested
+      * nest expansions can either be include or exclude
+      * include is a direct expansion
+      * exclude removes the contained entities from the containing group for this lookup
+    * Groups can be managed by the CLI
+      * groups can be moved around via the CLI
+      * the CLI will show deltas of actions in terms of ACL entries changed
+    * The entity graph will exist in memory as a directed acyclic graph with non-unique leaves
+      * Membership updates will regenerate the entire graph
+      * Leaf updates will act on leaves directly
+
+v0.0.5:
+  * Entity capabilities
+    * capabilities can be used to denote additional access
+    * capabilities grant the ability to modify a named group
+      * "mini-administrators" that permit modifying everything under that tree
+      * Change-Password capability
+
+At this point a viable release candidate should exist.
+
+v0.1.0:
+  * API is marked stable
+  * Development of other modules will be permitted to move forwards
