@@ -13,10 +13,10 @@ import (
 var (
 	serverAddr = flag.String("server", "localhost", "Server Address")
 	serverPort = flag.Int("port", 8080, "Server port")
-	clientID = flag.String("client", "netauthctl", "Client ID to send")
-	serviceID = flag.String("service", "netauthctl", "Service ID to send")
-	entity = flag.String("entity", "", "Entity to send in the request")
-	secret = flag.String("secret", "", "Secret to send in the request")
+	clientID   = flag.String("client", "netauthctl", "Client ID to send")
+	serviceID  = flag.String("service", "netauthctl", "Service ID to send")
+	entity     = flag.String("entity", "", "Entity to send in the request")
+	secret     = flag.String("secret", "", "Secret to send in the request")
 )
 
 func main() {
@@ -44,6 +44,14 @@ func main() {
 	subcommands.Register(subcommands.CommandsCommand(), "")
 	subcommands.Register(&ctl.PingCmd{}, "")
 	subcommands.Register(&ctl.AuthCmd{}, "")
+
+	// Register in the global flags as important
+	subcommands.ImportantFlag("server")
+	subcommands.ImportantFlag("port")
+	subcommands.ImportantFlag("client")
+	subcommands.ImportantFlag("service")
+	subcommands.ImportantFlag("entity")
+	subcommands.ImportantFlag("secret")
 
 	// By default we will run the functions at background context.
 	// Below  this call  level it  may be  necessary to  reset the
