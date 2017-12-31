@@ -50,8 +50,7 @@ func TestAddDuplicateEntity(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		err := NewEntity(c.ID, c.uidNumber, c.secret)
-		if err != c.err {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -85,4 +84,25 @@ func TestNextUIDNumber(t *testing.T) {
 		}
 	}
 
+}
+
+func TestNewEntityAutoNumber(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", -1, ""},
+		{"baz", 3, ""},
+	}
+
+	// Force the map to be empty
+	resetMap()
+
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
 }

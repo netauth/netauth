@@ -39,8 +39,14 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 		return E_DUPLICATE_ID
 	}
 
-	// Ok, they don't exist so we'll make them exist now
+	// Were we given a specific uidNumber?
+	if uidNumber == -1 {
+		// -1 is a sentinel value that tells us to pick the
+		// next available number and assign it.
+		uidNumber = nextUIDNumber()
+	}
 
+	// Ok, they don't exist so we'll make them exist now
 	e[ID] = &pb.Entity{
 		ID:        &ID,
 		UidNumber: &uidNumber,
