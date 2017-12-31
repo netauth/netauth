@@ -66,3 +66,8 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 	log.Printf("Created entity '%s'", ID)
 	return nil
 }
+
+func GetEntityByID(ID string) (*pb.Entity, bool) {
+	e, exists := eByID[ID]
+	return e, exists
+}
