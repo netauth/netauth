@@ -156,3 +156,31 @@ func TestGetEntityByID(t *testing.T) {
 		t.Error("Returned non-existant entity!")
 	}
 }
+
+func TestGetEntityByUIDNumber(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", 2, ""},
+	}
+
+	// Force the map to be empty
+	resetMap()
+
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+
+		if _, exists := GetEntityByUIDNumber(c.uidNumber); !exists {
+			t.Error("Added entity does not exist!")
+		}
+	}
+
+	if _, exists := GetEntityByUIDNumber(3); exists {
+		t.Error("Returned non-existant entity!")
+	}
+}

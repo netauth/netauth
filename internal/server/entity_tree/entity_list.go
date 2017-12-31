@@ -71,3 +71,8 @@ func GetEntityByID(ID string) (*pb.Entity, bool) {
 	e, exists := eByID[ID]
 	return e, exists
 }
+
+func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, bool) {
+	e, exists := eByUIDNumber[uidNumber]
+	return e, exists
+}
