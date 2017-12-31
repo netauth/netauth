@@ -184,3 +184,34 @@ func TestGetEntityByUIDNumber(t *testing.T) {
 		t.Error("Returned non-existant entity!")
 	}
 }
+
+func TestSameEntity(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", 2, ""},
+		{"baz", 3, ""},
+	}
+
+	resetMap()
+
+	for _, c := range s {
+		NewEntity(c.ID, c.uidNumber, c.secret)
+		a, ok := GetEntityByID(c.ID)
+		if !ok {
+			t.Error("Couldn't recall newly added entity!")
+		}
+
+		b, ok := GetEntityByUIDNumber(c.uidNumber)
+		if !ok {
+			t.Error("Couldn't recall newly added entity!")
+		}
+
+		if a != b {
+			t.Error("Different entities for same ID/Number!")
+		}
+	}
+}
