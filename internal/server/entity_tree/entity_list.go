@@ -8,7 +8,8 @@ import (
 
 var (
 	// e is a package scoped map of entities by string ID.
-	e = make(map[string]*pb.Entity)
+	eByID        = make(map[string]*pb.Entity)
+	eByUIDNumber = make(map[int32]*pb.Entity)
 )
 
 // nextUIDNumber computes the next available uidNumber to be assigned.
@@ -22,9 +23,9 @@ func nextUIDNumber() int32 {
 	// missing in the middle and still work.  Though an
 	// inefficient search this is worst case O(N) and happens in
 	// memory anyway.
-	for i := range e {
-		if e[i].GetUidNumber() > largest {
-			largest = e[i].GetUidNumber()
+	for i := range eByID {
+		if eByID[i].GetUidNumber() > largest {
+			largest = eByID[i].GetUidNumber()
 		}
 	}
 
@@ -33,10 +34,15 @@ func nextUIDNumber() int32 {
 
 func NewEntity(ID string, uidNumber int32, secret string) error {
 	// Does this entity exist already?
-	_, exists := e[ID]
+	_, exists := eByID[ID]
 	if exists {
 		log.Printf("Entity with ID '%s' already exists!", ID)
 		return E_DUPLICATE_ID
+	}
+	_, exists = eByUIDNumber[uidNumber]
+	if exists {
+		log.Printf("Entity with uidNumber '%d' already exists!", uidNumber)
+		return E_DUPLICATE_UIDNUMBER
 	}
 
 	// Were we given a specific uidNumber?
@@ -47,11 +53,14 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 	}
 
 	// Ok, they don't exist so we'll make them exist now
-	e[ID] = &pb.Entity{
+	newEntity := &pb.Entity{
 		ID:        &ID,
 		UidNumber: &uidNumber,
 		Secret:    &secret,
 	}
+
+	eByID[ID] = newEntity
+	eByUIDNumber[uidNumber] = newEntity
 
 	// Successfully created, we now return no errors
 	log.Printf("Created entity '%s'", ID)

@@ -7,7 +7,8 @@ import (
 )
 
 func resetMap() {
-	e = make(map[string]*pb.Entity)
+	eByID = make(map[string]*pb.Entity)
+	eByUIDNumber = make(map[int32]*pb.Entity)
 }
 
 func TestAddFirstEntity(t *testing.T) {
@@ -24,26 +25,47 @@ func TestAddFirstEntity(t *testing.T) {
 	}
 
 	// Verify that the map now contains exactly the entity specified
-	if e[ID].GetID() != ID {
-		t.Errorf("Expected uid to be %v got %v", e[ID].GetID(), ID)
+	if eByID[ID].GetID() != ID {
+		t.Errorf("Expected uid to be %v got %v", eByID[ID].GetID(), ID)
 	}
-	if e[ID].GetUidNumber() != uidNumber {
-		t.Errorf("Expected uidNumber to be %v got %v", e[ID].GetUidNumber(), uidNumber)
+	if eByID[ID].GetUidNumber() != uidNumber {
+		t.Errorf("Expected uidNumber to be %v got %v", eByID[ID].GetUidNumber(), uidNumber)
 	}
-	if e[ID].GetSecret() != secret {
-		t.Errorf("Expected secret to be %v got %v", e[ID].GetSecret(), secret)
+	if eByID[ID].GetSecret() != secret {
+		t.Errorf("Expected secret to be %v got %v", eByID[ID].GetSecret(), secret)
 	}
 }
 
-func TestAddDuplicateEntity(t *testing.T) {
+func TestAddDuplicateID(t *testing.T) {
 	s := []struct {
 		ID        string
 		uidNumber int32
 		secret    string
 		err       error
 	}{
-		{"foo", 1, "bar", nil},
-		{"foo", 1, "bar", E_DUPLICATE_ID},
+		{"foo", 1, "", nil},
+		{"foo", 2, "", E_DUPLICATE_ID},
+	}
+
+	// Force the map to be empty
+	resetMap()
+
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+			t.Errorf("Got %v; Want: %v", err, c.err)
+		}
+	}
+}
+
+func TestAddDuplicateUIDNumber(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+		err       error
+	}{
+		{"foo", 1, "", nil},
+		{"bar", 1, "", E_DUPLICATE_UIDNUMBER},
 	}
 
 	// Force the map to be empty
