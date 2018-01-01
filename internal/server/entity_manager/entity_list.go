@@ -83,4 +83,46 @@ func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
 	return e, nil
 }
 
+func DeleteEntityByID(ID string) error {
+	e, err := GetEntityByID(ID)
+	if err != nil {
+		return E_NO_ENTITY
+	}
+
+	// Now we need to delete from both maps
+	delete(eByID, e.GetID())
+	delete(eByUIDNumber, e.GetUidNumber())
+	log.Printf("Deleted entity '%s'", e.GetID())
+
+	// There's a small chance that the deletes above didn't go
+	// through but if that happened there's not much that we can
+	// do about it since delete() is a language construct and
+	// there's no way to drill down deeper.  To be paranoid though
+	// we'll clear the secret on the entity which should prevent
+	// it from being usable.
+	e.Secret = nil
+
+	return nil
+}
+
+func DeleteEntityByUIDNumber(n int32) error {
+	e, err := GetEntityByUIDNumber(n)
+	if err != nil {
+		return E_NO_ENTITY
+	}
+
+	// Now we need to delete from both maps
+	delete(eByID, e.GetID())
+	delete(eByUIDNumber, e.GetUidNumber())
+	log.Printf("Deleted entity '%s'", e.GetID())
+
+	// There's a small chance that the deletes above didn't go
+	// through but if that happened there's not much that we can
+	// do about it since delete() is a language construct and
+	// there's no way to drill down deeper.  To be paranoid though
+	// we'll clear the secret on the entity which should prevent
+	// it from being usable.
+	e.Secret = nil
+
+	return nil
 }

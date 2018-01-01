@@ -215,3 +215,81 @@ func TestSameEntity(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteEntityByID(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", 2, ""},
+		{"baz", 3, ""},
+	}
+
+	resetMap()
+
+	// Populate some entities
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
+
+	for _, c := range s {
+		// Delete the entity
+		if err := DeleteEntityByID(c.ID); err != nil {
+			t.Error(err)
+		}
+
+		// Make sure checking for that entity returns E_NO_ENTITY
+		if _, err := GetEntityByID(c.ID); err != E_NO_ENTITY {
+			t.Error(err)
+		}
+
+		// Make sure that it is actually gone, and not just
+		// gone from one index...
+		if _, err := GetEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
+			t.Error(err)
+		}
+	}
+}
+
+func TestDeleteEntityByUIDNumber(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", 2, ""},
+		{"baz", 3, ""},
+	}
+
+	resetMap()
+
+	// Populate some entities
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
+
+	for _, c := range s {
+		// Delete the entity
+		if err := DeleteEntityByUIDNumber(c.uidNumber); err != nil {
+			t.Error(err)
+		}
+
+		// Make sure checking for that entity returns E_NO_ENTITY
+		if _, err := GetEntityByID(c.ID); err != E_NO_ENTITY {
+			t.Error(err)
+		}
+
+		// Make sure that it is actually gone, and not just
+		// gone from one index...
+		if _, err := GetEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
+			t.Error(err)
+		}
+	}
+}
