@@ -67,12 +67,20 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 	return nil
 }
 
-func GetEntityByID(ID string) (*pb.Entity, bool) {
-	e, exists := eByID[ID]
-	return e, exists
+func GetEntityByID(ID string) (*pb.Entity, error) {
+	e, ok := eByID[ID]
+	if !ok {
+		return nil, E_NO_ENTITY
+	}
+	return e, nil
 }
 
-func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, bool) {
-	e, exists := eByUIDNumber[uidNumber]
-	return e, exists
+func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
+	e, ok := eByUIDNumber[uidNumber]
+	if !ok {
+		return nil, E_NO_ENTITY
+	}
+	return e, nil
+}
+
 }

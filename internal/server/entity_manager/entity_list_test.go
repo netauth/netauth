@@ -147,12 +147,12 @@ func TestGetEntityByID(t *testing.T) {
 			t.Error(err)
 		}
 
-		if _, exists := GetEntityByID(c.ID); !exists {
+		if _, err := GetEntityByID(c.ID); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, exists := GetEntityByID("baz"); exists {
+	if _, err := GetEntityByID("baz"); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
@@ -175,12 +175,12 @@ func TestGetEntityByUIDNumber(t *testing.T) {
 			t.Error(err)
 		}
 
-		if _, exists := GetEntityByUIDNumber(c.uidNumber); !exists {
+		if _, err := GetEntityByUIDNumber(c.uidNumber); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, exists := GetEntityByUIDNumber(3); exists {
+	if _, err := GetEntityByUIDNumber(3); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
@@ -200,13 +200,13 @@ func TestSameEntity(t *testing.T) {
 
 	for _, c := range s {
 		NewEntity(c.ID, c.uidNumber, c.secret)
-		a, ok := GetEntityByID(c.ID)
-		if !ok {
+		a, err := GetEntityByID(c.ID)
+		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
 
-		b, ok := GetEntityByUIDNumber(c.uidNumber)
-		if !ok {
+		b, err := GetEntityByUIDNumber(c.uidNumber)
+		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
 
