@@ -1,4 +1,4 @@
-package entity_tree
+package entity_manager
 
 import "errors"
 
