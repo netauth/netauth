@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/NetAuth/NetAuth/internal/server/rpc"
 
 	"google.golang.org/grpc"
@@ -15,11 +17,12 @@ import (
 )
 
 var (
-	bindPort = flag.Int("port", 8080, "Serving port, defaults to 8080")
-	bindAddr = flag.String("bind", "localhost", "Bind address, defaults to localhost")
-	useTLS   = flag.Bool("tls", false, "Enable TLS, off by default")
-	certFile = flag.String("cert_file", "", "Path to certificate file")
-	keyFile  = flag.String("key_file", "", "Path to key file")
+	bindPort  = flag.Int("port", 8080, "Serving port, defaults to 8080")
+	bindAddr  = flag.String("bind", "localhost", "Bind address, defaults to localhost")
+	useTLS    = flag.Bool("tls", false, "Enable TLS, off by default")
+	certFile  = flag.String("cert_file", "", "Path to certificate file")
+	keyFile   = flag.String("key_file", "", "Path to key file")
+	superuser = flag.String("make_superuser", "", "ID:secret to make into a superuser - for bootstrapping")
 )
 
 func newServer() *rpc.NetAuthServer {
@@ -34,14 +37,14 @@ func main() {
 	// Bind early so that if this fails we can just bail out.
 	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddr, *bindPort))
 	if err != nil {
-		log.Fatalf("could not bind! %v", err)
+		log.Fatalf("Could not bind! %v", err)
 	}
-	log.Printf("server bound on %s:%d", *bindAddr, *bindPort)
+	log.Printf("Server bound on %s:%d", *bindAddr, *bindPort)
 
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
 	if *useTLS {
-		log.Printf("this server will use TLS with the certificate %s and key %s", *certFile, *keyFile)
+		log.Printf("TLS with the certificate %s and key %s", *certFile, *keyFile)
 		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
 		if err != nil {
 			log.Fatalf("TLS credentials could not be generated! %v", err)
@@ -51,8 +54,25 @@ func main() {
 
 	if !*useTLS {
 		// Not using TLS in an auth server?  For shame...
-		log.Println("launching without TLS! Your passwords will be shipped in the clear!")
+		log.Println("Launching without TLS! Your passwords will be shipped in the clear!")
 		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")
+	}
+
+	// Attempt to bootstrap a superuser
+	if len(*superuser) != 0 {
+		log.Println("Creating bootstrap entity with GLOBAL_ROOT")
+		eParts := strings.Split(*superuser, ":")
+		err := entity_manager.NewEntity(eParts[0], -1, eParts[1])
+		e, err := entity_manager.GetEntityByID(eParts[0])
+		if err != nil {
+			log.Fatalf("Super user instantiation error: %s", err)
+		}
+		entity_manager.SetCapability(e, "GLOBAL_ROOT")
+		if err != nil {
+			log.Fatalf("Super user instantiation error: %s", err)
+
+		}
+		log.Println("Created bootstrap entity")
 	}
 
 	// Instantiate and launch.  This will block and the server
