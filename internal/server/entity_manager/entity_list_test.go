@@ -11,31 +11,6 @@ func resetMap() {
 	eByUIDNumber = make(map[int32]*pb.Entity)
 }
 
-func TestAddFirstEntity(t *testing.T) {
-	ID := "foo"
-	uidNumber := int32(1)
-	secret := "secret"
-
-	// Force the map to be empty
-	resetMap()
-
-	// Create an entity
-	if err := NewEntity(ID, uidNumber, secret); err != nil {
-		t.Errorf("Expected nil, got %v", err)
-	}
-
-	// Verify that the map now contains exactly the entity specified
-	if eByID[ID].GetID() != ID {
-		t.Errorf("Expected uid to be %v got %v", eByID[ID].GetID(), ID)
-	}
-	if eByID[ID].GetUidNumber() != uidNumber {
-		t.Errorf("Expected uidNumber to be %v got %v", eByID[ID].GetUidNumber(), uidNumber)
-	}
-	if eByID[ID].GetSecret() != secret {
-		t.Errorf("Expected secret to be %v got %v", eByID[ID].GetSecret(), secret)
-	}
-}
-
 func TestAddDuplicateID(t *testing.T) {
 	s := []struct {
 		ID        string
@@ -290,6 +265,34 @@ func TestDeleteEntityByUIDNumber(t *testing.T) {
 		// gone from one index...
 		if _, err := GetEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
+		}
+	}
+}
+
+func TestSetEntitySecretByID(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, "a"},
+		{"bar", 2, "a"},
+		{"baz", 3, "a"},
+	}
+
+	resetMap()
+
+	// Load in the entities
+	for _, c := range s {
+		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Validate the secrets
+	for _, c := range s {
+		if err := ValidateEntitySecretByID(c.ID, c.secret); err != nil {
+			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
 }
