@@ -68,6 +68,7 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 		ID:        &ID,
 		UidNumber: &uidNumber,
 		Secret:    &secret,
+		Meta:      &pb.EntityMeta{},
 	}
 
 	// Add this entity to the in-memory listings

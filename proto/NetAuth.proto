@@ -38,7 +38,6 @@ message NetAuthRequest {
   optional string serviceID = 3;
 }
 
-
 // An entity may be a person or a machine actor that wishes to act as
 // some identity.  To do so they will need to transmit an ID and a
 // secret which will be used to verify that they are who they say they
@@ -57,6 +56,11 @@ message Entity {
   // The entity may have a secret which they will use to authenticate
   // themselves.
   optional string secret = 3;
+
+  // For requests that update the meta information this must be
+  // attatched to the entity itself.  This also allows the in-memory
+  // format to be defined by this proto.
+  optional EntityMeta meta = 4;
 }
 
 // If an entity is trying to authenticate via the AuthEntity RPC, then
@@ -98,58 +102,62 @@ message Group {
 }
 
 message EntityMeta {
-  // What is the entity's Unique ID number.  Systems like NFS care about
-  // this and often require it to be consistent across a fleet of
-  // machines.
-  optional int32 uidNumber = 1;
-
   // The primary group ID for the entity.  On most UNIX systems this
   // will map to a group with the same string representation as the
   // Entity, but it is not uncommon for people-entities in a network
   // environment to not have a personal primary group and instead
   // belong to an organization wide primary group.
-  optional int32 pgidNumber = 2;
+  optional int32 pgidNumber = 1;
 
   // This is an arbitrary field used to store things like the user's
   // real name.  It is here for consistency, but the name displayed by
   // the user should really be stored in displayName, with the actual
   // name stored in legalName (this facilitates a user to have an
   // arbitrary name displayed if this is permitted by local policy).
-  optional string GECOS = 3;
+  optional string GECOS = 2;
 
   // This stores the legal name (if used) that owns this security
   // entity.  This primarily here for places where knowing the single
   // owning entity is a requirement for compliance reasons.
-  optional string legalName = 4;
+  optional string legalName = 3;
 
   // This field is for the display value of the legalName.  This lets
   // the displayed value fluctuate with no connection to the actual
   // identity of the owning entity.
-  optional string displayName = 5; 
+  optional string displayName = 4;
 
   // Given that the entity identity and auth are provided by the
   // network, its not unlikely that the home directory for the entity
   // is as well.  This string contains the fully qualified path to the
   // home directory.
-  optional string homedir = 6;
+  optional string homedir = 5;
 
   // This string is the canonical 'user command interpreter' specified
   // in the passwd file.  This value provided by this field must be
   // safe to use on all target systems as setting this to something
   // that doesn't exist on the targets will cause the login program to
   // abort when setting up the environment.
-  optional string shell = 7;
+  optional string shell = 6;
 
   // This is for the graphical shell, primarily for when the entity is
   // a person (though machine entities might also need to have a
   // graphical shell set).  This provides a handy place to store it,
   // but unfortunately a seperate mechanism is needed to get this into
   // the systems that actually setup the graphical environment.
-  optional string graphicalShell = 8;
+  optional string graphicalShell = 7;
 
-  // Any additional groups the entity belongs to are returned as a
-  // list.
-  repeated Group supplementalGroups = 9;
+  // Entities have capabilitites that are known to NetAuth that permit
+  // them to take actions such as creating new entities, modifying
+  // them, altering secrets on them, and so on.  This are enumerated
+  // here.
+  enum Capability {
+    GLOBAL_ROOT = 0;
+    CREATE_ENTITY = 1;
+    DESTORY_ENTITY = 2;
+    MODIFY_ENTITY_META = 3;
+    CHANGE_ENTITY_SECRET = 4;
+  }
+  repeated Capability capabilities = 8;
 }
 
 // The PingRequest is used to ask the server to return its health
@@ -167,3 +175,4 @@ message PingResponse {
   // Optionally the server may have a message if it is not healthy.
   optional string msg = 2;
 }
+
