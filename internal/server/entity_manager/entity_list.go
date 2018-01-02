@@ -139,34 +139,6 @@ func DeleteEntityByID(ID string) error {
 	return nil
 }
 
-// DeleteEntityByUIDNumber deletes the numbered entity.  This function
-// will delete the entity in a non-atomic way, but will ensure that
-// the entity cannot be authenticated with before returning.  If the
-// provided uidNumber does not exist the function will return
-// E_NO_ENTITY, in all other cases nil is returned.  The uidNumber
-// must be of type int32.
-func DeleteEntityByUIDNumber(n int32) error {
-	e, err := GetEntityByUIDNumber(n)
-	if err != nil {
-		return E_NO_ENTITY
-	}
-
-	// There's a small chance that the deletes won't go through
-	// but if that happens there's not much that we can do about
-	// it since delete() is a language construct and there's no
-	// way to drill down deeper.  To be paranoid though we'll
-	// clear the secret on the entity which should prevent it from
-	// being usable.
-	e.Secret = nil
-
-	// Now we need to delete from both maps
-	delete(eByID, e.GetID())
-	delete(eByUIDNumber, e.GetUidNumber())
-	log.Printf("Deleted entity '%s'", e.GetID())
-
-	return nil
-}
-
 // SetEntitySecretByID sets the secret on a given entity using the
 // bcrypt secure hashing algorithm.
 func SetEntitySecretByID(ID string, secret string) error {
