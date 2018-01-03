@@ -27,10 +27,38 @@ func TestBasicCapabilities(t *testing.T) {
 			t.Error(err)
 		}
 		
-		setCapability(e, c.capability)
+		setEntityCapability(e, c.capability)
 
-		if err = checkCapability(e, c.test); err != c.err {
+		if err = checkEntityCapability(e, c.test); err != c.err {
 			t.Error(err)
+		}
+	}
+}
+
+func TestSetEntitySecretByID(t *testing.T) {
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, "a"},
+		{"bar", 2, "a"},
+		{"baz", 3, "a"},
+	}
+
+	resetMap()
+
+	// Load in the entities
+	for _, c := range s {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Validate the secrets
+	for _, c := range s {
+		if err := validateEntitySecretByID(c.ID, c.secret); err != nil {
+			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
 }

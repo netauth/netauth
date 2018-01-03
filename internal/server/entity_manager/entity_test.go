@@ -74,7 +74,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 }
 
-func TestnewEntityAutoNumber(t *testing.T) {
+func TestNewEntityAutoNumber(t *testing.T) {
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -217,34 +217,6 @@ func TestDeleteEntityByID(t *testing.T) {
 		// gone from one index...
 		if _, err := getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
-		}
-	}
-}
-
-func TestSetEntitySecretByID(t *testing.T) {
-	s := []struct {
-		ID        string
-		uidNumber int32
-		secret    string
-	}{
-		{"foo", 1, "a"},
-		{"bar", 2, "a"},
-		{"baz", 3, "a"},
-	}
-
-	resetMap()
-
-	// Load in the entities
-	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
-			t.Error(err)
-		}
-	}
-
-	// Validate the secrets
-	for _, c := range s {
-		if err := validateEntitySecretByID(c.ID, c.secret); err != nil {
-			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
 }
