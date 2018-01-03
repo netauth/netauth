@@ -256,3 +256,56 @@ func TestDeleteEntityByID(t *testing.T) {
 		}
 	}
 }
+
+func TestDeleteEntityWithAuth(t *testing.T) {
+	x := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+	}{
+		{"foo", 1, ""},
+		{"bar", 2, ""},
+		{"baz", 3, ""},
+		{"quu", 4, ""},
+	}
+
+	s := []struct {
+		ID        string
+		uidNumber int32
+		secret    string
+		cap       string
+		toDelete  string
+		wantErr   error
+	}{
+		{"a", -1, "a", "GLOBAL_ROOT", "foo", nil},
+		{"b", -1, "a", "", "bar", E_ENTITY_UNQUALIFIED},
+		{"c", -1, "a", "CREATE_ENTITY", "baz", E_ENTITY_UNQUALIFIED},
+		{"d", -1, "a", "DELETE_ENTITY", "quu", nil},
+	}
+
+	resetMap()
+
+	for _, c := range x {
+		// Create some entities to try deleting
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+	}
+
+	for _, c := range s {
+		// Create entities with various capabilities
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+
+		// Assign the test user some capabilities.
+		if err := setEntityCapabilityByID(c.ID, c.cap); err != nil {
+			t.Error(err)
+		}
+
+		// See if the entity can delete its target
+		if err := DeleteEntity(c.ID, c.secret, c.toDelete); err != c.wantErr {
+			t.Error(err)
+		}
+	}
+}

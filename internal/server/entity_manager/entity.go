@@ -155,3 +155,14 @@ func deleteEntityByID(ID string) error {
 
 	return nil
 }
+
+func DeleteEntity(requestID string, requestSecret string, deleteID string) error {
+	// Validate that the entity is real and permitted to perform
+	// this action.
+	if err := validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
+		return err
+	}
+
+	// Delete the requested entity
+	return deleteEntityByID(deleteID)
+}
