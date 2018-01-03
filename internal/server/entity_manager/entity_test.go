@@ -2,6 +2,42 @@ package entity_manager
 
 import "testing"
 
+func TestNewEntityWithAuth(t *testing.T) {
+	s := []struct {
+		ID           string
+		uidNumber    int32
+		secret       string
+		cap          string
+		newID        string
+		newUIDNumber int32
+		newSecret    string
+		wantErr      error
+	}{
+		{"a", -1, "a", "GLOBAL_ROOT", "aa", -1, "a", nil},
+		{"b", -1, "a", "", "bb", -1, "a", E_ENTITY_UNQUALIFIED},
+		{"c", -1, "a", "CREATE_ENTITY", "cc", -1, "a", nil},
+	}
+
+	resetMap()
+
+	for _, c := range s {
+		// Create entities with various capabilities
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+
+		// Assign the test user some capabilities.
+		if err := setEntityCapabilityByID(c.ID, c.cap); err != nil {
+			t.Error(err)
+		}
+
+		// Test if those entities can perform various actions.
+		if err := NewEntity(c.ID, c.secret, c.newID, c.newUIDNumber, c.newSecret); err != c.wantErr {
+			t.Error(err)
+		}
+	}
+}
+
 func TestAddDuplicateID(t *testing.T) {
 	s := []struct {
 		ID        string

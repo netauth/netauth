@@ -84,6 +84,25 @@ func newEntity(ID string, uidNumber int32, secret string) error {
 	return nil
 }
 
+// NewEntity is a public function which adds a new entity on behalf of
+// another one.  The requesting entity must be able to validate its
+// identity and posses the appropriate capability to add a new entity
+// to the system.
+func NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSecret string) error {
+	// Validate that the entity is real and permitted to perform
+	// this action.
+	if err := validateEntityCapabilityAndSecret(requestID, requestSecret, "CREATE_ENTITY"); err != nil {
+		return err
+	}
+
+	// The entity is who they say they are and has the appropriate
+	// capability, time to actually create the new entity.
+	if err := newEntity(newID, newUIDNumber, newSecret); err != nil {
+		return err
+	}
+	return nil
+}
+
 // getEntityByID returns a pointer to an Entity struct and an error
 // value.  The error value will either be E_NO_ENTITY if the requested
 // value did not match, or will be nil where an entity is returned.
