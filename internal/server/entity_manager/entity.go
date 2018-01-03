@@ -13,6 +13,11 @@ var (
 	// eByUIDNumber is a package scoped map of int32 entity
 	// uidNumbers to entities.
 	eByUIDNumber = make(map[int32]*pb.Entity)
+
+	// Making a bootstrap entity is a rare thing and short
+	// circuits most of the permissions logic.  As such we only
+	// allow it to be done once per server start.
+	bootstrap_done bool = false
 )
 
 // nextUIDNumber computes the next available uidNumber to be assigned.
@@ -101,6 +106,54 @@ func NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSe
 		return err
 	}
 	return nil
+}
+
+// NewBootstrapEntity is a function that can be called during the
+// startup of the srever to create an entity that has the appropriate
+// authority to create more entities and otherwise manage the server.
+// This can only be called once during startup, attepts to call it
+// again will result in no change.  The bootstrap user will always get
+// the next available number which in most cases will be 1.
+func MakeBootstrap(ID string, secret string) {
+	if bootstrap_done {
+		return
+	}
+
+	// In some cases if there is an existing system that has no
+	// admin, it is necessary to confer bootstrap powers to an
+	// existing user.  In that case they are just selected and
+	// then provided the GLOBAL_ROOT capability.
+	e, err := getEntityByID(ID)
+	if err != nil {
+		log.Printf("No entity with ID '%s' exists!  Creating...", ID)
+	}
+
+	// This is not a normal Go way of doing this, but this
+	// function has two possible success cases, the flow may jump
+	// in here and return if there is an existing entity to get
+	// root powers.
+	if e != nil {
+		setEntityCapability(e, "GLOBAL_ROOT")
+		bootstrap_done = true
+		return
+	}
+
+	// Even in the bootstrap case its still possible this can
+	// fail, in that case its useful to have the error.
+	if err := newEntity(ID, -1, secret); err != nil {
+		log.Printf("Could not create bootstrap user! (%s)", err)
+	}
+	if err := setEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
+		log.Printf("Couldn't provide root authority! (%s)", err)
+	}
+
+	bootstrap_done = true
+}
+
+// DisableBootstrap disables the ability to bootstrap after the
+// opportunity to do so has passed.
+func DisableBootstrap() {
+	bootstrap_done = true
 }
 
 // getEntityByID returns a pointer to an Entity struct and an error

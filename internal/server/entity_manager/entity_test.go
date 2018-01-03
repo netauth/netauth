@@ -131,6 +131,41 @@ func TestNewEntityAutoNumber(t *testing.T) {
 	}
 }
 
+func TestMakeBootstrap(t *testing.T) {
+	s := []struct {
+		ID            string
+		secret        string
+		pre_disable   bool
+		bootstrap_val bool
+		wantErr       error
+	}{
+		{"bar", "", false, false, nil},
+		{"baz", "", false, false, nil},
+		{"quu", "", true, true, E_NO_ENTITY},
+		{"qux", "", true, false, E_NO_ENTITY},
+	}
+
+	resetMap()
+
+	// Precreate bar to make sure they can get the
+	// global_superuser power in the existing path
+	if err := newEntity("bar", -1, ""); err != nil {
+		t.Error(err)
+	}
+
+	for _, c := range s {
+		bootstrap_done = c.bootstrap_val
+		if c.pre_disable {
+			DisableBootstrap()
+		}
+		MakeBootstrap(c.ID, c.secret)
+
+		if err := checkEntityCapabilityByID(c.ID, "GLOBAL_ROOT"); err != c.wantErr {
+			t.Error(err)
+		}
+	}
+}
+
 func TestGetEntityByID(t *testing.T) {
 	s := []struct {
 		ID        string

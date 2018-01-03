@@ -22,7 +22,7 @@ var (
 	useTLS    = flag.Bool("tls", false, "Enable TLS, off by default")
 	certFile  = flag.String("cert_file", "", "Path to certificate file")
 	keyFile   = flag.String("key_file", "", "Path to key file")
-	superuser = flag.String("make_superuser", "", "ID:secret to make into a superuser - for bootstrapping")
+	bootstrap = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
 )
 
 func newServer() *rpc.NetAuthServer {
@@ -59,21 +59,16 @@ func main() {
 	}
 
 	// Attempt to bootstrap a superuser
-	if len(*superuser) != 0 {
+	if len(*bootstrap) != 0 {
 		log.Println("Creating bootstrap entity with GLOBAL_ROOT")
-		eParts := strings.Split(*superuser, ":")
-		err := entity_manager.NewEntity(eParts[0], -1, eParts[1])
-		e, err := entity_manager.GetEntityByID(eParts[0])
-		if err != nil {
-			log.Fatalf("Super user instantiation error: %s", err)
-		}
-		entity_manager.SetCapability(e, "GLOBAL_ROOT")
-		if err != nil {
-			log.Fatalf("Super user instantiation error: %s", err)
-
-		}
+		eParts := strings.Split(*bootstrap, ":")
+		entity_manager.MakeBootstrap(eParts[0], eParts[1])
 		log.Println("Created bootstrap entity")
 	}
+
+	// If it wasn't used make sure its disabled since it can
+	// create arbitrary root users.
+	entity_manager.DisableBootstrap()
 
 	// Instantiate and launch.  This will block and the server
 	// will server forever.
