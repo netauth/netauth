@@ -34,7 +34,3 @@ func TestBasicCapabilities(t *testing.T) {
 		}
 	}
 }
-
-func TestDuplicateCapabilityAdd(t *testing.T) {
-
-}
