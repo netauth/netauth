@@ -18,16 +18,16 @@ func TestBasicCapabilities(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		e, err := GetEntityByID(c.ID)
+		e, err := getEntityByID(c.ID)
 		if err != nil {
 			t.Error(err)
 		}
 		
-		SetCapability(e, c.capability)
+		setCapability(e, c.capability)
 
 		if err = checkCapability(e, c.test); err != c.err {
 			t.Error(err)

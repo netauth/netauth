@@ -37,13 +37,13 @@ func nextUIDNumber() int32 {
 	return largest + 1
 }
 
-// NewEntity creates a new entity given an ID, uidNumber, and secret.
+// newEntity creates a new entity given an ID, uidNumber, and secret.
 // Its not necessary to set the secret upon creation and it can be set
 // later.  If not set on creaction then the entity will not be usable.
 // uidNumber must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func NewEntity(ID string, uidNumber int32, secret string) error {
+func newEntity(ID string, uidNumber int32, secret string) error {
 	// Does this entity exist already?
 	_, exists := eByID[ID]
 	if exists {
@@ -81,17 +81,17 @@ func NewEntity(ID string, uidNumber int32, secret string) error {
 	// Now we set the entity secret, this could be inlined, but
 	// having it in the seperate function makes resetting the
 	// secret trivial.
-	SetEntitySecretByID(ID, secret)
+	setEntitySecretByID(ID, secret)
 
 	return nil
 }
 
-// GetEntityByID returns a pointer to an Entity struct and an error
+// getEntityByID returns a pointer to an Entity struct and an error
 // value.  The error value will either be E_NO_ENTITY if the requested
 // value did not match, or will be nil where an entity is returned.
 // The string must be a complete match for the entity name being
 // requested.
-func GetEntityByID(ID string) (*pb.Entity, error) {
+func getEntityByID(ID string) (*pb.Entity, error) {
 	e, ok := eByID[ID]
 	if !ok {
 		return nil, E_NO_ENTITY
@@ -104,7 +104,7 @@ func GetEntityByID(ID string) (*pb.Entity, error) {
 // requested value did not match, or will be nil where an entity is
 // returned.  The numeric value must be an exact match for the entity
 // being requested in addition to being an int32 value.
-func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
+func getEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
 	e, ok := eByUIDNumber[uidNumber]
 	if !ok {
 		return nil, E_NO_ENTITY
@@ -117,8 +117,8 @@ func GetEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
 // entity cannot be authenticated with before returning.  If the named
 // ID does not exist the function will return E_NO_ENTITY, in all
 // other cases nil is returned.
-func DeleteEntityByID(ID string) error {
-	e, err := GetEntityByID(ID)
+func deleteEntityByID(ID string) error {
+	e, err := getEntityByID(ID)
 	if err != nil {
 		return E_NO_ENTITY
 	}
@@ -141,8 +141,8 @@ func DeleteEntityByID(ID string) error {
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // bcrypt secure hashing algorithm.
-func SetEntitySecretByID(ID string, secret string) error {
-	e, err := GetEntityByID(ID)
+func setEntitySecretByID(ID string, secret string) error {
+	e, err := getEntityByID(ID)
 	if err != nil {
 		return err
 	}
@@ -164,8 +164,8 @@ func SetEntitySecretByID(ID string, secret string) error {
 
 // ValidateEntitySecretByID validates the identity of an entity by
 // validating the authenticating entity with the secret.
-func ValidateEntitySecretByID(ID string, secret string) error {
-	e, err := GetEntityByID(ID)
+func validateEntitySecretByID(ID string, secret string) error {
+	e, err := getEntityByID(ID)
 	if err != nil {
 		return err
 	}

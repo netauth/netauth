@@ -17,7 +17,7 @@ func TestAddDuplicateID(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -38,7 +38,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -61,7 +61,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 	for _, c := range s {
 		//  Make sure the entity actually gets added
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
@@ -74,7 +74,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 }
 
-func TestNewEntityAutoNumber(t *testing.T) {
+func TestnewEntityAutoNumber(t *testing.T) {
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -89,7 +89,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -109,16 +109,16 @@ func TestGetEntityByID(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		if _, err := GetEntityByID(c.ID); err != nil {
+		if _, err := getEntityByID(c.ID); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, err := GetEntityByID("baz"); err == nil {
+	if _, err := getEntityByID("baz"); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
@@ -137,16 +137,16 @@ func TestGetEntityByUIDNumber(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		if _, err := GetEntityByUIDNumber(c.uidNumber); err != nil {
+		if _, err := getEntityByUIDNumber(c.uidNumber); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, err := GetEntityByUIDNumber(3); err == nil {
+	if _, err := getEntityByUIDNumber(3); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
@@ -165,13 +165,13 @@ func TestSameEntity(t *testing.T) {
 	resetMap()
 
 	for _, c := range s {
-		NewEntity(c.ID, c.uidNumber, c.secret)
-		a, err := GetEntityByID(c.ID)
+		newEntity(c.ID, c.uidNumber, c.secret)
+		a, err := getEntityByID(c.ID)
 		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
 
-		b, err := GetEntityByUIDNumber(c.uidNumber)
+		b, err := getEntityByUIDNumber(c.uidNumber)
 		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
@@ -197,25 +197,25 @@ func TestDeleteEntityByID(t *testing.T) {
 
 	// Populate some entities
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	for _, c := range s {
 		// Delete the entity
-		if err := DeleteEntityByID(c.ID); err != nil {
+		if err := deleteEntityByID(c.ID); err != nil {
 			t.Error(err)
 		}
 
 		// Make sure checking for that entity returns E_NO_ENTITY
-		if _, err := GetEntityByID(c.ID); err != E_NO_ENTITY {
+		if _, err := getEntityByID(c.ID); err != E_NO_ENTITY {
 			t.Error(err)
 		}
 
 		// Make sure that it is actually gone, and not just
 		// gone from one index...
-		if _, err := GetEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
+		if _, err := getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
 		}
 	}
@@ -236,14 +236,14 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	// Load in the entities
 	for _, c := range s {
-		if err := NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	// Validate the secrets
 	for _, c := range s {
-		if err := ValidateEntitySecretByID(c.ID, c.secret); err != nil {
+		if err := validateEntitySecretByID(c.ID, c.secret); err != nil {
 			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
