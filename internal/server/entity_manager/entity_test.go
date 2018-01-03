@@ -281,6 +281,7 @@ func TestDeleteEntityWithAuth(t *testing.T) {
 		{"b", -1, "a", "", "bar", E_ENTITY_UNQUALIFIED},
 		{"c", -1, "a", "CREATE_ENTITY", "baz", E_ENTITY_UNQUALIFIED},
 		{"d", -1, "a", "DELETE_ENTITY", "quu", nil},
+		{"e", -1, "a", "DELETE_ENTITY", "e", nil},
 	}
 
 	resetMap()
