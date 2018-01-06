@@ -19,7 +19,7 @@ enum Capability {
 service NetAuth {
   // AuthEntity takes in an entity with an ID and secret set and will
   // attempt to validate that they are who they say they are.
-  rpc AuthEntity(NetAuthRequest) returns (AuthResult) {}
+  rpc AuthEntity(NetAuthRequest) returns (SimpleResult) {}
 
   // EntityInfo takes in an entity and will try to return as much info
   // as is known about it.
@@ -75,13 +75,11 @@ message Entity {
   optional EntityMeta meta = 4;
 }
 
-// If an entity is trying to authenticate via the AuthEntity RPC, then
-// they will get back an AuthResult message.  This message contains a
-// boolean status of if the authenticate attempt was successful, and a
-// string which may optionally explain an error if something went
-// wrong.
-message AuthResult {
-  // Required is forever, but an AuthResult without a success state
+// A SimpleResult can be returned from most services and explains
+// whether or not the service completed successfully or not, and an
+// optional message that may explain in more detail.
+message SimpleResult {
+  // Required is forever, but a SimpleResult without a success state
   // doesn't mean much.  This field must be present in all replies.
   required bool success = 1 [default = false];
 

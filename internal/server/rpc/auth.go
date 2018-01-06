@@ -10,7 +10,7 @@ import (
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
-func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAuthRequest) (*pb.AuthResult, error) {
+func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAuthRequest) (*pb.SimpleResult, error) {
 	// This must always be defaulted to false here.  Arguably the
 	// security of the entire system stems from here where this
 	// starts out as false and will require a positive action
@@ -27,7 +27,7 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAu
 		netAuthRequest.GetClientID())
 
 	// Construct and return the response.
-	result := new(pb.AuthResult)
+	result := new(pb.SimpleResult)
 	entityID := netAuthRequest.GetEntity().GetID()
 	entitySecret := netAuthRequest.GetEntity().GetSecret()
 	authStatus := entity_manager.ValidateEntitySecretByID(entityID, entitySecret)
