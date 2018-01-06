@@ -96,7 +96,7 @@ func setEntitySecretByID(ID string, secret string) error {
 
 // ValidateEntitySecretByID validates the identity of an entity by
 // validating the authenticating entity with the secret.
-func validateEntitySecretByID(ID string, secret string) error {
+func ValidateEntitySecretByID(ID string, secret string) error {
 	e, err := getEntityByID(ID)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func validateEntitySecretByID(ID string, secret string) error {
 // other functions which perform the actual checks.
 func validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
 	// First validate the entity identity.
-	if err := validateEntitySecretByID(ID, secret); err != nil {
+	if err := ValidateEntitySecretByID(ID, secret); err != nil {
 		return err
 	}
 

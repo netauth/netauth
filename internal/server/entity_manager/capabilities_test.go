@@ -89,7 +89,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	// Validate the secrets
 	for _, c := range s {
-		if err := validateEntitySecretByID(c.ID, c.secret); err != nil {
+		if err := ValidateEntitySecretByID(c.ID, c.secret); err != nil {
 			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
