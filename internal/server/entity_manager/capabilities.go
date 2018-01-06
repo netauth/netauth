@@ -14,11 +14,11 @@ import (
 // conferred to it by group membership.
 func checkEntityCapability(e *pb.Entity, c string) error {
 	for _, a := range e.Meta.Capabilities {
-		if a == pb.EntityMeta_GLOBAL_ROOT {
+		if a == pb.Capability_GLOBAL_ROOT {
 			return nil
 		}
 
-		if a == pb.EntityMeta_Capability(pb.EntityMeta_Capability_value[c]) {
+		if a == pb.Capability(pb.Capability_value[c]) {
 			return nil
 		}
 	}
@@ -45,7 +45,7 @@ func setEntityCapability(e *pb.Entity, c string) {
 		return
 	}
 
-	cap := pb.EntityMeta_Capability(pb.EntityMeta_Capability_value[c])
+	cap := pb.Capability(pb.Capability_value[c])
 
 	for _, a := range e.Meta.Capabilities {
 		if a == cap {

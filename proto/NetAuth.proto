@@ -4,6 +4,18 @@
 
 syntax = "proto2";
 
+// Capabilities permit the holder to perform special actions within
+// NetAuth.  This allows the holder to do things related to management
+// of the server without needing to use the GLOBAL_ROOT bootstrap
+// user.
+enum Capability {
+  GLOBAL_ROOT = 0;
+  CREATE_ENTITY = 1;
+  DESTORY_ENTITY = 2;
+  MODIFY_ENTITY_META = 3;
+  CHANGE_ENTITY_SECRET = 4;
+}
+
 service NetAuth {
   // AuthEntity takes in an entity with an ID and secret set and will
   // attempt to validate that they are who they say they are.
@@ -146,17 +158,8 @@ message EntityMeta {
   // the systems that actually setup the graphical environment.
   optional string graphicalShell = 7;
 
-  // Entities have capabilitites that are known to NetAuth that permit
-  // them to take actions such as creating new entities, modifying
-  // them, altering secrets on them, and so on.  This are enumerated
-  // here.
-  enum Capability {
-    GLOBAL_ROOT = 0;
-    CREATE_ENTITY = 1;
-    DESTORY_ENTITY = 2;
-    MODIFY_ENTITY_META = 3;
-    CHANGE_ENTITY_SECRET = 4;
-  }
+  // Entities may have capabilities that provide special actions to
+  // the holder within NetAuth.
   repeated Capability capabilities = 8;
 }
 
