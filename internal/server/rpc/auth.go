@@ -2,7 +2,10 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"log"
+
+	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 
 	pb "github.com/NetAuth/NetAuth/proto"
 )
@@ -25,6 +28,16 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAu
 
 	// Construct and return the response.
 	result := new(pb.AuthResult)
+	entityID := netAuthRequest.GetEntity().GetID()
+	entitySecret := netAuthRequest.GetEntity().GetSecret()
+	authStatus := entity_manager.ValidateEntitySecretByID(entityID, entitySecret)
+	if authStatus != nil {
+		success = false
+	} else {
+		success = true
+	}
 	result.Success = &success
+	msg := fmt.Sprint(authStatus)
+	result.Msg = &msg
 	return result, nil
 }
