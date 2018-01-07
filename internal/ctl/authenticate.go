@@ -34,9 +34,10 @@ func (p *AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	// Authenticate to the server, the variables that come from
 	// "nowhere" are package-scoped and originate in connopts.go
 	// adjacent to this file.
-	ok := client.Authenticate(serverAddr, serverPort, clientID, serviceID, entity, secret)
-	if !ok {
+	msg, err := client.Authenticate(serverAddr, serverPort, clientID, serviceID, entity, secret)
+	if err != nil {
 		return subcommands.ExitFailure
 	}
+	fmt.Println(msg)
 	return subcommands.ExitSuccess
 }
