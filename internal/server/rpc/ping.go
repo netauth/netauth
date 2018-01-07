@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 
+	"github.com/NetAuth/NetAuth/internal/server/health"
+
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/NetAuth/proto"
@@ -18,11 +20,17 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 	log.Printf("Ping from %s", pingRequest.GetClientID())
 
 	reply := new(pb.PingResponse)
+	reply.Healthy = proto.Bool(health.Get())
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Println("Hostname could not be determined!")
 		hostname = "BOGUS_HOST"
 	}
-	reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is ready to serve!", hostname))
+
+	if *reply.Healthy {
+		reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is ready to serve!", hostname))
+	} else {
+		reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is not ready to serve at this time!", hostname))
+	}
 	return reply, nil
 }

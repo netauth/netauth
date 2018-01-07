@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
+	"github.com/NetAuth/NetAuth/internal/server/health"
 	"github.com/NetAuth/NetAuth/internal/server/rpc"
 
 	"google.golang.org/grpc"
@@ -69,6 +70,9 @@ func main() {
 	// If it wasn't used make sure its disabled since it can
 	// create arbitrary root users.
 	entity_manager.DisableBootstrap()
+
+	// At this point the server should be ready to serve.
+	health.SetGood()
 
 	// Instantiate and launch.  This will block and the server
 	// will server forever.
