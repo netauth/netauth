@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"log"
 
 	"github.com/NetAuth/NetAuth/pkg/client"
 
@@ -24,13 +23,6 @@ func (*AuthCmd) Usage() string {
 func (p *AuthCmd) SetFlags(f *flag.FlagSet) {}
 
 func (p *AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	if secret == "" {
-		fmt.Print("Secret: ")
-		_, err := fmt.Scanln(&secret)
-		if err != nil {
-			log.Printf("Error: %s", err)
-		}
-	}
 	// Authenticate to the server, the variables that come from
 	// "nowhere" are package-scoped and originate in connopts.go
 	// adjacent to this file.

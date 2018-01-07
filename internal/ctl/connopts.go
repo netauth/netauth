@@ -1,12 +1,14 @@
 package ctl
 
+import "fmt"
+
 var (
-	serverAddr    string
-	serverPort    int
-	clientID      string
-	serviceID     string
-	entity        string
-	secret        string
+	serverAddr string
+	serverPort int
+	clientID   string
+	serviceID  string
+	entity     string
+	secret     string
 )
 
 // SetServerAddr sets the server address varaiable for the rpc options
@@ -28,3 +30,15 @@ func SetEntity(s string) { entity = s }
 
 // SetSecret sets the secret for all subcommands.
 func SetSecret(s string) { secret = s }
+
+// ensureSecret prompts for the secret if it was not provided already.
+// This gets around the secret being visible on the command line.
+func ensureSecret() {
+	if secret == "" {
+		fmt.Print("Secret: ")
+		_, err := fmt.Scanln(&secret)
+		if err != nil {
+			fmt.Printf("Error: %s", err)
+		}
+	}
+}
