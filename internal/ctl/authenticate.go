@@ -23,6 +23,10 @@ func (*AuthCmd) Usage() string {
 func (p *AuthCmd) SetFlags(f *flag.FlagSet) {}
 
 func (p *AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+	// Ensure the secret has been obtained if it wasn't specified
+	// on the command line.
+	ensureSecret()
+
 	// Authenticate to the server, the variables that come from
 	// "nowhere" are package-scoped and originate in connopts.go
 	// adjacent to this file.
