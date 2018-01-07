@@ -52,6 +52,45 @@ func Authenticate(server string, port int, clientID string, serviceID string, en
 	return authResult.GetMsg(), nil
 }
 
+
+// NewEntity makes a request to the server to add a new entity.  It
+// requires an existing entity for authentication and authorization to
+// add the new one, as well as parameters to populate the core fields
+// on the new entity.  This function returns a string message from the
+// server and an error describing whether or not the server was able
+// to add the requested entity.
+func NewEntity(server string, port int, clientID string, serviceID string, entity string, secret string, newEntity string, newUIDNumber int32, newSecret string) (string, error) {
+	// e is the entity that is requesting this change.  This
+	// entity must have the correct capabilities to actually add a
+	// new entity to the system.
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	// ne is the new entity.  These fields are the ones that must
+	// be set at the time of creation for a new entity.
+	ne := new(pb.Entity)
+	ne.ID = &newEntity
+	ne.UidNumber = &newUIDNumber
+	ne.Secret = &newSecret
+
+	request := new(pb.ModEntityRequest)
+	request.Entity = e
+	request.ModEntity = ne
+
+	c, err := NewClient(server, port)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := c.NewEntity(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

@@ -44,6 +44,7 @@ func main() {
 	subcommands.Register(subcommands.CommandsCommand(), "")
 	subcommands.Register(&ctl.PingCmd{}, "")
 	subcommands.Register(&ctl.AuthCmd{}, "")
+	subcommands.Register(&ctl.NewEntityCmd{}, "")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")

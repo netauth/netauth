@@ -27,6 +27,9 @@ service NetAuth {
 
   // It is desireable to ping the server for status and health
   rpc Ping(PingRequest) returns (PingResponse) {}
+
+  // Obviously we'll need to be able to add entities to the server
+  rpc NewEntity(ModEntityRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -48,6 +51,18 @@ message NetAuthRequest {
   // systems all making requests with the same clientID this will
   // differentiate them.
   optional string serviceID = 3;
+}
+
+// A ModEntityRequest takes an entity to authorize and an entity to
+// act upon.  These may be the same entity for changes being applied
+// by an entity to itself.
+message ModEntityRequest {
+  // The request must always have an entity, the second entity may not
+  // be set in which case the first entity will be acted upon.
+  required Entity entity = 1;
+
+  // This is the entity to act on, it may be set or it may not be.
+  optional Entity modEntity = 2;
 }
 
 // An entity may be a person or a machine actor that wishes to act as
