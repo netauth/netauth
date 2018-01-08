@@ -10,7 +10,6 @@ import (
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
-
 // NewEntity takes in a ModEntityRequest and attempts to create a new
 // entity.  This call must be made by an entity that has the
 // CREATE_ENTITY capability to succeed.

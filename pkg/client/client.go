@@ -52,7 +52,6 @@ func Authenticate(server string, port int, clientID string, serviceID string, en
 	return authResult.GetMsg(), nil
 }
 
-
 // NewEntity makes a request to the server to add a new entity.  It
 // requires an existing entity for authentication and authorization to
 // add the new one, as well as parameters to populate the core fields
@@ -84,6 +83,37 @@ func NewEntity(server string, port int, clientID string, serviceID string, entit
 	}
 
 	result, err := c.NewEntity(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
+
+// RemoveEntity makes a request to the server to remove the named
+// entity.  This must be authorized by an entity which has the
+// appropriate capabilities to fulfill the remove request
+func RemoveEntity(server string, port int, clientID string, serviceID string, entity string, secret string, delEntity string) (string, error) {
+	// e is the entity requesting this change, it must have the
+	// correct permissions to run the remove.
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	// re is the entity to be removed
+	re := new(pb.Entity)
+	re.ID = &delEntity
+
+	request := new(pb.ModEntityRequest)
+	request.Entity = e
+	request.ModEntity = re
+
+	c, err := NewClient(server, port)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := c.RemoveEntity(context.Background(), request)
 	if err != nil {
 		return "", err
 	}
