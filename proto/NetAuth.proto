@@ -33,6 +33,9 @@ service NetAuth {
 
   // Entities may need to be removed.
   rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}
+
+  // Secrets should be changed periodically
+  rpc ChangeSecret(ModEntityRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify

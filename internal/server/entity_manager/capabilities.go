@@ -94,6 +94,33 @@ func setEntitySecretByID(ID string, secret string) error {
 	return nil
 }
 
+// ChangeSecret is a publicly available function to change an entity
+// secret.  This function requires either the CHANGE_ENTITY_SECRET
+// capability or the entity to be requesting the change for itself.
+func ChangeSecret(ID string, secret string, changeID string, changeSecret string) error {
+	// If the entity isn't the one requesting the change then
+	// extra capabilities are required.
+	if ID != changeID {
+		if err := validateEntityCapabilityAndSecret(ID, secret, "CHANGE_ENTITY_SECRET"); err != nil {
+			return err
+		}
+	} else {
+		if err := ValidateEntitySecretByID(ID, secret); err != nil {
+			return err
+		}
+	}
+
+	// At this point the entity is either the one that we're
+	// changing the secret for or is the one that is allowed to
+	// change the secrets of others.
+	if err := setEntitySecretByID(changeID, changeSecret); err != nil {
+		return err
+	}
+
+	// At this point the secret has been changed.
+	return nil
+}
+
 // ValidateEntitySecretByID validates the identity of an entity by
 // validating the authenticating entity with the secret.
 func ValidateEntitySecretByID(ID string, secret string) error {

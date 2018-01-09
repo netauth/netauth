@@ -121,6 +121,36 @@ func RemoveEntity(server string, port int, clientID string, serviceID string, en
 	return result.GetMsg(), nil
 }
 
+// ChangeSecret changes the secret on the given modEntity under the
+// authority of the given entity.
+func ChangeSecret(server string, port int, clientID string, serviceID string, entity string, secret string, modEntity string, modSecret string) (string, error) {
+	// e is the enity requesting the change.
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	// me is the entity to be modified
+	me := new(pb.Entity)
+	me.ID = &modEntity
+	me.Secret = &modSecret
+
+	request := new(pb.ModEntityRequest)
+	request.Entity = e
+	request.ModEntity = me
+
+	c, err := NewClient(server, port)
+	if err != nil {
+		return "", err
+	}
+
+	result, err := c.ChangeSecret(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

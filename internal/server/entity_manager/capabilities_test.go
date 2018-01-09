@@ -127,3 +127,48 @@ func TestValidateEntityCapabilityAndSecret(t *testing.T) {
 		}
 	}
 }
+
+func TestChangeSecret(t *testing.T) {
+	entities := []struct {
+		ID     string
+		secret string
+		cap    string
+	}{
+		{"a", "a", ""},                     // unpriviledged user
+		{"b", "b", "CHANGE_ENTITY_SECRET"}, // can change other secrets
+		{"c", "c", "GLOBAL_ROOT"},          // can also change other secrets
+	}
+
+	cases := []struct {
+		ID           string
+		secret       string
+		changeID     string
+		changeSecret string
+		wantErr      error
+	}{
+		{"a", "a", "a", "b", nil},                  // can change own password
+		{"a", "b", "b", "d", E_ENTITY_UNQUALIFIED}, // can't change other secrets without capability
+		{"b", "b", "a", "a", nil},                  // can change other's secret with CHANGE_ENTITY_SECRET
+		{"c", "c", "a", "b", nil},                  // can change other's secret with GLOBAL_ROOT
+	}
+
+	resetMap()
+
+	// Add some entities
+	for _, e := range entities {
+		if err := newEntity(e.ID, -1, e.secret); err != nil {
+			t.Error(err)
+		}
+
+		if err := setEntityCapabilityByID(e.ID, e.cap); err != nil {
+			t.Error(err)
+		}
+	}
+
+	// Run the tests
+	for _, c := range cases {
+		if err := ChangeSecret(c.ID, c.secret, c.changeID, c.changeSecret); err != c.wantErr {
+			t.Error(err)
+		}
+	}
+}
