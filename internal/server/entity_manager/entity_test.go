@@ -3,6 +3,8 @@ package entity_manager
 import "testing"
 
 func TestNewEntityWithAuth(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID           string
 		uidNumber    int32
@@ -18,27 +20,27 @@ func TestNewEntityWithAuth(t *testing.T) {
 		{"c", -1, "a", "CREATE_ENTITY", "cc", -1, "a", nil},
 	}
 
-	resetMap()
-
 	for _, c := range s {
 		// Create entities with various capabilities
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
 		// Assign the test user some capabilities.
-		if err := setEntityCapabilityByID(c.ID, c.cap); err != nil {
+		if err := em.setEntityCapabilityByID(c.ID, c.cap); err != nil {
 			t.Error(err)
 		}
 
 		// Test if those entities can perform various actions.
-		if err := NewEntity(c.ID, c.secret, c.newID, c.newUIDNumber, c.newSecret); err != c.wantErr {
+		if err := em.NewEntity(c.ID, c.secret, c.newID, c.newUIDNumber, c.newSecret); err != c.wantErr {
 			t.Error(err)
 		}
 	}
 }
 
 func TestAddDuplicateID(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -49,17 +51,16 @@ func TestAddDuplicateID(t *testing.T) {
 		{"foo", 2, "", E_DUPLICATE_ID},
 	}
 
-	// Force the map to be empty
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
 }
 
 func TestAddDuplicateUIDNumber(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -70,17 +71,16 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 		{"bar", 1, "", E_DUPLICATE_UIDNUMBER},
 	}
 
-	// Force the map to be empty
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
 }
 
 func TestNextUIDNumber(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID            string
 		uidNumber     int32
@@ -93,17 +93,15 @@ func TestNextUIDNumber(t *testing.T) {
 		{"fuu", 23, "", 66}, // Later additions shouldn't alter max
 	}
 
-	resetMap()
-
 	for _, c := range s {
 		//  Make sure the entity actually gets added
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
 		// Validate that after a given mutation the number is
 		// still what we expect it to be.
-		if next := nextUIDNumber(); next != c.nextUIDNumber {
+		if next := em.nextUIDNumber(); next != c.nextUIDNumber {
 			t.Errorf("Wrong next number; got: %v want %v", next, c.nextUIDNumber)
 		}
 	}
@@ -111,6 +109,8 @@ func TestNextUIDNumber(t *testing.T) {
 }
 
 func TestNewEntityAutoNumber(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -121,17 +121,16 @@ func TestNewEntityAutoNumber(t *testing.T) {
 		{"baz", 3, ""},
 	}
 
-	// Force the map to be empty
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 }
 
 func TestMakeBootstrap(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID            string
 		secret        string
@@ -145,28 +144,28 @@ func TestMakeBootstrap(t *testing.T) {
 		{"qux", "", true, false, E_NO_ENTITY},
 	}
 
-	resetMap()
-
 	// Precreate bar to make sure they can get the
 	// global_superuser power in the existing path
-	if err := newEntity("bar", -1, ""); err != nil {
+	if err := em.newEntity("bar", -1, ""); err != nil {
 		t.Error(err)
 	}
 
 	for _, c := range s {
-		bootstrap_done = c.bootstrap_val
+		em.bootstrap_done = c.bootstrap_val
 		if c.pre_disable {
-			DisableBootstrap()
+			em.DisableBootstrap()
 		}
-		MakeBootstrap(c.ID, c.secret)
+		em.MakeBootstrap(c.ID, c.secret)
 
-		if err := checkEntityCapabilityByID(c.ID, "GLOBAL_ROOT"); err != c.wantErr {
+		if err := em.checkEntityCapabilityByID(c.ID, "GLOBAL_ROOT"); err != c.wantErr {
 			t.Error(err)
 		}
 	}
 }
 
 func TestGetEntityByID(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -176,25 +175,24 @@ func TestGetEntityByID(t *testing.T) {
 		{"bar", 2, ""},
 	}
 
-	// Force the map to be empty
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		if _, err := getEntityByID(c.ID); err != nil {
+		if _, err := em.getEntityByID(c.ID); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, err := getEntityByID("baz"); err == nil {
+	if _, err := em.getEntityByID("baz"); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
 
 func TestGetEntityByUIDNumber(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -204,25 +202,24 @@ func TestGetEntityByUIDNumber(t *testing.T) {
 		{"bar", 2, ""},
 	}
 
-	// Force the map to be empty
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		if _, err := getEntityByUIDNumber(c.uidNumber); err != nil {
+		if _, err := em.getEntityByUIDNumber(c.uidNumber); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, err := getEntityByUIDNumber(3); err == nil {
+	if _, err := em.getEntityByUIDNumber(3); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
 
 func TestSameEntity(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -233,16 +230,17 @@ func TestSameEntity(t *testing.T) {
 		{"baz", 3, ""},
 	}
 
-	resetMap()
-
 	for _, c := range s {
-		newEntity(c.ID, c.uidNumber, c.secret)
-		a, err := getEntityByID(c.ID)
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+			t.Error(err)
+		}
+
+		a, err := em.getEntityByID(c.ID)
 		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
 
-		b, err := getEntityByUIDNumber(c.uidNumber)
+		b, err := em.getEntityByUIDNumber(c.uidNumber)
 		if err != nil {
 			t.Error("Couldn't recall newly added entity!")
 		}
@@ -254,6 +252,8 @@ func TestSameEntity(t *testing.T) {
 }
 
 func TestDeleteEntityByID(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -264,35 +264,35 @@ func TestDeleteEntityByID(t *testing.T) {
 		{"baz", 3, ""},
 	}
 
-	resetMap()
-
 	// Populate some entities
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	for _, c := range s {
 		// Delete the entity
-		if err := deleteEntityByID(c.ID); err != nil {
+		if err := em.deleteEntityByID(c.ID); err != nil {
 			t.Error(err)
 		}
 
 		// Make sure checking for that entity returns E_NO_ENTITY
-		if _, err := getEntityByID(c.ID); err != E_NO_ENTITY {
+		if _, err := em.getEntityByID(c.ID); err != E_NO_ENTITY {
 			t.Error(err)
 		}
 
 		// Make sure that it is actually gone, and not just
 		// gone from one index...
-		if _, err := getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
+		if _, err := em.getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
 		}
 	}
 }
 
 func TestDeleteEntityWithAuth(t *testing.T) {
+	em := New()
+
 	x := []struct {
 		ID        string
 		uidNumber int32
@@ -319,34 +319,34 @@ func TestDeleteEntityWithAuth(t *testing.T) {
 		{"e", -1, "a", "DELETE_ENTITY", "e", nil},
 	}
 
-	resetMap()
-
 	for _, c := range x {
 		// Create some entities to try deleting
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	for _, c := range s {
 		// Create entities with various capabilities
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
 		// Assign the test user some capabilities.
-		if err := setEntityCapabilityByID(c.ID, c.cap); err != nil {
+		if err := em.setEntityCapabilityByID(c.ID, c.cap); err != nil {
 			t.Error(err)
 		}
 
 		// See if the entity can delete its target
-		if err := DeleteEntity(c.ID, c.secret, c.toDelete); err != c.wantErr {
+		if err := em.DeleteEntity(c.ID, c.secret, c.toDelete); err != c.wantErr {
 			t.Error(err)
 		}
 	}
 }
 
 func TestBasicCapabilities(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID         string
 		uidNumber  int32
@@ -361,54 +361,53 @@ func TestBasicCapabilities(t *testing.T) {
 		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", E_ENTITY_UNQUALIFIED},
 	}
 
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		e, err := getEntityByID(c.ID)
+		e, err := em.getEntityByID(c.ID)
 		if err != nil {
 			t.Error(err)
 		}
 
-		setEntityCapability(e, c.capability)
+		em.setEntityCapability(e, c.capability)
 
-		if err = checkEntityCapability(e, c.test); err != c.err {
+		if err = em.checkEntityCapability(e, c.test); err != c.err {
 			t.Error(err)
 		}
 	}
 }
 
 func TestSetSameCapabilityTwice(t *testing.T) {
-	// Reset state
-	resetMap()
+	em := New()
 
 	// Add an entity
-	if err := newEntity("foo", -1, ""); err != nil {
+	if err := em.newEntity("foo", -1, ""); err != nil {
 		t.Error(err)
 	}
 
-	e, err := getEntityByID("foo")
+	e, err := em.getEntityByID("foo")
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Set one capability
-	setEntityCapability(e, "GLOBAL_ROOT")
+	em.setEntityCapability(e, "GLOBAL_ROOT")
 	if len(e.Meta.Capabilities) != 1 {
 		t.Error("Wrong number of capabilities set!")
 	}
 
 	// Set it again and make sure its still only listed once.
-	setEntityCapability(e, "GLOBAL_ROOT")
+	em.setEntityCapability(e, "GLOBAL_ROOT")
 	if len(e.Meta.Capabilities) != 1 {
 		t.Error("Wrong number of capabilities set!")
 	}
 }
 
 func TestBasicCapabilitiesByID(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID         string
 		uidNumber  int32
@@ -423,32 +422,33 @@ func TestBasicCapabilitiesByID(t *testing.T) {
 		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", E_ENTITY_UNQUALIFIED},
 	}
 
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		setEntityCapabilityByID(c.ID, c.capability)
+		em.setEntityCapabilityByID(c.ID, c.capability)
 
-		if err := checkEntityCapabilityByID(c.ID, c.test); err != c.err {
+		if err := em.checkEntityCapabilityByID(c.ID, c.test); err != c.err {
 			t.Error(err)
 		}
 	}
 }
 
 func TestCapabilityBogusEntity(t *testing.T) {
+	em := New()
+
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
 	// should be returned.
-	resetMap()
-	if err := setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != E_NO_ENTITY {
+	if err := em.setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != E_NO_ENTITY {
 		t.Error(err)
 	}
 }
 
 func TestSetEntitySecretByID(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID        string
 		uidNumber int32
@@ -459,41 +459,43 @@ func TestSetEntitySecretByID(t *testing.T) {
 		{"baz", 3, "a"},
 	}
 
-	resetMap()
-
 	// Load in the entities
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	// Validate the secrets
 	for _, c := range s {
-		if err := ValidateEntitySecretByID(c.ID, c.secret); err != nil {
+		if err := em.ValidateEntitySecretByID(c.ID, c.secret); err != nil {
 			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
 }
 
 func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
+	em := New()
+
 	// Attempt to set the secret on an entity that doesn't exist.
-	resetMap()
-	if err := setEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+	if err := em.setEntitySecretByID("a", "a"); err != E_NO_ENTITY {
 		t.Error(err)
 	}
 }
 
 func TestValidateEntitySecretByIDBogusEntity(t *testing.T) {
+	em := New()
+
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
-	resetMap()
-	if err := ValidateEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+	if err := em.ValidateEntitySecretByID("a", "a"); err != E_NO_ENTITY {
 		t.Error(err)
 	}
 }
 
 func TestValidateEntityCapabilityAndSecret(t *testing.T) {
+	em := New()
+
 	s := []struct {
 		ID         string
 		uidNumber  int32
@@ -509,24 +511,24 @@ func TestValidateEntityCapabilityAndSecret(t *testing.T) {
 		{"d", -1, "a", "GLOBAL_ROOT", nil, "a", "CREATE_ENTITY"},
 	}
 
-	resetMap()
-
 	for _, c := range s {
-		if err := newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
-		if err := setEntityCapabilityByID(c.ID, c.cap); err != nil {
+		if err := em.setEntityCapabilityByID(c.ID, c.cap); err != nil {
 			t.Error(err)
 		}
 
-		if err := validateEntityCapabilityAndSecret(c.ID, c.testSecret, c.testCap); err != c.wantErr {
+		if err := em.validateEntityCapabilityAndSecret(c.ID, c.testSecret, c.testCap); err != c.wantErr {
 			t.Error(err)
 		}
 	}
 }
 
 func TestChangeSecret(t *testing.T) {
+	em := New()
+
 	entities := []struct {
 		ID     string
 		secret string
@@ -544,29 +546,27 @@ func TestChangeSecret(t *testing.T) {
 		changeSecret string
 		wantErr      error
 	}{
-		{"a", "e", "a", "a", E_ENTITY_BADAUTH},           // same entity, bad secret
+		{"a", "e", "a", "a", E_ENTITY_BADAUTH},     // same entity, bad secret
 		{"a", "a", "a", "b", nil},                  // can change own password
 		{"a", "b", "b", "d", E_ENTITY_UNQUALIFIED}, // can't change other secrets without capability
 		{"b", "b", "a", "a", nil},                  // can change other's secret with CHANGE_ENTITY_SECRET
 		{"c", "c", "a", "b", nil},                  // can change other's secret with GLOBAL_ROOT
 	}
 
-	resetMap()
-
 	// Add some entities
 	for _, e := range entities {
-		if err := newEntity(e.ID, -1, e.secret); err != nil {
+		if err := em.newEntity(e.ID, -1, e.secret); err != nil {
 			t.Error(err)
 		}
 
-		if err := setEntityCapabilityByID(e.ID, e.cap); err != nil {
+		if err := em.setEntityCapabilityByID(e.ID, e.cap); err != nil {
 			t.Error(err)
 		}
 	}
 
 	// Run the tests
 	for _, c := range cases {
-		if err := ChangeSecret(c.ID, c.secret, c.changeID, c.changeSecret); err != c.wantErr {
+		if err := em.ChangeSecret(c.ID, c.secret, c.changeID, c.changeSecret); err != c.wantErr {
 			t.Error(err)
 		}
 	}

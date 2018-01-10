@@ -4,28 +4,25 @@ import (
 	"log"
 
 	"golang.org/x/crypto/bcrypt"
-	
+
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
-var (
-	// eByID is a package scoped map of ID strings to entities.
-	eByID = make(map[string]*pb.Entity)
+// New returns an initialized EMDataStore on to which all other
+// functions are bound.
+func New() EMDataStore {
+	x := EMDataStore{}
+	x.eByID = make(map[string]*pb.Entity)
+	x.eByUIDNumber = make(map[int32]*pb.Entity)
+	x.bootstrap_done = false
 
-	// eByUIDNumber is a package scoped map of int32 entity
-	// uidNumbers to entities.
-	eByUIDNumber = make(map[int32]*pb.Entity)
-
-	// Making a bootstrap entity is a rare thing and short
-	// circuits most of the permissions logic.  As such we only
-	// allow it to be done once per server start.
-	bootstrap_done bool = false
-)
+	return x
+}
 
 // nextUIDNumber computes the next available uidNumber to be assigned.
 // This allows a NewEntity request to be made with the uidNumber field
 // unset.
-func nextUIDNumber() int32 {
+func (emds *EMDataStore) nextUIDNumber() int32 {
 	var largest int32 = 0
 
 	// Iterate over the entities and return the largest ID found
@@ -33,9 +30,9 @@ func nextUIDNumber() int32 {
 	// missing in the middle and still work.  Though an
 	// inefficient search this is worst case O(N) and happens in
 	// memory anyway.
-	for i := range eByID {
-		if eByID[i].GetUidNumber() > largest {
-			largest = eByID[i].GetUidNumber()
+	for i := range emds.eByID {
+		if emds.eByID[i].GetUidNumber() > largest {
+			largest = emds.eByID[i].GetUidNumber()
 		}
 	}
 
@@ -48,14 +45,14 @@ func nextUIDNumber() int32 {
 // uidNumber must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func newEntity(ID string, uidNumber int32, secret string) error {
+func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) error {
 	// Does this entity exist already?
-	_, exists := eByID[ID]
+	_, exists := emds.eByID[ID]
 	if exists {
 		log.Printf("Entity with ID '%s' already exists!", ID)
 		return E_DUPLICATE_ID
 	}
-	_, exists = eByUIDNumber[uidNumber]
+	_, exists = emds.eByUIDNumber[uidNumber]
 	if exists {
 		log.Printf("Entity with uidNumber '%d' already exists!", uidNumber)
 		return E_DUPLICATE_UIDNUMBER
@@ -65,7 +62,7 @@ func newEntity(ID string, uidNumber int32, secret string) error {
 	if uidNumber == -1 {
 		// -1 is a sentinel value that tells us to pick the
 		// next available number and assign it.
-		uidNumber = nextUIDNumber()
+		uidNumber = emds.nextUIDNumber()
 	}
 
 	// Ok, they don't exist so we'll make them exist now
@@ -77,16 +74,16 @@ func newEntity(ID string, uidNumber int32, secret string) error {
 	}
 
 	// Add this entity to the in-memory listings
-	eByID[ID] = newEntity
-	eByUIDNumber[uidNumber] = newEntity
+	emds.eByID[ID] = newEntity
+	emds.eByUIDNumber[uidNumber] = newEntity
 
 	// Successfully created we now return no errors
 	log.Printf("Created entity '%s'", ID)
 
 	// Now we set the entity secret, this could be inlined, but
-	// having it in the seperate function makes resetting the
+	// having it in the seperate func (emds *EMDataStore)tion makes resetting the
 	// secret trivial.
-	setEntitySecretByID(ID, secret)
+	emds.setEntitySecretByID(ID, secret)
 
 	return nil
 }
@@ -95,16 +92,16 @@ func newEntity(ID string, uidNumber int32, secret string) error {
 // another one.  The requesting entity must be able to validate its
 // identity and posses the appropriate capability to add a new entity
 // to the system.
-func NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSecret string) error {
+func (emds *EMDataStore) NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSecret string) error {
 	// Validate that the entity is real and permitted to perform
 	// this action.
-	if err := validateEntityCapabilityAndSecret(requestID, requestSecret, "CREATE_ENTITY"); err != nil {
+	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "CREATE_ENTITY"); err != nil {
 		return err
 	}
 
 	// The entity is who they say they are and has the appropriate
 	// capability, time to actually create the new entity.
-	if err := newEntity(newID, newUIDNumber, newSecret); err != nil {
+	if err := emds.newEntity(newID, newUIDNumber, newSecret); err != nil {
 		return err
 	}
 	return nil
@@ -116,8 +113,8 @@ func NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSe
 // This can only be called once during startup, attepts to call it
 // again will result in no change.  The bootstrap user will always get
 // the next available number which in most cases will be 1.
-func MakeBootstrap(ID string, secret string) {
-	if bootstrap_done {
+func (emds *EMDataStore) MakeBootstrap(ID string, secret string) {
+	if emds.bootstrap_done {
 		return
 	}
 
@@ -125,37 +122,37 @@ func MakeBootstrap(ID string, secret string) {
 	// admin, it is necessary to confer bootstrap powers to an
 	// existing user.  In that case they are just selected and
 	// then provided the GLOBAL_ROOT capability.
-	e, err := getEntityByID(ID)
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		log.Printf("No entity with ID '%s' exists!  Creating...", ID)
 	}
 
 	// This is not a normal Go way of doing this, but this
-	// function has two possible success cases, the flow may jump
+	// func (emds *EMDataStore)tion has two possible success cases, the flow may jump
 	// in here and return if there is an existing entity to get
 	// root powers.
 	if e != nil {
-		setEntityCapability(e, "GLOBAL_ROOT")
-		bootstrap_done = true
+		emds.setEntityCapability(e, "GLOBAL_ROOT")
+		emds.bootstrap_done = true
 		return
 	}
 
 	// Even in the bootstrap case its still possible this can
 	// fail, in that case its useful to have the error.
-	if err := newEntity(ID, -1, secret); err != nil {
+	if err := emds.newEntity(ID, -1, secret); err != nil {
 		log.Printf("Could not create bootstrap user! (%s)", err)
 	}
-	if err := setEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
+	if err := emds.setEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
 		log.Printf("Couldn't provide root authority! (%s)", err)
 	}
 
-	bootstrap_done = true
+	emds.bootstrap_done = true
 }
 
 // DisableBootstrap disables the ability to bootstrap after the
 // opportunity to do so has passed.
-func DisableBootstrap() {
-	bootstrap_done = true
+func (emds *EMDataStore) DisableBootstrap() {
+	emds.bootstrap_done = true
 }
 
 // getEntityByID returns a pointer to an Entity struct and an error
@@ -163,8 +160,8 @@ func DisableBootstrap() {
 // value did not match, or will be nil where an entity is returned.
 // The string must be a complete match for the entity name being
 // requested.
-func getEntityByID(ID string) (*pb.Entity, error) {
-	e, ok := eByID[ID]
+func (emds *EMDataStore) getEntityByID(ID string) (*pb.Entity, error) {
+	e, ok := emds.eByID[ID]
 	if !ok {
 		return nil, E_NO_ENTITY
 	}
@@ -176,21 +173,21 @@ func getEntityByID(ID string) (*pb.Entity, error) {
 // requested value did not match, or will be nil where an entity is
 // returned.  The numeric value must be an exact match for the entity
 // being requested in addition to being an int32 value.
-func getEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
-	e, ok := eByUIDNumber[uidNumber]
+func (emds *EMDataStore) getEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
+	e, ok := emds.eByUIDNumber[uidNumber]
 	if !ok {
 		return nil, E_NO_ENTITY
 	}
 	return e, nil
 }
 
-// DeleteEntityByID deletes the named entity.  This function will
+// DeleteEntityByID deletes the named entity.  This func (emds *EMDataStore)tion will
 // delete the entity in a non-atomic way, but will ensure that the
 // entity cannot be authenticated with before returning.  If the named
-// ID does not exist the function will return E_NO_ENTITY, in all
+// ID does not exist the func (emds *EMDataStore)tion will return E_NO_ENTITY, in all
 // other cases nil is returned.
-func deleteEntityByID(ID string) error {
-	e, err := getEntityByID(ID)
+func (emds *EMDataStore) deleteEntityByID(ID string) error {
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return E_NO_ENTITY
 	}
@@ -204,29 +201,29 @@ func deleteEntityByID(ID string) error {
 	e.Secret = nil
 
 	// Now we need to delete from both maps
-	delete(eByID, e.GetID())
-	delete(eByUIDNumber, e.GetUidNumber())
+	delete(emds.eByID, e.GetID())
+	delete(emds.eByUIDNumber, e.GetUidNumber())
 	log.Printf("Deleted entity '%s'", e.GetID())
 
 	return nil
 }
 
-func DeleteEntity(requestID string, requestSecret string, deleteID string) error {
+func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, deleteID string) error {
 	// Validate that the entity is real and permitted to perform
 	// this action.
-	if err := validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
+	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
 		return err
 	}
 
 	// Delete the requested entity
-	return deleteEntityByID(deleteID)
+	return emds.deleteEntityByID(deleteID)
 }
 
-// checkCapability is a helper function which allows a method to
+// checkCapability is a helper func (emds *EMDataStore)tion which allows a method to
 // quickly check for a capability on an entity.  This check only looks
 // for capabilities that an entity has directly, not any which may be
 // conferred to it by group membership.
-func checkEntityCapability(e *pb.Entity, c string) error {
+func (emds *EMDataStore) checkEntityCapability(e *pb.Entity, c string) error {
 	for _, a := range e.Meta.Capabilities {
 		if a == pb.Capability_GLOBAL_ROOT {
 			return nil
@@ -239,21 +236,21 @@ func checkEntityCapability(e *pb.Entity, c string) error {
 	return E_ENTITY_UNQUALIFIED
 }
 
-// checkCapabilityByID is a convenience function which performs the
+// checkCapabilityByID is a convenience func (emds *EMDataStore)tion which performs the
 // query to retrieve the entity itself, rather than requirin the
 // caller to produce the pointer to the entity.
-func checkEntityCapabilityByID(ID string, c string) error {
-	e, err := getEntityByID(ID)
+func (emds *EMDataStore) checkEntityCapabilityByID(ID string, c string) error {
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return err
 	}
 
-	return checkEntityCapability(e, c)
+	return emds.checkEntityCapability(e, c)
 }
 
 // SetCapability sets a capability on an entity.  The set operation is
 // idempotent.
-func setEntityCapability(e *pb.Entity, c string) {
+func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
 		return
@@ -273,22 +270,22 @@ func setEntityCapability(e *pb.Entity, c string) {
 	log.Printf("Set capability %s on entity '%s'", c, e.GetID())
 }
 
-// SetEntityCapabilityByID is a convenience function to get the entity
-// and hand it off to the actual setEntityCapability function
-func setEntityCapabilityByID(ID string, c string) error {
-	e, err := getEntityByID(ID)
+// SetEntityCapabilityByID is a convenience func (emds *EMDataStore)tion to get the entity
+// and hand it off to the actual setEntityCapability func (emds *EMDataStore)tion
+func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return err
 	}
 
-	setEntityCapability(e, c)
+	emds.setEntityCapability(e, c)
 	return nil
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // bcrypt secure hashing algorithm.
-func setEntitySecretByID(ID string, secret string) error {
-	e, err := getEntityByID(ID)
+func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return err
 	}
@@ -308,18 +305,18 @@ func setEntitySecretByID(ID string, secret string) error {
 	return nil
 }
 
-// ChangeSecret is a publicly available function to change an entity
-// secret.  This function requires either the CHANGE_ENTITY_SECRET
+// ChangeSecret is a publicly available func (emds *EMDataStore)tion to change an entity
+// secret.  This func (emds *EMDataStore)tion requires either the CHANGE_ENTITY_SECRET
 // capability or the entity to be requesting the change for itself.
-func ChangeSecret(ID string, secret string, changeID string, changeSecret string) error {
+func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string, changeSecret string) error {
 	// If the entity isn't the one requesting the change then
 	// extra capabilities are required.
 	if ID != changeID {
-		if err := validateEntityCapabilityAndSecret(ID, secret, "CHANGE_ENTITY_SECRET"); err != nil {
+		if err := emds.validateEntityCapabilityAndSecret(ID, secret, "CHANGE_ENTITY_SECRET"); err != nil {
 			return err
 		}
 	} else {
-		if err := ValidateEntitySecretByID(ID, secret); err != nil {
+		if err := emds.ValidateEntitySecretByID(ID, secret); err != nil {
 			return err
 		}
 	}
@@ -327,7 +324,7 @@ func ChangeSecret(ID string, secret string, changeID string, changeSecret string
 	// At this point the entity is either the one that we're
 	// changing the secret for or is the one that is allowed to
 	// change the secrets of others.
-	if err := setEntitySecretByID(changeID, changeSecret); err != nil {
+	if err := emds.setEntitySecretByID(changeID, changeSecret); err != nil {
 		return err
 	}
 
@@ -337,8 +334,8 @@ func ChangeSecret(ID string, secret string, changeID string, changeSecret string
 
 // ValidateEntitySecretByID validates the identity of an entity by
 // validating the authenticating entity with the secret.
-func ValidateEntitySecretByID(ID string, secret string) error {
-	e, err := getEntityByID(ID)
+func (emds *EMDataStore) ValidateEntitySecretByID(ID string, secret string) error {
+	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return err
 	}
@@ -358,16 +355,16 @@ func ValidateEntitySecretByID(ID string, secret string) error {
 
 // validateEntityCapabilityAndSecret validates an entitity is who they
 // say they are and that they have a named capability.  This is a
-// convenience function and simply calls and aggregates responses from
-// other functions which perform the actual checks.
-func validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
+// convenience func (emds *EMDataStore)tion and simply calls and aggregates responses from
+// other func (emds *EMDataStore)tions which perform the actual checks.
+func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
 	// First validate the entity identity.
-	if err := ValidateEntitySecretByID(ID, secret); err != nil {
+	if err := emds.ValidateEntitySecretByID(ID, secret); err != nil {
 		return err
 	}
 
 	// Then validate the entity capability.
-	if err := checkEntityCapabilityByID(ID, capability); err != nil {
+	if err := emds.checkEntityCapabilityByID(ID, capability); err != nil {
 		return err
 	}
 
