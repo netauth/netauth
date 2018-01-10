@@ -10,13 +10,14 @@ import (
 
 // New returns an initialized EMDataStore on to which all other
 // functions are bound.
-func New() EMDataStore {
+func New() *EMDataStore {
 	x := EMDataStore{}
 	x.eByID = make(map[string]*pb.Entity)
 	x.eByUIDNumber = make(map[int32]*pb.Entity)
 	x.bootstrap_done = false
+	log.Println("Initialized new EMDataStore")
 
-	return x
+	return &x
 }
 
 // nextUIDNumber computes the next available uidNumber to be assigned.

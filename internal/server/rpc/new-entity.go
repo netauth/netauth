@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -37,7 +35,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, modEntityRequest *pb.ModE
 	// error message into the string field of the response proto.
 	// This needs to be formatted directly for being displayed to
 	// a human.
-	err := entity_manager.NewEntity(requestID, requestSecret, newID, newUIDNumber, newSecret)
+	err := s.EM.NewEntity(requestID, requestSecret, newID, newUIDNumber, newSecret)
 	success := false
 	msg := ""
 	if err != nil {

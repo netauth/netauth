@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -29,7 +27,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, modEntityRequest *pb.M
 
 	// After attempting to delete the entity, parse out the error
 	// and return it to the RPC layer.
-	err := entity_manager.DeleteEntity(requestID, requestSecret, delID)
+	err := s.EM.DeleteEntity(requestID, requestSecret, delID)
 	success := false
 	msg := ""
 	if err != nil {

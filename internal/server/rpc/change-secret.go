@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -30,7 +28,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, modEntityRequest *pb.M
 
 	// Change the secret if possible and then return to the client
 	// the status.
-	err := entity_manager.ChangeSecret(requestID, requestSecret, changeID, changeSecret)
+	err := s.EM.ChangeSecret(requestID, requestSecret, changeID, changeSecret)
 	success := false
 	msg := ""
 	if err != nil {

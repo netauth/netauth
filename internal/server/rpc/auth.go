@@ -4,8 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -29,7 +27,7 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAu
 	result := new(pb.SimpleResult)
 	entityID := netAuthRequest.GetEntity().GetID()
 	entitySecret := netAuthRequest.GetEntity().GetSecret()
-	authStatus := entity_manager.ValidateEntitySecretByID(entityID, entitySecret)
+	authStatus := s.EM.ValidateEntitySecretByID(entityID, entitySecret)
 	msg := ""
 	if authStatus != nil {
 		success = false

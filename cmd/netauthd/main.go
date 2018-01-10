@@ -27,7 +27,9 @@ var (
 )
 
 func newServer() *rpc.NetAuthServer {
-	return new(rpc.NetAuthServer)
+	return &rpc.NetAuthServer{
+		EM: entity_manager.New(),
+	}
 }
 
 func main() {
@@ -59,17 +61,20 @@ func main() {
 		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")
 	}
 
+	// Init the new server instance
+	srv := newServer()
+
 	// Attempt to bootstrap a superuser
 	if len(*bootstrap) != 0 {
 		log.Println("Creating bootstrap entity with GLOBAL_ROOT")
 		eParts := strings.Split(*bootstrap, ":")
-		entity_manager.MakeBootstrap(eParts[0], eParts[1])
+		srv.EM.MakeBootstrap(eParts[0], eParts[1])
 		log.Println("Created bootstrap entity")
 	}
 
 	// If it wasn't used make sure its disabled since it can
 	// create arbitrary root users.
-	entity_manager.DisableBootstrap()
+	srv.EM.DisableBootstrap()
 
 	// At this point the server should be ready to serve.
 	health.SetGood()
@@ -78,6 +83,6 @@ func main() {
 	// will server forever.
 	log.Println("Server is launching...")
 	grpcServer := grpc.NewServer(opts...)
-	pb.RegisterNetAuthServer(grpcServer, newServer())
+	pb.RegisterNetAuthServer(grpcServer, srv)
 	grpcServer.Serve(sock)
 }
