@@ -27,7 +27,7 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAu
 	result := new(pb.SimpleResult)
 	entityID := netAuthRequest.GetEntity().GetID()
 	entitySecret := netAuthRequest.GetEntity().GetSecret()
-	authStatus := s.EM.ValidateEntitySecretByID(entityID, entitySecret)
+	authStatus := s.EM.ValidateSecret(entityID, entitySecret)
 	msg := ""
 	if authStatus != nil {
 		success = false

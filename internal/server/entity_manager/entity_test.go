@@ -468,7 +468,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	// Validate the secrets
 	for _, c := range s {
-		if err := em.ValidateEntitySecretByID(c.ID, c.secret); err != nil {
+		if err := em.ValidateSecret(c.ID, c.secret); err != nil {
 			t.Errorf("Failed: want 'nil', got %v", err)
 		}
 	}
@@ -483,12 +483,12 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 	}
 }
 
-func TestValidateEntitySecretByIDBogusEntity(t *testing.T) {
+func TestValidateSecretBogusEntity(t *testing.T) {
 	em := New()
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
-	if err := em.ValidateEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+	if err := em.ValidateSecret("a", "a"); err != E_NO_ENTITY {
 		t.Error(err)
 	}
 }

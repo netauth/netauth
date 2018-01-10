@@ -15,7 +15,7 @@ func New() *EMDataStore {
 	x.eByID = make(map[string]*pb.Entity)
 	x.eByUIDNumber = make(map[int32]*pb.Entity)
 	x.bootstrap_done = false
-	log.Println("Initialized new EMDataStore")
+	log.Println("Initialized new Entity Manager")
 
 	return &x
 }
@@ -317,7 +317,7 @@ func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string,
 			return err
 		}
 	} else {
-		if err := emds.ValidateEntitySecretByID(ID, secret); err != nil {
+		if err := emds.ValidateSecret(ID, secret); err != nil {
 			return err
 		}
 	}
@@ -333,9 +333,9 @@ func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string,
 	return nil
 }
 
-// ValidateEntitySecretByID validates the identity of an entity by
+// ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
-func (emds *EMDataStore) ValidateEntitySecretByID(ID string, secret string) error {
+func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
 	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return err
@@ -360,7 +360,7 @@ func (emds *EMDataStore) ValidateEntitySecretByID(ID string, secret string) erro
 // other func (emds *EMDataStore)tions which perform the actual checks.
 func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
 	// First validate the entity identity.
-	if err := emds.ValidateEntitySecretByID(ID, secret); err != nil {
+	if err := emds.ValidateSecret(ID, secret); err != nil {
 		return err
 	}
 
