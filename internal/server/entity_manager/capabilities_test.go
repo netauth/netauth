@@ -37,6 +37,33 @@ func TestBasicCapabilities(t *testing.T) {
 	}
 }
 
+func TestSetSameCapabilityTwice(t *testing.T) {
+	// Reset state
+	resetMap()
+
+	// Add an entity
+	if err := newEntity("foo", -1, ""); err != nil {
+		t.Error(err)
+	}
+
+	e, err := getEntityByID("foo")
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Set one capability
+	setEntityCapability(e, "GLOBAL_ROOT")
+	if len(e.Meta.Capabilities) != 1 {
+		t.Error("Wrong number of capabilities set!")
+	}
+
+	// Set it again and make sure its still only listed once.
+	setEntityCapability(e, "GLOBAL_ROOT")
+	if len(e.Meta.Capabilities) != 1 {
+		t.Error("Wrong number of capabilities set!")
+	}
+}
+
 func TestBasicCapabilitiesByID(t *testing.T) {
 	s := []struct {
 		ID         string
@@ -67,6 +94,16 @@ func TestBasicCapabilitiesByID(t *testing.T) {
 	}
 }
 
+func TestCapabilityBogusEntity(t *testing.T) {
+	// This test tries to set a capability on an entity that does
+	// not exist.  In this case the error from getEntityByID
+	// should be returned.
+	resetMap()
+	if err := setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != E_NO_ENTITY {
+		t.Error(err)
+	}
+}
+
 func TestSetEntitySecretByID(t *testing.T) {
 	s := []struct {
 		ID        string
@@ -92,6 +129,23 @@ func TestSetEntitySecretByID(t *testing.T) {
 		if err := ValidateEntitySecretByID(c.ID, c.secret); err != nil {
 			t.Errorf("Failed: want 'nil', got %v", err)
 		}
+	}
+}
+
+func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
+	// Attempt to set the secret on an entity that doesn't exist.
+	resetMap()
+	if err := setEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+		t.Error(err)
+	}
+}
+
+func TestValidateEntitySecretByIDBogusEntity(t *testing.T) {
+	// Attempt to validate the secret on an entity that doesn't
+	// exist, ensure that the right error is returned.
+	resetMap()
+	if err := ValidateEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+		t.Error(err)
 	}
 }
 
@@ -146,6 +200,7 @@ func TestChangeSecret(t *testing.T) {
 		changeSecret string
 		wantErr      error
 	}{
+		{"a", "e", "a", "a", E_ENTITY_BADAUTH},           // same entity, bad secret
 		{"a", "a", "a", "b", nil},                  // can change own password
 		{"a", "b", "b", "d", E_ENTITY_UNQUALIFIED}, // can't change other secrets without capability
 		{"b", "b", "a", "a", nil},                  // can change other's secret with CHANGE_ENTITY_SECRET
