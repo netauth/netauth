@@ -36,6 +36,10 @@ service NetAuth {
 
   // Secrets should be changed periodically
   rpc ChangeSecret(ModEntityRequest) returns (SimpleResult) {}
+
+  // Getting a member list from a group is the beginning of the group
+  // functionality.
+  rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -132,6 +136,17 @@ message Group {
   optional int32 gidNumber = 3;
 }
 
+message GroupMemberRequest {
+  // The group for which info is being requested.
+  optional Group group = 1;
+
+  // The ID of the client requesting the information.
+  optional string clientID = 2;
+
+  // The serviceID on the client requesting the information.
+  optional string serviceID = 3;
+}
+
 message EntityMeta {
   // The primary group ID for the entity.  On most UNIX systems this
   // will map to a group with the same string representation as the
@@ -180,6 +195,12 @@ message EntityMeta {
   // Entities may have capabilities that provide special actions to
   // the holder within NetAuth.
   repeated Capability capabilities = 8;
+}
+
+// GroupMemberList is returned when a query generates a list of
+// entities.
+message EntityList {
+  repeated Entity members = 1;
 }
 
 // The PingRequest is used to ask the server to return its health

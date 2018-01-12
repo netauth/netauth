@@ -151,6 +151,28 @@ func ChangeSecret(server string, port int, clientID string, serviceID string, en
 	return result.GetMsg(), nil
 }
 
+// GroupMembers returns a list of members in a group from the server.
+func GroupMembers(serverAddr string, serverPort int, clientID, serviceID, groupID string) (*pb.EntityList, error) {
+	group := new(pb.Group)
+	group.Name = &groupID
+
+	request := new(pb.GroupMemberRequest)
+	request.Group = group
+	request.ServiceID = &serviceID
+	request.ClientID = &clientID
+
+	c, err := NewClient(serverAddr, serverPort)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := c.ListGroupMembers(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

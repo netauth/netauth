@@ -1,5 +1,7 @@
 package rpc
 
+import pb "github.com/NetAuth/NetAuth/proto"
+
 type EntityManager interface {
 	NewEntity(string, string, string, int32, string) error
 	DeleteEntity(string, string, string) error
@@ -7,6 +9,7 @@ type EntityManager interface {
 	ValidateSecret(string, string) error
 	MakeBootstrap(string, string)
 	DisableBootstrap()
+	ListMembers(string) ([]*pb.Entity, error)
 }
 
 type NetAuthServer struct {
