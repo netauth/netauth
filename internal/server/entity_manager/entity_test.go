@@ -18,6 +18,7 @@ func TestNewEntityWithAuth(t *testing.T) {
 		{"a", -1, "a", "GLOBAL_ROOT", "aa", -1, "a", nil},
 		{"b", -1, "a", "", "bb", -1, "a", E_ENTITY_UNQUALIFIED},
 		{"c", -1, "a", "CREATE_ENTITY", "cc", -1, "a", nil},
+		{"d", -1, "a", "CREATE_ENTITY", "a", -1, "a", E_DUPLICATE_ID},
 	}
 
 	for _, c := range s {
@@ -287,6 +288,11 @@ func TestDeleteEntityByID(t *testing.T) {
 		if _, err := em.getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
 		}
+	}
+
+	// Check that deleting something that doesn't exist works correctly.
+	if err := em.deleteEntityByID("DNE"); err != E_NO_ENTITY {
+		t.Error(err)
 	}
 }
 
