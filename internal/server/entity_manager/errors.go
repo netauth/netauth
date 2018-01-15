@@ -9,4 +9,5 @@ var (
 	E_NO_CAPABILITY       = errors.New("The specified capability does not exist!")
 	E_ENTITY_UNQUALIFIED  = errors.New("The specified entity does not have sufficient capabilitites")
 	E_ENTITY_BADAUTH      = errors.New("The provided entity could not successfully authenticate.")
+	E_NO_GROUP            = errors.New("No such group.")
 )

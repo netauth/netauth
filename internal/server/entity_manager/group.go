@@ -20,7 +20,7 @@ func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
 
 	// No group matched (likely because no other group mechanisms
 	// are implemented).
-	return nil, nil
+	return nil, E_NO_GROUP
 }
 
 // ListMembers fulfills the same function as the private version of
