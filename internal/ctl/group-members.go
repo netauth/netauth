@@ -26,6 +26,11 @@ func (p *GroupMembersCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+	if p.ID == "" {
+		fmt.Println("--ID must be specified for group-members")
+		return subcommands.ExitFailure
+	}
+
 	membersList, err := client.GroupMembers(serverAddr, serverPort, clientID, serviceID, p.ID)
 	if err != nil {
 		fmt.Println(err)
