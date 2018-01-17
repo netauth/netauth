@@ -10,7 +10,7 @@ import (
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
-func NewClient(server string, port int) (pb.NetAuthClient, error) {
+func newClient(server string, port int) (pb.NetAuthClient, error) {
 	// Setup the connection and defer the close.
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", server, port), grpc.WithInsecure())
 
@@ -22,7 +22,7 @@ func Ping(server string, port int, clientID string) (string, error) {
 	request := new(pb.PingRequest)
 	request.ClientID = ensureClientID(clientID)
 
-	client, err := NewClient(server, port)
+	client, err := newClient(server, port)
 	if err != nil {
 		return "", err
 	}
@@ -40,7 +40,7 @@ func Authenticate(server string, port int, clientID string, serviceID string, en
 	request.ClientID = ensureClientID(clientID)
 	request.ServiceID = ensureServiceID(serviceID)
 
-	c, err := NewClient(server, port)
+	c, err := newClient(server, port)
 	if err != nil {
 		return "", err
 	}
@@ -77,7 +77,7 @@ func NewEntity(server string, port int, clientID string, serviceID string, entit
 	request.Entity = e
 	request.ModEntity = ne
 
-	c, err := NewClient(server, port)
+	c, err := newClient(server, port)
 	if err != nil {
 		return "", err
 	}
@@ -108,7 +108,7 @@ func RemoveEntity(server string, port int, clientID string, serviceID string, en
 	request.Entity = e
 	request.ModEntity = re
 
-	c, err := NewClient(server, port)
+	c, err := newClient(server, port)
 	if err != nil {
 		return "", err
 	}
@@ -138,7 +138,7 @@ func ChangeSecret(server string, port int, clientID string, serviceID string, en
 	request.Entity = e
 	request.ModEntity = me
 
-	c, err := NewClient(server, port)
+	c, err := newClient(server, port)
 	if err != nil {
 		return "", err
 	}
@@ -161,7 +161,7 @@ func GroupMembers(serverAddr string, serverPort int, clientID, serviceID, groupI
 	request.ServiceID = &serviceID
 	request.ClientID = &clientID
 
-	c, err := NewClient(serverAddr, serverPort)
+	c, err := newClient(serverAddr, serverPort)
 	if err != nil {
 		return nil, err
 	}
