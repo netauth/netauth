@@ -31,7 +31,15 @@ func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		return subcommands.ExitFailure
 	}
 
-	membersList, err := client.GroupMembers(serverAddr, serverPort, clientID, serviceID, p.ID)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Obtain the membership list
+	membersList, err := c.GroupMembers(p.ID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

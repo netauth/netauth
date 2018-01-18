@@ -36,7 +36,15 @@ func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 		p.ID = entity
 	}
 
-	entity, err := client.EntityInfo(serverAddr, serverPort, clientID, serviceID, p.ID)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Obtain entity info
+	entity, err := c.EntityInfo(p.ID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

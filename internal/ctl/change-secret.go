@@ -49,7 +49,15 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		}
 	}
 
-	msg, err := client.ChangeSecret(serverAddr, serverPort, clientID, serviceID, entity, secret, p.ID, p.secret)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Change the secret
+	msg, err := c.ChangeSecret(entity, secret, p.ID, p.secret)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

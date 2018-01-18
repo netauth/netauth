@@ -27,10 +27,15 @@ func (p *AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) 
 	// on the command line.
 	ensureSecret()
 
-	// Authenticate to the server, the variables that come from
-	// "nowhere" are package-scoped and originate in connopts.go
-	// adjacent to this file.
-	msg, err := client.Authenticate(serverAddr, serverPort, clientID, serviceID, entity, secret)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Attempt authentication
+	msg, err := c.Authenticate(entity, secret)
 	if err != nil {
 		return subcommands.ExitFailure
 	}

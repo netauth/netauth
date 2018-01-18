@@ -23,7 +23,14 @@ func (*PingCmd) Usage() string {
 func (p *PingCmd) SetFlags(f *flag.FlagSet) {}
 
 func (p *PingCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	msg, err := client.Ping(serverAddr, serverPort, clientID)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	msg, err := c.Ping()
 	if err != nil {
 		return subcommands.ExitFailure
 	}

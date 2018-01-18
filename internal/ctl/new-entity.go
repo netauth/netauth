@@ -36,10 +36,17 @@ func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfac
 	// command
 	ensureSecret()
 
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
 	// The uidNumber has to be an int32 to be accepted into the
 	// system.  This is for reasons related to protobuf.
 	uidNumber := int32(p.uidNumber)
-	msg, err := client.NewEntity(serverAddr, serverPort, clientID, serviceID, entity, secret, p.ID, uidNumber, p.secret)
+	msg, err := c.NewEntity(entity, secret, p.ID, uidNumber, p.secret)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

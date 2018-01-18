@@ -30,7 +30,15 @@ func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	// command
 	ensureSecret()
 
-	msg, err := client.RemoveEntity(serverAddr, serverPort, clientID, serviceID, entity, secret, p.ID)
+	// Grab a client
+	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Remove the entity
+	msg, err := c.RemoveEntity(entity, secret, p.ID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
