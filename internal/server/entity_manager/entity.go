@@ -375,3 +375,19 @@ func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret str
 	// Entity is who they say they are and has the specified capability.
 	return nil
 }
+
+// GetEntity returns an entity to the caller after first making a safe
+// copy of it to remove secure fields.
+func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
+	// e will be the direct internal copy, we can't give this back
+	// though since it has secrets embedded.
+	e, err := emds.getEntityByID(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	// The safeCopyEntity will return the entity without secrets
+	// in it, as well as an error if there were problems
+	// marshaling the proto back and forth.
+	return safeCopyEntity(e)
+}

@@ -173,6 +173,34 @@ func GroupMembers(serverAddr string, serverPort int, clientID, serviceID, groupI
 	return result, nil
 }
 
+// EntityInfo makes a request to retrieve all that is known about an
+// entity that can be retrieved.  This is necessarily the entity
+// object itself, and so this function returns a pointer to the entity
+// protobuf.  This could be considered a leak of the type outside the
+// client, but it is the most straightforward way to obtain all that
+// can be obtained at once.
+func EntityInfo(serverAddr string, serverPort int, clientID, serviceID, ID string) (*pb.Entity, error) {
+	e := new(pb.Entity)
+	e.ID = &ID
+
+	request := new(pb.NetAuthRequest)
+	request.Entity = e
+	request.ServiceID = ensureServiceID(serviceID)
+	request.ClientID = ensureClientID(clientID)
+
+	c, err := newClient(serverAddr, serverPort)
+	if err != nil {
+		return nil, err
+	}
+
+	entity, err := c.EntityInfo(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+
+	return entity, nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

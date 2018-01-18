@@ -1,6 +1,11 @@
 package entity_manager
 
-import "testing"
+import (
+	"github.com/golang/protobuf/proto"
+	"testing"
+
+	pb "github.com/NetAuth/NetAuth/proto"
+)
 
 func TestNewEntityWithAuth(t *testing.T) {
 	em := New()
@@ -575,5 +580,38 @@ func TestChangeSecret(t *testing.T) {
 		if err := em.ChangeSecret(c.ID, c.secret, c.changeID, c.changeSecret); err != c.wantErr {
 			t.Error(err)
 		}
+	}
+}
+
+func TestGetEntity(t *testing.T) {
+	em := New()
+
+	// Add a new entity with known values.
+	if err := em.newEntity("foo", -1, ""); err != nil {
+		t.Error(err)
+	}
+
+	// First validate that this works with no entity
+	entity, err := em.GetEntity("")
+	if err != E_NO_ENTITY {
+		t.Error(err)
+	}
+
+	// Now check that we get back the right values for the entity
+	// we added earlier.
+	entity, err = em.GetEntity("foo")
+	if err != nil {
+		t.Error(err)
+	}
+
+	entityTest := &pb.Entity{
+		ID:        proto.String("foo"),
+		UidNumber: proto.Int32(1),
+		Secret:    proto.String("<REDACTED>"),
+		Meta:      &pb.EntityMeta{},
+	}
+
+	if !proto.Equal(entity, entityTest) {
+		t.Errorf("Entity retrieved not equal! got %v want %v", entity, entityTest)
 	}
 }

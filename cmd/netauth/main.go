@@ -48,6 +48,7 @@ func main() {
 	subcommands.Register(&ctl.RemoveEntityCmd{}, "")
 	subcommands.Register(&ctl.ChangeSecretCmd{}, "")
 	subcommands.Register(&ctl.GroupMembersCmd{}, "")
+	subcommands.Register(&ctl.EntityInfoCmd{}, "")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")

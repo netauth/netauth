@@ -23,7 +23,7 @@ service NetAuth {
 
   // EntityInfo takes in an entity and will try to return as much info
   // as is known about it.
-  rpc EntityInfo(NetAuthRequest) returns (EntityMeta) {}
+  rpc EntityInfo(NetAuthRequest) returns (Entity) {}
 
   // It is desireable to ping the server for status and health
   rpc Ping(PingRequest) returns (PingResponse) {}

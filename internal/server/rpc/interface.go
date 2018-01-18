@@ -10,6 +10,7 @@ type EntityManager interface {
 	MakeBootstrap(string, string)
 	DisableBootstrap()
 	ListMembers(string) ([]*pb.Entity, error)
+	GetEntity(string) (*pb.Entity, error)
 }
 
 type NetAuthServer struct {
