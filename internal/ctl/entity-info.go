@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/NetAuth/NetAuth/pkg/client"
 
@@ -50,58 +49,8 @@ func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 		return subcommands.ExitFailure
 	}
 
-	fields := []string{}
-	if p.fields != "" {
-		fields = strings.Split(p.fields, ",")
-	} else {
-		fields = []string{
-			"ID",
-			"uidNumber",
-			"pgidNumber",
-			"GECOS",
-			"legalName",
-			"displayName",
-			"homedir",
-			"shell",
-			"graphicalShell",
-		}
-	}
+	// Print the fields
+	printEntity(entity, p.fields)
 
-	for _, f := range fields {
-		switch f {
-		case "ID":
-			fmt.Printf("ID: %s\n", entity.GetID())
-		case "uidNumber":
-			fmt.Printf("uidNumber: %d\n", entity.GetUidNumber())
-		case "pgidNumber":
-			if entity.Meta != nil && entity.GetMeta().GetPgidNumber() != 0 {
-				fmt.Printf("gidNumber: %d\n", entity.GetMeta().GetPgidNumber())
-			}
-		case "GECOS":
-			if entity.Meta != nil && entity.GetMeta().GetGECOS() != "" {
-				fmt.Printf("GECOS: %s\n", entity.GetMeta().GetGECOS())
-			}
-		case "legalName":
-			if entity.Meta != nil && entity.GetMeta().GetLegalName() != "" {
-				fmt.Printf("legalName: %s\n", entity.GetMeta().GetLegalName())
-			}
-		case "displayName":
-			if entity.Meta != nil && entity.Meta.GetDisplayName() != "" {
-				fmt.Printf("displayname: %s\n", entity.GetMeta().GetDisplayName())
-			}
-		case "homedir":
-			if  entity.Meta != nil && entity.GetMeta().GetHomedir() != "" {
-				fmt.Printf("homedir: %s\n", entity.GetMeta().GetHomedir())
-			}
-		case "shell":
-			if entity.Meta != nil && entity.GetMeta().GetShell() != "" {
-				fmt.Printf("shell: %s\n", entity.GetMeta().GetShell())
-			}
-		case "graphicalShell":
-			if entity.Meta != nil && entity.GetMeta().GetGraphicalShell() != "" {
-				fmt.Printf("graphicalShell: %s\n", entity.GetMeta().GetGraphicalShell())
-			}
-		}
-	}
 	return subcommands.ExitSuccess
 }

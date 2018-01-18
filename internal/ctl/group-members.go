@@ -11,18 +11,20 @@ import (
 )
 
 type GroupMembersCmd struct {
-	ID string
+	ID     string
+	fields string
 }
 
 func (*GroupMembersCmd) Name() string     { return "group-members" }
 func (*GroupMembersCmd) Synopsis() string { return "List members in a named group" }
 func (*GroupMembersCmd) Usage() string {
-	return `group-members --ID <ID>
+	return `group-members --ID <ID> [--fields field1,field2...]
 List the members of the group identified by <ID>.`
 }
 
 func (p *GroupMembersCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.ID, "ID", "", "ID of the group to list")
+	f.StringVar(&p.fields, "fields", "", "Fields to display")
 }
 
 func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
@@ -46,8 +48,8 @@ func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	for _, m := range membersList.Members {
-		fmt.Println(m)
+		printEntity(m, p.fields)
 	}
-	
+
 	return subcommands.ExitSuccess
 }
