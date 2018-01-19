@@ -634,9 +634,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	if err := em.updateEntityMeta(e, fullMeta); err != nil {
-		t.Error(err)
-	}
+	em.updateEntityMeta(e, fullMeta)
 
 	// Verify that the update above took
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
@@ -649,9 +647,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	badMeta := &pb.EntityMeta{
 		Groups: groups,
 	}
-	if err := em.updateEntityMeta(e, badMeta); err != nil {
-		t.Error(err)
-	}
+	em.updateEntityMeta(e, badMeta)
 
 	// The update from badMeta should not have gone through, and
 	// the old value should still be present.
@@ -660,5 +656,41 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	}
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
 		t.Error("Update overwrote unset value!")
+	}
+}
+
+func TestUpdateEntityMetaExternal(t *testing.T) {
+	s := []struct {
+		ID         string
+		secret     string
+		capability string
+		modID      string
+		wantErr    error
+	}{
+		{"foo", "foo", "", "a", E_ENTITY_UNQUALIFIED},
+		{"foo", "", "", "a", E_ENTITY_BADAUTH},
+		{"foo", "foo", "MODIFY_ENTITY_META", "a", nil},
+		{"a", "b", "", "a", E_ENTITY_BADAUTH},
+		{"a", "a", "", "a", nil},
+	}
+
+	em := New()
+
+	if err := em.newEntity("foo", -1, "foo"); err != nil {
+		t.Error(err)
+	}
+	if err := em.newEntity("a", -1, "a"); err != nil {
+		t.Error(err)
+	}
+
+	modMeta := &pb.EntityMeta{DisplayName: proto.String("Waldo")}
+
+	for _, c := range s {
+		if err := em.setEntityCapabilityByID(c.ID, c.capability); err != nil {
+			t.Error(err)
+		}
+		if err := em.UpdateEntityMeta(c.ID, c.secret, c.modID, modMeta); err != c.wantErr {
+			t.Error(err)
+		}
 	}
 }

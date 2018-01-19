@@ -393,7 +393,7 @@ func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e)
 }
 
-func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
+func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) {
 	// get the existing metadata
 	meta := e.GetMeta()
 
@@ -403,9 +403,37 @@ func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) 
 	newMeta.Groups = nil
 
 	// now we can merge the changes, this happens on the live tree
-	// and doesn't require changes since the groups are not
-	// permitted to change by this API.
+	// and doesn't require recomputing anything since its a change
+	// at the leaves since the groups are not permitted to change
+	// by this API.
 	proto.Merge(meta, newMeta)
 	log.Printf("Updated metadata for '%s'", e.GetID())
+}
+
+func (emds *EMDataStore) UpdateEntityMeta(requestID, requestSecret, modEntityID string, newMeta *pb.EntityMeta) error {
+	// An entity can change its own metadata, but modifying other
+	// entities requires an administrative capability.
+	if modEntityID != requestID {
+		if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_ENTITY_META"); err != nil {
+			log.Printf("UpdateEntityMeta denied to '%s'", requestID)
+			return err
+		}
+	} else {
+		if err := emds.ValidateSecret(requestID, requestSecret); err != nil {
+			log.Printf("UpdateEntityMeta denied to '%s'", requestID)
+			return err
+		}
+	}
+
+	// Get the actual entity that the metadata is being updated
+	// on.
+	e, err := emds.getEntityByID(modEntityID)
+	if err != nil {
+		return err
+	}
+
+	// Run the update
+	emds.updateEntityMeta(e, newMeta)
+
 	return nil
 }
