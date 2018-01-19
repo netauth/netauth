@@ -28,13 +28,13 @@ func printEntity(entity *pb.Entity, fields string) {
 		fieldList = []string{
 			"ID",
 			"uidNumber",
-			"pgidNumber",
 			"GECOS",
 			"legalName",
 			"displayName",
 			"homedir",
 			"shell",
 			"graphicalShell",
+			"badgeNumber",
 		}
 	}
 
@@ -44,10 +44,6 @@ func printEntity(entity *pb.Entity, fields string) {
 			fmt.Printf("ID: %s\n", entity.GetID())
 		case "uidNumber":
 			fmt.Printf("uidNumber: %d\n", entity.GetUidNumber())
-		case "pgidNumber":
-			if entity.Meta != nil && entity.GetMeta().GetPgidNumber() != 0 {
-				fmt.Printf("gidNumber: %d\n", entity.GetMeta().GetPgidNumber())
-			}
 		case "GECOS":
 			if entity.Meta != nil && entity.GetMeta().GetGECOS() != "" {
 				fmt.Printf("GECOS: %s\n", entity.GetMeta().GetGECOS())
@@ -71,6 +67,10 @@ func printEntity(entity *pb.Entity, fields string) {
 		case "graphicalShell":
 			if entity.Meta != nil && entity.GetMeta().GetGraphicalShell() != "" {
 				fmt.Printf("graphicalShell: %s\n", entity.GetMeta().GetGraphicalShell())
+			}
+		case "badgeNumber":
+			if entity.Meta != nil && entity.GetMeta().GetBadgeNumber() != "" {
+				fmt.Printf("badgeNumber: %s\n", entity.GetMeta().GetBadgeNumber())
 			}
 		}
 	}

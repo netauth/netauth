@@ -19,6 +19,7 @@ type ModifyMetaCmd struct {
 	homedir        string
 	shell          string
 	graphicalShell string
+	badgeNumber string
 }
 
 func (*ModifyMetaCmd) Name() string     { return "modify-meta" }
@@ -37,6 +38,7 @@ func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.homedir, "homedir", "NO_CHANGE", "Home directory for the entity")
 	f.StringVar(&p.shell, "shell", "NO_CHANGE", "User command interpreter to be used by the entity")
 	f.StringVar(&p.graphicalShell, "graphicalShell", "NO_CHANGE", "Graphical shell to be used by the entity")
+	f.StringVar(&p.badgeNumber, "badgeNumber", "NO_CHANGE", "Badge number for the entity")
 }
 
 func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
@@ -79,6 +81,9 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 	if p.graphicalShell != "NO_CHANGE" {
 		meta.GraphicalShell = &p.graphicalShell
+	}
+	if p.badgeNumber != "NO_CHANGE" {
+		meta.BadgeNumber = &p.badgeNumber
 	}
 
 	msg, err := c.ModifyEntityMeta(entity, secret, p.ID, meta)

@@ -196,12 +196,19 @@ message EntityMeta {
   // the systems that actually setup the graphical environment.
   optional string graphicalShell = 7;
 
+  // Person entities may have a physical badge which gets them access
+  // to things, and machine entities may have an asset tag which is
+  // nice to keep track of.  This is a string rather than a number
+  // because the badge "number" might actually be a UUID or something
+  // that is not otherwise a pure number.
+  optional string badgeNumber = 8;
+
   // Entities may be direct members of groups
-  repeated Group groups = 8;
+  repeated Group groups = 9;
 
   // Entities may have capabilities that provide special actions to
   // the holder within NetAuth.
-  repeated Capability capabilities = 9;
+  repeated Capability capabilities = 10;
 }
 
 // GroupMemberList is returned when a query generates a list of
