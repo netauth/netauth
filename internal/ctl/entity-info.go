@@ -20,12 +20,13 @@ func (*EntityInfoCmd) Synopsis() string { return "Obtain information on an entit
 func (*EntityInfoCmd) Usage() string {
 	return `entity-info --ID <ID>  [--fields field1,field2...]
 Print information about an entity.  The listed fields can be used to
-limit the information that is printed`
+limit the information that is printed.
+`
 }
 
 func (p *EntityInfoCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.ID, "ID", "", "ID for the new entity")
-	f.StringVar(&p.fields, "secret", "", "secret for the new entity")
+	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
 }
 
 func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {

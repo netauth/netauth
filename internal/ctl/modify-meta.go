@@ -25,7 +25,8 @@ func (*ModifyMetaCmd) Name() string     { return "modify-meta" }
 func (*ModifyMetaCmd) Synopsis() string { return "Modify meta-data on an entity" }
 func (*ModifyMetaCmd) Usage() string {
 	return `modify-meta --ID <ID> [fields-to-be-modified]
-Modify an entity by updating the named fields to the provided values.`
+Modify an entity by updating the named fields to the provided values.
+`
 }
 
 func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
