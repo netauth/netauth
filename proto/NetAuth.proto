@@ -40,6 +40,10 @@ service NetAuth {
   // Getting a member list from a group is the beginning of the group
   // functionality.
   rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
+
+  // The minimal directory functions require modifying the entity
+  // information to update values.
+  rpc ModifyEntityMeta(ModEntityRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -153,7 +157,7 @@ message EntityMeta {
   // Entity, but it is not uncommon for people-entities in a network
   // environment to not have a personal primary group and instead
   // belong to an organization wide primary group.
-  optional int32 pgidNumber = 1;
+  optional Group pgid = 1;
 
   // This is an arbitrary field used to store things like the user's
   // real name.  It is here for consistency, but the name displayed by

@@ -195,6 +195,30 @@ func (n *netAuthClient) EntityInfo(ID string) (*pb.Entity, error) {
 	return entity, nil
 }
 
+// ModifyEntityMeta takes in a set of credentials to authorize the
+// change, an entity to make the change against, and a new EntityMeta
+// to apply.
+func (n *netAuthClient) ModifyEntityMeta(entity, secret, modID string, meta *pb.EntityMeta) (string, error) {
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	me := new(pb.Entity)
+	me.ID = &modID
+	me.Meta = meta
+
+	request := new(pb.ModEntityRequest)
+	request.Entity = e
+	request.ModEntity = me
+
+	result, err := n.c.ModifyEntityMeta(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

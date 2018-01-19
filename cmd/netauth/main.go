@@ -48,6 +48,7 @@ func main() {
 	subcommands.Register(&ctl.RemoveEntityCmd{}, "Entity Management")
 	subcommands.Register(&ctl.ChangeSecretCmd{}, "Entity Management")
 	subcommands.Register(&ctl.EntityInfoCmd{}, "Entity Management")
+	subcommands.Register(&ctl.ModifyMetaCmd{}, "Entity Management")
 	subcommands.Register(&ctl.GroupMembersCmd{}, "Group Management")
 
 	// Register in the global flags as important
