@@ -3,6 +3,7 @@ package entity_manager
 import (
 	"log"
 
+	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/bcrypt"
 
 	pb "github.com/NetAuth/NetAuth/proto"
@@ -390,4 +391,21 @@ func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
 	// in it, as well as an error if there were problems
 	// marshaling the proto back and forth.
 	return safeCopyEntity(e)
+}
+
+func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
+	// get the existing metadata
+	meta := e.GetMeta()
+
+	// some fields must not be merged in, so we make sure that
+	// they're nulled out here
+	newMeta.Capabilities = nil
+	newMeta.Groups = nil
+
+	// now we can merge the changes, this happens on the live tree
+	// and doesn't require changes since the groups are not
+	// permitted to change by this API.
+	proto.Merge(meta, newMeta)
+	log.Printf("Updated metadata for '%s'", e.GetID())
+	return nil
 }

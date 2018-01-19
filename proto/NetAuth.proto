@@ -192,9 +192,12 @@ message EntityMeta {
   // the systems that actually setup the graphical environment.
   optional string graphicalShell = 7;
 
+  // Entities may be direct members of groups
+  repeated Group groups = 8;
+
   // Entities may have capabilities that provide special actions to
   // the holder within NetAuth.
-  repeated Capability capabilities = 8;
+  repeated Capability capabilities = 9;
 }
 
 // GroupMemberList is returned when a query generates a list of
@@ -218,4 +221,3 @@ message PingResponse {
   // Optionally the server may have a message if it is not healthy.
   optional string msg = 2;
 }
-

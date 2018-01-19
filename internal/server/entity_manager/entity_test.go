@@ -615,3 +615,50 @@ func TestGetEntity(t *testing.T) {
 		t.Errorf("Entity retrieved not equal! got %v want %v", entity, entityTest)
 	}
 }
+
+func TestUpdateEntityMetaInternal(t *testing.T) {
+	em := New()
+
+	// Add a new entity with known values
+	if err := em.newEntity("foo", -1, ""); err != nil {
+		t.Error(err)
+	}
+
+	fullMeta := &pb.EntityMeta{
+		LegalName: proto.String("Foobert McMillan"),
+	}
+
+	// This checks that merging into the empty default meta works,
+	// since these will be the only values set.
+	e, err := em.getEntityByID("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	if err := em.updateEntityMeta(e, fullMeta); err != nil {
+		t.Error(err)
+	}
+
+	// Verify that the update above took
+	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
+		t.Error("Field set mismatch!")
+	}
+
+	// This is metadata that can't be updated with this call,
+	// verify that it gets dropped.
+	groups := []*pb.Group{&pb.Group{}}
+	badMeta := &pb.EntityMeta{
+		Groups: groups,
+	}
+	if err := em.updateEntityMeta(e, badMeta); err != nil {
+		t.Error(err)
+	}
+
+	// The update from badMeta should not have gone through, and
+	// the old value should still be present.
+	if e.GetMeta().Groups != nil {
+		t.Errorf("badMeta was merged! (%v)", e.GetMeta().GetGroups())
+	}
+	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
+		t.Error("Update overwrote unset value!")
+	}
+}
