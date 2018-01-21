@@ -11,12 +11,19 @@ import (
 
 // New returns an initialized EMDataStore on to which all other
 // functions are bound.
-func New() *EMDataStore {
+func New(db *EMDiskInterface) *EMDataStore {
 	x := EMDataStore{}
 	x.eByID = make(map[string]*pb.Entity)
 	x.eByUIDNumber = make(map[int32]*pb.Entity)
 	x.bootstrap_done = false
+	if db != nil {
+		x.db = *db
+	}
 	log.Println("Initialized new Entity Manager")
+
+	if x.db == nil {
+		log.Println("Entity Manager persistence layer is not available!")
+	}
 
 	return &x
 }
@@ -79,13 +86,22 @@ func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) er
 	emds.eByID[ID] = newEntity
 	emds.eByUIDNumber[uidNumber] = newEntity
 
-	// Successfully created we now return no errors
-	log.Printf("Created entity '%s'", ID)
+	// Save the entity if the persistence layer is available.
+	if emds.db != nil {
+		if err := emds.db.SaveEntity(newEntity); err != nil {
+			return err
+		}
+	}
 
 	// Now we set the entity secret, this could be inlined, but
 	// having it in the seperate func (emds *EMDataStore)tion makes resetting the
 	// secret trivial.
-	emds.setEntitySecretByID(ID, secret)
+	if err := emds.setEntitySecretByID(ID, secret); err != nil {
+		return err
+	}
+
+	// Successfully created we now return no errors
+	log.Printf("Created entity '%s'", ID)
 
 	return nil
 }
@@ -252,10 +268,10 @@ func (emds *EMDataStore) checkEntityCapabilityByID(ID string, c string) error {
 
 // SetCapability sets a capability on an entity.  The set operation is
 // idempotent.
-func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) {
+func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return
+		return nil
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -264,12 +280,21 @@ func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) {
 		if a == cap {
 			// The entity already has this capability
 			// directly, don't add it again.
-			return
+			return nil
 		}
 	}
 
 	e.Meta.Capabilities = append(e.Meta.Capabilities, cap)
+
+	// Save the entity if the persistence layer is available.
+	if emds.db != nil {
+		if err := emds.db.SaveEntity(e); err != nil {
+			return err
+		}
+	}
+
 	log.Printf("Set capability %s on entity '%s'", c, e.GetID())
+	return nil
 }
 
 // SetEntityCapabilityByID is a convenience func (emds *EMDataStore)tion to get the entity
@@ -280,8 +305,7 @@ func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
 		return err
 	}
 
-	emds.setEntityCapability(e, c)
-	return nil
+	return emds.setEntityCapability(e, c)
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the
@@ -302,6 +326,13 @@ func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
 	}
 	hashedSecret := string(hash[:])
 	e.Secret = &hashedSecret
+
+	// Save the entity if the persistence layer is available.
+	if emds.db != nil {
+		if err := emds.db.SaveEntity(e); err != nil {
+			return err
+		}
+	}
 
 	log.Printf("Secret set for '%s'", e.GetID())
 	return nil
@@ -393,7 +424,7 @@ func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e)
 }
 
-func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) {
+func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// get the existing metadata
 	meta := e.GetMeta()
 
@@ -407,7 +438,16 @@ func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) 
 	// at the leaves since the groups are not permitted to change
 	// by this API.
 	proto.Merge(meta, newMeta)
+
+	// Save the entity if the persistence layer is available.
+	if emds.db != nil {
+		if err := emds.db.SaveEntity(e); err != nil {
+			return err
+		}
+	}
+
 	log.Printf("Updated metadata for '%s'", e.GetID())
+	return nil
 }
 
 func (emds *EMDataStore) UpdateEntityMeta(requestID, requestSecret, modEntityID string, newMeta *pb.EntityMeta) error {
@@ -433,7 +473,5 @@ func (emds *EMDataStore) UpdateEntityMeta(requestID, requestSecret, modEntityID 
 	}
 
 	// Run the update
-	emds.updateEntityMeta(e, newMeta)
-
-	return nil
+	return emds.updateEntityMeta(e, newMeta)
 }

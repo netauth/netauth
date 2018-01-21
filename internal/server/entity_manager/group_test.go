@@ -5,7 +5,7 @@ import (
 )
 
 func TestListMembersALLInternal(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []string{
 		"foo",
@@ -30,7 +30,7 @@ func TestListMembersALLInternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchInternal(t *testing.T) {
-	em := New()
+	em := New(nil)
 	list, err := em.listMembers("")
 	if list != nil && err != E_NO_GROUP {
 		t.Error(err)
@@ -38,7 +38,7 @@ func TestListMembersNoMatchInternal(t *testing.T) {
 }
 
 func TestListMembersExternal(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []string{
 		"foo",
@@ -73,7 +73,7 @@ func TestListMembersExternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchExternal(t *testing.T) {
-	em := New()
+	em := New(nil)
 	list, err := em.ListMembers("")
 	if list != nil && err != E_NO_GROUP {
 		t.Error(err)

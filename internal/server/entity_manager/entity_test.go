@@ -8,7 +8,7 @@ import (
 )
 
 func TestNewEntityWithAuth(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID           string
@@ -45,7 +45,7 @@ func TestNewEntityWithAuth(t *testing.T) {
 }
 
 func TestAddDuplicateID(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -65,7 +65,7 @@ func TestAddDuplicateID(t *testing.T) {
 }
 
 func TestAddDuplicateUIDNumber(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -85,7 +85,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 }
 
 func TestNextUIDNumber(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID            string
@@ -115,7 +115,7 @@ func TestNextUIDNumber(t *testing.T) {
 }
 
 func TestNewEntityAutoNumber(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -135,7 +135,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 }
 
 func TestMakeBootstrap(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID            string
@@ -170,7 +170,7 @@ func TestMakeBootstrap(t *testing.T) {
 }
 
 func TestGetEntityByID(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -197,7 +197,7 @@ func TestGetEntityByID(t *testing.T) {
 }
 
 func TestGetEntityByUIDNumber(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -224,7 +224,7 @@ func TestGetEntityByUIDNumber(t *testing.T) {
 }
 
 func TestSameEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -258,7 +258,7 @@ func TestSameEntity(t *testing.T) {
 }
 
 func TestDeleteEntityByID(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -302,7 +302,7 @@ func TestDeleteEntityByID(t *testing.T) {
 }
 
 func TestDeleteEntityWithAuth(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	x := []struct {
 		ID        string
@@ -356,7 +356,7 @@ func TestDeleteEntityWithAuth(t *testing.T) {
 }
 
 func TestBasicCapabilities(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID         string
@@ -391,7 +391,7 @@ func TestBasicCapabilities(t *testing.T) {
 }
 
 func TestSetSameCapabilityTwice(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// Add an entity
 	if err := em.newEntity("foo", -1, ""); err != nil {
@@ -417,7 +417,7 @@ func TestSetSameCapabilityTwice(t *testing.T) {
 }
 
 func TestBasicCapabilitiesByID(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID         string
@@ -447,7 +447,7 @@ func TestBasicCapabilitiesByID(t *testing.T) {
 }
 
 func TestCapabilityBogusEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
@@ -458,7 +458,7 @@ func TestCapabilityBogusEntity(t *testing.T) {
 }
 
 func TestSetEntitySecretByID(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID        string
@@ -486,7 +486,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 }
 
 func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// Attempt to set the secret on an entity that doesn't exist.
 	if err := em.setEntitySecretByID("a", "a"); err != E_NO_ENTITY {
@@ -495,7 +495,7 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 }
 
 func TestValidateSecretBogusEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
@@ -505,7 +505,7 @@ func TestValidateSecretBogusEntity(t *testing.T) {
 }
 
 func TestValidateEntityCapabilityAndSecret(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	s := []struct {
 		ID         string
@@ -538,7 +538,7 @@ func TestValidateEntityCapabilityAndSecret(t *testing.T) {
 }
 
 func TestChangeSecret(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	entities := []struct {
 		ID     string
@@ -584,7 +584,7 @@ func TestChangeSecret(t *testing.T) {
 }
 
 func TestGetEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// Add a new entity with known values.
 	if err := em.newEntity("foo", -1, ""); err != nil {
@@ -617,7 +617,7 @@ func TestGetEntity(t *testing.T) {
 }
 
 func TestUpdateEntityMetaInternal(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	// Add a new entity with known values
 	if err := em.newEntity("foo", -1, ""); err != nil {
@@ -674,7 +674,7 @@ func TestUpdateEntityMetaExternal(t *testing.T) {
 		{"a", "a", "", "a", nil},
 	}
 
-	em := New()
+	em := New(nil)
 
 	if err := em.newEntity("foo", -1, "foo"); err != nil {
 		t.Error(err)

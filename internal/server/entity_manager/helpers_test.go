@@ -7,7 +7,7 @@ import (
 )
 
 func TestSafeCopyEntity(t *testing.T) {
-	em := New()
+	em := New(nil)
 
 	if err := em.newEntity("foo", -1, "bar"); err != nil {
 		t.Error(err)

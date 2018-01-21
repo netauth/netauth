@@ -28,7 +28,7 @@ var (
 
 func newServer() *rpc.NetAuthServer {
 	return &rpc.NetAuthServer{
-		EM: entity_manager.New(),
+		EM: entity_manager.New(nil),
 	}
 }
 
