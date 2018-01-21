@@ -20,4 +20,5 @@ type EMDiskInterface interface {
 	DiscoverEntityIDs() ([]string, error)
 	LoadEntity(string) (*pb.Entity, error)
 	SaveEntity(*pb.Entity) error
+	DeleteEntity(string) error
 }

@@ -173,6 +173,27 @@ func (emds *EMDataStore) DisableBootstrap() {
 	emds.bootstrap_done = true
 }
 
+// loadFromDisk attempts to load an entity from the disk.  This can be
+// useful if another server wrote it to disk but its not in the cache
+// yet.
+func (emds *EMDataStore) loadFromDisk(ID string) error {
+	// If the persistence layer isn't available, just return.
+	// This isn't necessarily an error, but no data was available.
+	if emds.db == nil {
+		return nil
+	}
+
+	e, err := emds.db.LoadEntity(ID)
+	if err != nil {
+		return err
+	}
+
+	emds.eByID[e.GetID()] = e
+	emds.eByUIDNumber[e.GetUidNumber()] = e
+
+	return nil
+}
+
 // getEntityByID returns a pointer to an Entity struct and an error
 // value.  The error value will either be E_NO_ENTITY if the requested
 // value did not match, or will be nil where an entity is returned.
@@ -181,18 +202,17 @@ func (emds *EMDataStore) DisableBootstrap() {
 func (emds *EMDataStore) getEntityByID(ID string) (*pb.Entity, error) {
 	e, ok := emds.eByID[ID]
 	if !ok {
-		return nil, E_NO_ENTITY
+		// Attempt to load the entity if the persistence layer
+		// is available.
+		if emds.db != nil {
+			if err := emds.loadFromDisk(ID); err != nil {
+				return nil, err
+			}
+		}
 	}
-	return e, nil
-}
 
-// GetEntityByUIDNumber returns a pointer to an Entity struct and an
-// error value.  The error value will either be E_NO_ENTITY if the
-// requested value did not match, or will be nil where an entity is
-// returned.  The numeric value must be an exact match for the entity
-// being requested in addition to being an int32 value.
-func (emds *EMDataStore) getEntityByUIDNumber(uidNumber int32) (*pb.Entity, error) {
-	e, ok := emds.eByUIDNumber[uidNumber]
+	// Try again after potentially having loaded the entity
+	e, ok = emds.eByID[ID]
 	if !ok {
 		return nil, E_NO_ENTITY
 	}
@@ -205,6 +225,39 @@ func (emds *EMDataStore) getEntityByUIDNumber(uidNumber int32) (*pb.Entity, erro
 // ID does not exist the func (emds *EMDataStore)tion will return E_NO_ENTITY, in all
 // other cases nil is returned.
 func (emds *EMDataStore) deleteEntityByID(ID string) error {
+	// Drop the entity from the in memory storage.
+	if err := emds.dropEntity(ID); err != nil {
+		return err
+	}
+
+	// Delete the entity if the persistence layer is available.
+	if emds.db != nil {
+		if err := emds.db.DeleteEntity(ID); err != nil {
+			return err
+		}
+	}
+
+	log.Printf("Deleted entity '%s'", ID)
+
+	return nil
+}
+
+func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, deleteID string) error {
+	// Validate that the entity is real and permitted to perform
+	// this action.
+	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
+		return err
+	}
+
+	// Delete the requested entity
+	return emds.deleteEntityByID(deleteID)
+}
+
+// dropEntity is similar to DeleteEntity, but it only drops the entity
+// from the in memory database.  If the entity exists in the database
+// it will be loaded on the next access, but if it was deleted
+// somewhere else, this makes a way to get rid of it from memory.
+func (emds *EMDataStore) dropEntity(ID string) error {
 	e, err := emds.getEntityByID(ID)
 	if err != nil {
 		return E_NO_ENTITY
@@ -221,20 +274,8 @@ func (emds *EMDataStore) deleteEntityByID(ID string) error {
 	// Now we need to delete from both maps
 	delete(emds.eByID, e.GetID())
 	delete(emds.eByUIDNumber, e.GetUidNumber())
-	log.Printf("Deleted entity '%s'", e.GetID())
 
 	return nil
-}
-
-func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, deleteID string) error {
-	// Validate that the entity is real and permitted to perform
-	// this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
-		return err
-	}
-
-	// Delete the requested entity
-	return emds.deleteEntityByID(deleteID)
 }
 
 // checkCapability is a helper func (emds *EMDataStore)tion which allows a method to

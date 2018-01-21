@@ -196,67 +196,6 @@ func TestGetEntityByID(t *testing.T) {
 	}
 }
 
-func TestGetEntityByUIDNumber(t *testing.T) {
-	em := New(nil)
-
-	s := []struct {
-		ID        string
-		uidNumber int32
-		secret    string
-	}{
-		{"foo", 1, ""},
-		{"bar", 2, ""},
-	}
-
-	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
-			t.Error(err)
-		}
-
-		if _, err := em.getEntityByUIDNumber(c.uidNumber); err != nil {
-			t.Error("Added entity does not exist!")
-		}
-	}
-
-	if _, err := em.getEntityByUIDNumber(3); err == nil {
-		t.Error("Returned non-existant entity!")
-	}
-}
-
-func TestSameEntity(t *testing.T) {
-	em := New(nil)
-
-	s := []struct {
-		ID        string
-		uidNumber int32
-		secret    string
-	}{
-		{"foo", 1, ""},
-		{"bar", 2, ""},
-		{"baz", 3, ""},
-	}
-
-	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
-			t.Error(err)
-		}
-
-		a, err := em.getEntityByID(c.ID)
-		if err != nil {
-			t.Error("Couldn't recall newly added entity!")
-		}
-
-		b, err := em.getEntityByUIDNumber(c.uidNumber)
-		if err != nil {
-			t.Error("Couldn't recall newly added entity!")
-		}
-
-		if a != b {
-			t.Error("Different entities for same ID/Number!")
-		}
-	}
-}
-
 func TestDeleteEntityByID(t *testing.T) {
 	em := New(nil)
 
@@ -285,12 +224,6 @@ func TestDeleteEntityByID(t *testing.T) {
 
 		// Make sure checking for that entity returns E_NO_ENTITY
 		if _, err := em.getEntityByID(c.ID); err != E_NO_ENTITY {
-			t.Error(err)
-		}
-
-		// Make sure that it is actually gone, and not just
-		// gone from one index...
-		if _, err := em.getEntityByUIDNumber(c.uidNumber); err != E_NO_ENTITY {
 			t.Error(err)
 		}
 	}
