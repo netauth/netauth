@@ -191,6 +191,7 @@ func (emds *EMDataStore) loadFromDisk(ID string) error {
 	emds.eByID[e.GetID()] = e
 	emds.eByUIDNumber[e.GetUidNumber()] = e
 
+	log.Printf("Loaded '%s' from disk", e.GetID())
 	return nil
 }
 
@@ -253,25 +254,14 @@ func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, de
 	return emds.deleteEntityByID(deleteID)
 }
 
-// dropEntity is similar to DeleteEntity, but it only drops the entity
-// from the in memory database.  If the entity exists in the database
-// it will be loaded on the next access, but if it was deleted
-// somewhere else, this makes a way to get rid of it from memory.
+// dropEntity is similar to delete, but just removes the entity from
+// the in memory data store.
 func (emds *EMDataStore) dropEntity(ID string) error {
 	e, err := emds.getEntityByID(ID)
 	if err != nil {
-		return E_NO_ENTITY
+		return err
 	}
 
-	// There's a small chance that the deletes won't go through
-	// but if that happens there's not much that we can do about
-	// it since delete() is a language construct and there's no
-	// way to drill down deeper.  To be paranoid though we'll
-	// clear the secret on the entity which should prevent it from
-	// being usable.
-	e.Secret = nil
-
-	// Now we need to delete from both maps
 	delete(emds.eByID, e.GetID())
 	delete(emds.eByUIDNumber, e.GetUidNumber())
 

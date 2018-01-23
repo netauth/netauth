@@ -7,6 +7,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/server/db"
+	_ "github.com/NetAuth/NetAuth/internal/server/db/impl"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/NetAuth/NetAuth/internal/server/health"
 	"github.com/NetAuth/NetAuth/internal/server/rpc"
@@ -24,11 +26,18 @@ var (
 	certFile  = flag.String("cert_file", "", "Path to certificate file")
 	keyFile   = flag.String("key_file", "", "Path to key file")
 	bootstrap = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
+	db_impl   = flag.String("db", "MemDB", "Database implementation to use.")
 )
 
 func newServer() *rpc.NetAuthServer {
+	// Need to setup the EMDiskInterface to pass to the entity_manager.
+	db, err := db.New(*db_impl)
+	if err != nil {
+		log.Fatalf("Fatal database error! (%s)", err)
+	}
+
 	return &rpc.NetAuthServer{
-		EM: entity_manager.New(nil),
+		EM: entity_manager.New(&db),
 	}
 }
 
@@ -61,15 +70,21 @@ func main() {
 		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")
 	}
 
+	// Spit out what backends we know about
+	log.Printf("The following DB backends are registered:")
+	for _, b := range db.GetBackendList() {
+		log.Printf("  %s", b)
+	}
+
 	// Init the new server instance
 	srv := newServer()
 
 	// Attempt to bootstrap a superuser
 	if len(*bootstrap) != 0 {
-		log.Println("Creating bootstrap entity with GLOBAL_ROOT")
+		log.Println("Commencing Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
 		srv.EM.MakeBootstrap(eParts[0], eParts[1])
-		log.Println("Created bootstrap entity")
+		log.Println("Bootstrap phase complete")
 	}
 
 	// If it wasn't used make sure its disabled since it can
