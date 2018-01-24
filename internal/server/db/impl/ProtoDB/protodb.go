@@ -108,7 +108,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 // do given that each entity is owned by exactly one file on disk.
 // Simply removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteEntity(ID string) error {
-	return os.Remove(filepath.Join(pdb.data_root, entity_subdir, ID, ".dat"))
+	return os.Remove(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
 }
 
 // ensureDataDirectory is called during initialization of this backend
