@@ -64,7 +64,8 @@ func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 	// Strip the extensions off the files.
 	IDs := make([]string, 0)
 	for _, g := range globs {
-		IDs = append(IDs, strings.Replace(g, ".dat", "", 0))
+		f := filepath.Base(g)
+		IDs = append(IDs, strings.Replace(f, ".dat", "", 1))
 	}
 	return IDs, nil
 }
