@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/NetAuth/NetAuth/internal/server/health"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
@@ -14,8 +15,6 @@ import (
 // functions are bound.
 func New(db *EMDiskInterface) *EMDataStore {
 	x := EMDataStore{}
-	x.eByID = make(map[string]*pb.Entity)
-	x.eByUIDNumber = make(map[int32]*pb.Entity)
 	x.bootstrap_done = false
 	if db != nil {
 		x.db = *db
@@ -27,6 +26,47 @@ func New(db *EMDiskInterface) *EMDataStore {
 	}
 
 	return &x
+}
+
+// initMem sets up the memory of the datastore
+func (emds *EMDataStore) initMem() {
+	emds.eByID = make(map[string]*pb.Entity)
+	emds.eByUIDNumber = make(map[int32]*pb.Entity)
+}
+
+// Reload conducts an in place swap of the entity_manager and causes
+// it to reconcile state with what's in long term storage.
+func (emds *EMDataStore) Reload() {
+	// If we don't have any kind of backing database, then this
+	// should be noop'd out.
+	if emds.db == nil {
+		return
+	}
+
+	log.Println("Beginning EM Reload")
+
+	// We're about to dump the caches, so lets make sure we mark
+	// ourselves bad first.
+	health.SetBad()
+
+	// Reset the internal memory
+	emds.initMem()
+
+	// Get the entity list from disk
+	el, err := emds.db.DiscoverEntityIDs()
+	if err != nil {
+		log.Printf("Cannot reload the entity_manager (%s)", err)
+		return
+	}
+
+	// Load entities in from the disk.
+	for _, en := range el {
+		emds.loadFromDisk(en)
+	}
+
+	// Everythings reloaded, we'll mark healthy again
+	log.Println("EM Reload Complete!")
+	health.SetGood()
 }
 
 // nextUIDNumber computes the next available uidNumber to be assigned.

@@ -10,7 +10,6 @@ import (
 	"github.com/NetAuth/NetAuth/internal/server/db"
 	_ "github.com/NetAuth/NetAuth/internal/server/db/impl"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-	"github.com/NetAuth/NetAuth/internal/server/health"
 	"github.com/NetAuth/NetAuth/internal/server/rpc"
 
 	"google.golang.org/grpc"
@@ -36,8 +35,12 @@ func newServer() *rpc.NetAuthServer {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
 
+	em := entity_manager.New(&db)
+	log.Println("Conducting initial entity_manager reload")
+	em.Reload()
+
 	return &rpc.NetAuthServer{
-		EM: entity_manager.New(&db),
+		EM: em,
 	}
 }
 
@@ -91,12 +94,9 @@ func main() {
 	// create arbitrary root users.
 	srv.EM.DisableBootstrap()
 
-	// At this point the server should be ready to serve.
-	health.SetGood()
-
 	// Instantiate and launch.  This will block and the server
 	// will server forever.
-	log.Println("Server is launching...")
+	log.Println("Ready to Serve...")
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
 	grpcServer.Serve(sock)
