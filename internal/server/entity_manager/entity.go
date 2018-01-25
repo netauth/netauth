@@ -153,7 +153,6 @@ func (emds *EMDataStore) loadFromDisk(ID string) error {
 	emds.eByID[e.GetID()] = e
 	emds.eByUIDNumber[e.GetUidNumber()] = e
 
-	log.Printf("Loaded '%s' from disk", e.GetID())
 	return nil
 }
 

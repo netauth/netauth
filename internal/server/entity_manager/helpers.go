@@ -59,8 +59,18 @@ func (emds *EMDataStore) Reload() {
 	}
 
 	// Load entities in from the disk.
+	loaded := 0
 	for _, en := range el {
 		emds.loadFromDisk(en)
+		loaded++
+	}
+
+	// Log the reload data
+	log.Printf("Discovered %d entities; loaded %d", len(el), loaded)
+	if len(el) != loaded {
+		// If we have the wrong number, then return now
+		// without marking the server healthy again.
+		return
 	}
 
 	// Everythings reloaded, we'll mark healthy again
