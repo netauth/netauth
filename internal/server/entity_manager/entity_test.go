@@ -6,7 +6,7 @@ import (
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 func TestNewEntityWithAuth(t *testing.T) {

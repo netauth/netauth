@@ -17,7 +17,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 const entity_subdir = "entities"

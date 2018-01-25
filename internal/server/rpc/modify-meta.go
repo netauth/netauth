@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // ModifyEntityMeta takes in a ModEntityRequest and extracts the

@@ -1,6 +1,6 @@
 package entity_manager
 
-import pb "github.com/NetAuth/NetAuth/proto"
+import pb "github.com/NetAuth/NetAuth/pkg/proto"
 
 type EMDataStore struct {
 	eByID map[string]*pb.Entity

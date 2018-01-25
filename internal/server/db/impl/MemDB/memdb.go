@@ -4,7 +4,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/server/db"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 func init() {

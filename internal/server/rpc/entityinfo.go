@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // EntityInfo returns an entity to the client pretty much directly.

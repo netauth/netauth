@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // ListGroupMembers takes in a Group and lists the members that are

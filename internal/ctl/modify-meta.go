@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	"github.com/NetAuth/NetAuth/pkg/client"
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 
 	"github.com/google/subcommands"
 )

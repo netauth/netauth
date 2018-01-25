@@ -1,6 +1,6 @@
 package rpc
 
-import pb "github.com/NetAuth/NetAuth/proto"
+import pb "github.com/NetAuth/NetAuth/pkg/proto"
 
 type EntityManager interface {
 	NewEntity(string, string, string, int32, string) error

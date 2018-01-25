@@ -3,7 +3,7 @@ package entity_manager
 import (
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // safeCopyEntity makes a copy of the entity provided but removes

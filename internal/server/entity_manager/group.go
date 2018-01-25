@@ -2,7 +2,7 @@ package entity_manager
 
 import (
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	pb "github.com/NetAuth/NetAuth/proto"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // listMembers takes a group ID in and returns a slice of entities
