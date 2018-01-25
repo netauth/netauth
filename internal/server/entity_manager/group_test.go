@@ -2,6 +2,7 @@ package entity_manager
 
 import (
 	"testing"
+	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 
 func TestListMembersALLInternal(t *testing.T) {
@@ -32,7 +33,7 @@ func TestListMembersALLInternal(t *testing.T) {
 func TestListMembersNoMatchInternal(t *testing.T) {
 	em := New(nil)
 	list, err := em.listMembers("")
-	if list != nil && err != E_NO_GROUP {
+	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)
 	}
 }
@@ -75,7 +76,7 @@ func TestListMembersExternal(t *testing.T) {
 func TestListMembersNoMatchExternal(t *testing.T) {
 	em := New(nil)
 	list, err := em.ListMembers("")
-	if list != nil && err != E_NO_GROUP {
+	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)
 	}
 }

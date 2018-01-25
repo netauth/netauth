@@ -1,6 +1,7 @@
 package entity_manager
 
 import (
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -20,7 +21,7 @@ func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
 
 	// No group matched (likely because no other group mechanisms
 	// are implemented).
-	return nil, E_NO_GROUP
+	return nil, errors.E_NO_GROUP
 }
 
 // ListMembers fulfills the same function as the private version of

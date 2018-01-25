@@ -6,7 +6,7 @@ package MemDB
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
+	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 
 func TestDiscoverEntityIDs(t *testing.T) {
@@ -24,7 +24,7 @@ func TestDiscoverEntityIDs(t *testing.T) {
 func TestLoadEntity(t *testing.T) {
 	x := New()
 
-	if _, err := x.LoadEntity(""); err != entity_manager.E_NO_ENTITY {
+	if _, err := x.LoadEntity(""); err != errors.E_NO_ENTITY {
 		t.Errorf("MemDB unexpected error: %s", err)
 	}
 }

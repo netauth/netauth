@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"golang.org/x/crypto/bcrypt"
 
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -59,12 +60,12 @@ func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) er
 	_, exists := emds.eByID[ID]
 	if exists {
 		log.Printf("Entity with ID '%s' already exists!", ID)
-		return E_DUPLICATE_ID
+		return errors.E_DUPLICATE_ID
 	}
 	_, exists = emds.eByUIDNumber[uidNumber]
 	if exists {
 		log.Printf("Entity with uidNumber '%d' already exists!", uidNumber)
-		return E_DUPLICATE_UIDNUMBER
+		return errors.E_DUPLICATE_UIDNUMBER
 	}
 
 	// Were we given a specific uidNumber?
@@ -146,7 +147,7 @@ func (emds *EMDataStore) MakeBootstrap(ID string, secret string) {
 	}
 
 	// This is not a normal Go way of doing this, but this
-	// func (emds *EMDataStore)tion has two possible success cases, the flow may jump
+	// function has two possible success cases, the flow may jump
 	// in here and return if there is an existing entity to get
 	// root powers.
 	if e != nil {
@@ -196,10 +197,10 @@ func (emds *EMDataStore) loadFromDisk(ID string) error {
 }
 
 // getEntityByID returns a pointer to an Entity struct and an error
-// value.  The error value will either be E_NO_ENTITY if the requested
-// value did not match, or will be nil where an entity is returned.
-// The string must be a complete match for the entity name being
-// requested.
+// value.  The error value will either be errors.E_NO_ENTITY if the
+// requested value did not match, or will be nil where an entity is
+// returned.  The string must be a complete match for the entity name
+// being requested.
 func (emds *EMDataStore) getEntityByID(ID string) (*pb.Entity, error) {
 	e, ok := emds.eByID[ID]
 	if !ok {
@@ -215,16 +216,16 @@ func (emds *EMDataStore) getEntityByID(ID string) (*pb.Entity, error) {
 	// Try again after potentially having loaded the entity
 	e, ok = emds.eByID[ID]
 	if !ok {
-		return nil, E_NO_ENTITY
+		return nil, errors.E_NO_ENTITY
 	}
 	return e, nil
 }
 
-// DeleteEntityByID deletes the named entity.  This func (emds *EMDataStore)tion will
-// delete the entity in a non-atomic way, but will ensure that the
-// entity cannot be authenticated with before returning.  If the named
-// ID does not exist the func (emds *EMDataStore)tion will return E_NO_ENTITY, in all
-// other cases nil is returned.
+// DeleteEntityByID deletes the named entity.  This func (emds
+// *EMDataStore)tion will delete the entity in a non-atomic way, but
+// will ensure that the entity cannot be authenticated with before
+// returning.  If the named ID does not exist the function will return
+// errors.E_NO_ENTITY, in all other cases nil is returned.
 func (emds *EMDataStore) deleteEntityByID(ID string) error {
 	// Drop the entity from the in memory storage.
 	if err := emds.dropEntity(ID); err != nil {
@@ -268,7 +269,7 @@ func (emds *EMDataStore) dropEntity(ID string) error {
 	return nil
 }
 
-// checkCapability is a helper func (emds *EMDataStore)tion which allows a method to
+// checkCapability is a helper function which allows a method to
 // quickly check for a capability on an entity.  This check only looks
 // for capabilities that an entity has directly, not any which may be
 // conferred to it by group membership.
@@ -282,7 +283,7 @@ func (emds *EMDataStore) checkEntityCapability(e *pb.Entity, c string) error {
 			return nil
 		}
 	}
-	return E_ENTITY_UNQUALIFIED
+	return errors.E_ENTITY_UNQUALIFIED
 }
 
 // checkCapabilityByID is a convenience func (emds *EMDataStore)tion which performs the
@@ -328,8 +329,8 @@ func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) error {
 	return nil
 }
 
-// SetEntityCapabilityByID is a convenience func (emds *EMDataStore)tion to get the entity
-// and hand it off to the actual setEntityCapability func (emds *EMDataStore)tion
+// SetEntityCapabilityByID is a convenience function to get the entity
+// and hand it off to the actual setEntityCapability function
 func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
 	e, err := emds.getEntityByID(ID)
 	if err != nil {
@@ -369,8 +370,8 @@ func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
 	return nil
 }
 
-// ChangeSecret is a publicly available func (emds *EMDataStore)tion to change an entity
-// secret.  This func (emds *EMDataStore)tion requires either the CHANGE_ENTITY_SECRET
+// ChangeSecret is a publicly available function to change an entity
+// secret.  This function requires either the CHANGE_ENTITY_SECRET
 // capability or the entity to be requesting the change for itself.
 func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string, changeSecret string) error {
 	// If the entity isn't the one requesting the change then
@@ -410,7 +411,7 @@ func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
 		// is the best place to put this log message so that
 		// it works like all the others.
 		log.Printf("Failed to authenticate '%s'", e.GetID())
-		return E_ENTITY_BADAUTH
+		return errors.E_ENTITY_BADAUTH
 	}
 	log.Printf("Successfully authenticated '%s'", e.GetID())
 
@@ -419,8 +420,8 @@ func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
 
 // validateEntityCapabilityAndSecret validates an entitity is who they
 // say they are and that they have a named capability.  This is a
-// convenience func (emds *EMDataStore)tion and simply calls and aggregates responses from
-// other func (emds *EMDataStore)tions which perform the actual checks.
+// convenience function and simply calls and aggregates responses from
+// other functions which perform the actual checks.
 func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
 	// First validate the entity identity.
 	if err := emds.ValidateSecret(ID, secret); err != nil {

@@ -4,9 +4,9 @@ package db
 // various database options.
 
 import (
-	"errors"
 	"log"
 
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 )
 
@@ -14,14 +14,13 @@ type DBFactory func() entity_manager.EMDiskInterface
 
 var (
 	backends           = make(map[string]DBFactory)
-	E_NO_SUCH_DATABASE = errors.New("No such database!")
 )
 
 // NewDB returns a db struct.
 func New(name string) (entity_manager.EMDiskInterface, error) {
 	b, ok := backends[name]
 	if !ok {
-		return nil, E_NO_SUCH_DATABASE
+		return nil, errors.E_NO_SUCH_DATABASE
 	}
 	return b(), nil
 }

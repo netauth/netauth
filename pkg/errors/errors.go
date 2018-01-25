@@ -1,4 +1,4 @@
-package entity_manager
+package errors
 
 import "errors"
 
@@ -10,4 +10,5 @@ var (
 	E_ENTITY_UNQUALIFIED  = errors.New("The specified entity does not have sufficient capabilitites")
 	E_ENTITY_BADAUTH      = errors.New("The provided entity could not successfully authenticate.")
 	E_NO_GROUP            = errors.New("No such group.")
+	E_NO_SUCH_DATABASE    = errors.New("No such database!")
 )

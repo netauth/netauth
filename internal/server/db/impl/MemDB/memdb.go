@@ -3,6 +3,7 @@ package MemDB
 import (
 	"github.com/NetAuth/NetAuth/internal/server/db"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/proto"
 )
 
@@ -19,6 +20,6 @@ type MemDB struct{}
 
 func New() entity_manager.EMDiskInterface                { return &MemDB{} }
 func (m *MemDB) DiscoverEntityIDs() ([]string, error)    { return []string{}, nil }
-func (m *MemDB) LoadEntity(_ string) (*pb.Entity, error) { return nil, entity_manager.E_NO_ENTITY }
+func (m *MemDB) LoadEntity(_ string) (*pb.Entity, error) { return nil, errors.E_NO_ENTITY }
 func (m *MemDB) SaveEntity(_ *pb.Entity) error           { return nil }
 func (m *MemDB) DeleteEntity(_ string) error             { return nil }

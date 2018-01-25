@@ -1,8 +1,10 @@
 package entity_manager
 
 import (
-	"github.com/golang/protobuf/proto"
 	"testing"
+
+	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/NetAuth/proto"
 )
@@ -21,9 +23,9 @@ func TestNewEntityWithAuth(t *testing.T) {
 		wantErr      error
 	}{
 		{"a", -1, "a", "GLOBAL_ROOT", "aa", -1, "a", nil},
-		{"b", -1, "a", "", "bb", -1, "a", E_ENTITY_UNQUALIFIED},
+		{"b", -1, "a", "", "bb", -1, "a", errors.E_ENTITY_UNQUALIFIED},
 		{"c", -1, "a", "CREATE_ENTITY", "cc", -1, "a", nil},
-		{"d", -1, "a", "CREATE_ENTITY", "a", -1, "a", E_DUPLICATE_ID},
+		{"d", -1, "a", "CREATE_ENTITY", "a", -1, "a", errors.E_DUPLICATE_ID},
 	}
 
 	for _, c := range s {
@@ -54,7 +56,7 @@ func TestAddDuplicateID(t *testing.T) {
 		err       error
 	}{
 		{"foo", 1, "", nil},
-		{"foo", 2, "", E_DUPLICATE_ID},
+		{"foo", 2, "", errors.E_DUPLICATE_ID},
 	}
 
 	for _, c := range s {
@@ -74,7 +76,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 		err       error
 	}{
 		{"foo", 1, "", nil},
-		{"bar", 1, "", E_DUPLICATE_UIDNUMBER},
+		{"bar", 1, "", errors.E_DUPLICATE_UIDNUMBER},
 	}
 
 	for _, c := range s {
@@ -146,8 +148,8 @@ func TestMakeBootstrap(t *testing.T) {
 	}{
 		{"bar", "", false, false, nil},
 		{"baz", "", false, false, nil},
-		{"quu", "", true, true, E_NO_ENTITY},
-		{"qux", "", true, false, E_NO_ENTITY},
+		{"quu", "", true, true, errors.E_NO_ENTITY},
+		{"qux", "", true, false, errors.E_NO_ENTITY},
 	}
 
 	// Precreate bar to make sure they can get the
@@ -222,14 +224,14 @@ func TestDeleteEntityByID(t *testing.T) {
 			t.Error(err)
 		}
 
-		// Make sure checking for that entity returns E_NO_ENTITY
-		if _, err := em.getEntityByID(c.ID); err != E_NO_ENTITY {
+		// Make sure checking for that entity returns errors.E_NO_ENTITY
+		if _, err := em.getEntityByID(c.ID); err != errors.E_NO_ENTITY {
 			t.Error(err)
 		}
 	}
 
 	// Check that deleting something that doesn't exist works correctly.
-	if err := em.deleteEntityByID("DNE"); err != E_NO_ENTITY {
+	if err := em.deleteEntityByID("DNE"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -257,8 +259,8 @@ func TestDeleteEntityWithAuth(t *testing.T) {
 		wantErr   error
 	}{
 		{"a", -1, "a", "GLOBAL_ROOT", "foo", nil},
-		{"b", -1, "a", "", "bar", E_ENTITY_UNQUALIFIED},
-		{"c", -1, "a", "CREATE_ENTITY", "baz", E_ENTITY_UNQUALIFIED},
+		{"b", -1, "a", "", "bar", errors.E_ENTITY_UNQUALIFIED},
+		{"c", -1, "a", "CREATE_ENTITY", "baz", errors.E_ENTITY_UNQUALIFIED},
 		{"d", -1, "a", "DELETE_ENTITY", "quu", nil},
 		{"e", -1, "a", "DELETE_ENTITY", "e", nil},
 	}
@@ -302,7 +304,7 @@ func TestBasicCapabilities(t *testing.T) {
 		{"foo", -1, "a", "GLOBAL_ROOT", "GLOBAL_ROOT", nil},
 		{"bar", -1, "a", "CREATE_ENTITY", "CREATE_ENTITY", nil},
 		{"baz", -1, "a", "GLOBAL_ROOT", "CREATE_ENTITY", nil},
-		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", E_ENTITY_UNQUALIFIED},
+		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", errors.E_ENTITY_UNQUALIFIED},
 	}
 
 	for _, c := range s {
@@ -363,7 +365,7 @@ func TestBasicCapabilitiesByID(t *testing.T) {
 		{"foo", -1, "a", "GLOBAL_ROOT", "GLOBAL_ROOT", nil},
 		{"bar", -1, "a", "CREATE_ENTITY", "CREATE_ENTITY", nil},
 		{"baz", -1, "a", "GLOBAL_ROOT", "CREATE_ENTITY", nil},
-		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", E_ENTITY_UNQUALIFIED},
+		{"bam", -1, "a", "CREATE_ENTITY", "GLOBAL_ROOT", errors.E_ENTITY_UNQUALIFIED},
 	}
 
 	for _, c := range s {
@@ -385,7 +387,7 @@ func TestCapabilityBogusEntity(t *testing.T) {
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
 	// should be returned.
-	if err := em.setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != E_NO_ENTITY {
+	if err := em.setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -422,7 +424,7 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 	em := New(nil)
 
 	// Attempt to set the secret on an entity that doesn't exist.
-	if err := em.setEntitySecretByID("a", "a"); err != E_NO_ENTITY {
+	if err := em.setEntitySecretByID("a", "a"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -432,7 +434,7 @@ func TestValidateSecretBogusEntity(t *testing.T) {
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
-	if err := em.ValidateSecret("a", "a"); err != E_NO_ENTITY {
+	if err := em.ValidateSecret("a", "a"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -449,8 +451,8 @@ func TestValidateEntityCapabilityAndSecret(t *testing.T) {
 		testSecret string
 		testCap    string
 	}{
-		{"a", -1, "a", "", E_ENTITY_UNQUALIFIED, "a", "GLOBAL_ROOT"},
-		{"b", -1, "a", "", E_ENTITY_BADAUTH, "b", ""},
+		{"a", -1, "a", "", errors.E_ENTITY_UNQUALIFIED, "a", "GLOBAL_ROOT"},
+		{"b", -1, "a", "", errors.E_ENTITY_BADAUTH, "b", ""},
 		{"c", -1, "a", "CREATE_ENTITY", nil, "a", "CREATE_ENTITY"},
 		{"d", -1, "a", "GLOBAL_ROOT", nil, "a", "CREATE_ENTITY"},
 	}
@@ -490,11 +492,11 @@ func TestChangeSecret(t *testing.T) {
 		changeSecret string
 		wantErr      error
 	}{
-		{"a", "e", "a", "a", E_ENTITY_BADAUTH},     // same entity, bad secret
-		{"a", "a", "a", "b", nil},                  // can change own password
-		{"a", "b", "b", "d", E_ENTITY_UNQUALIFIED}, // can't change other secrets without capability
-		{"b", "b", "a", "a", nil},                  // can change other's secret with CHANGE_ENTITY_SECRET
-		{"c", "c", "a", "b", nil},                  // can change other's secret with GLOBAL_ROOT
+		{"a", "e", "a", "a", errors.E_ENTITY_BADAUTH},     // same entity, bad secret
+		{"a", "a", "a", "b", nil},                         // can change own password
+		{"a", "b", "b", "d", errors.E_ENTITY_UNQUALIFIED}, // can't change other secrets without capability
+		{"b", "b", "a", "a", nil},                         // can change other's secret with CHANGE_ENTITY_SECRET
+		{"c", "c", "a", "b", nil},                         // can change other's secret with GLOBAL_ROOT
 	}
 
 	// Add some entities
@@ -526,7 +528,7 @@ func TestGetEntity(t *testing.T) {
 
 	// First validate that this works with no entity
 	entity, err := em.GetEntity("")
-	if err != E_NO_ENTITY {
+	if err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 
@@ -600,10 +602,10 @@ func TestUpdateEntityMetaExternal(t *testing.T) {
 		modID      string
 		wantErr    error
 	}{
-		{"foo", "foo", "", "a", E_ENTITY_UNQUALIFIED},
-		{"foo", "", "", "a", E_ENTITY_BADAUTH},
+		{"foo", "foo", "", "a", errors.E_ENTITY_UNQUALIFIED},
+		{"foo", "", "", "a", errors.E_ENTITY_BADAUTH},
 		{"foo", "foo", "MODIFY_ENTITY_META", "a", nil},
-		{"a", "b", "", "a", E_ENTITY_BADAUTH},
+		{"a", "b", "", "a", errors.E_ENTITY_BADAUTH},
 		{"a", "a", "", "a", nil},
 	}
 
