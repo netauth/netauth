@@ -12,6 +12,7 @@ type EntityManager interface {
 	ListMembers(string) ([]*pb.Entity, error)
 	GetEntity(string) (*pb.Entity, error)
 	UpdateEntityMeta(string, string, string, *pb.EntityMeta) error
+	NewGroup(string, string, string, string, int32) error
 }
 
 type NetAuthServer struct {

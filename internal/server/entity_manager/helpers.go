@@ -31,6 +31,8 @@ func New(db *EMDiskInterface) *EMDataStore {
 func (emds *EMDataStore) initMem() {
 	emds.eByID = make(map[string]*pb.Entity)
 	emds.eByUIDNumber = make(map[int32]*pb.Entity)
+	emds.gByName = make(map[string]*pb.Group)
+	emds.gByGIDNumber = make(map[int32]*pb.Group)
 }
 
 // Reload conducts an in place swap of the entity_manager and causes

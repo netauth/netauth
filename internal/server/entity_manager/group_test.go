@@ -1,9 +1,77 @@
 package entity_manager
 
 import (
-	"github.com/NetAuth/NetAuth/pkg/errors"
 	"testing"
+
+	"github.com/NetAuth/NetAuth/pkg/errors"
 )
+
+func TestNewGroupInternal(t *testing.T) {
+	em := New(nil)
+	em.initMem()
+
+	s := []struct {
+		name        string
+		displayName string
+		gidNumber   int32
+		wantErr     error
+	}{
+		{"fooGroup", "", 1, nil},
+		{"fooGroup", "", 1, errors.E_DUPLICATE_GROUP_ID},
+		{"barGroup", "", 0, errors.E_DUPLICATE_GROUP_NUMBER},
+		{"barGroup", "", 1, errors.E_DUPLICATE_GROUP_NUMBER},
+		{"barGroup", "", -1, nil},
+	}
+	for _, c := range s {
+		if err := em.newGroup(c.name, c.displayName, c.gidNumber); err != c.wantErr {
+			t.Errorf("Wrong Error: want '%v' got '%v'", c.wantErr, err)
+		}
+	}
+}
+
+func TestGroupExternal(t *testing.T) {
+	em := New(nil)
+	em.initMem()
+
+	// Add some users to the system that can and cannot create
+	// groups.
+	e := []struct {
+		ID     string
+		secret string
+		cap    string
+	}{
+		{"foo", "foo", ""},
+		{"bar", "bar", "CREATE_GROUP"},
+	}
+	for _, ne := range e {
+		if err := em.newEntity(ne.ID, -1, ne.secret); err != nil {
+			t.Error(err)
+		}
+
+		if err := em.setEntityCapabilityByID(ne.ID, ne.cap); err != nil {
+			t.Error(err)
+		}
+	}
+
+	s := []struct {
+		ID        string
+		secret    string
+		name      string
+		gidNumber int32
+		wantErr   error
+	}{
+		{"foo", "foo", "newGroup", -1, errors.E_ENTITY_UNQUALIFIED},
+		{"bar", "bar", "newGroup", -1, nil},
+		{"bar", "bar", "newGroup", -1, errors.E_DUPLICATE_GROUP_ID},
+		{"bar", "bar", "fooGroup", 0, errors.E_DUPLICATE_GROUP_NUMBER},
+	}
+
+	for _, c := range s {
+		if err := em.NewGroup(c.name, "", c.gidNumber, c.ID, c.secret); err != c.wantErr {
+			t.Error(err)
+		}
+	}
+}
 
 func TestListMembersALLInternal(t *testing.T) {
 	em := New(nil)

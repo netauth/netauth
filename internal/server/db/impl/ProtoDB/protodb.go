@@ -21,6 +21,7 @@ import (
 )
 
 const entity_subdir = "entities"
+const group_subdir = "groups"
 
 type ProtoDB struct {
 	data_root string
@@ -112,6 +113,25 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 	return os.Remove(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
 }
 
+// SaveGroup writes  an entity to  disk.  Errors may be  returned for
+// proto marshal  errors or for  errors writing to disk.   No promises
+// are made  regarding if  the data  has been written  to disk  at the
+// return of this function as the operatig system may choose to buffer
+// the data until a larger block may be written.
+func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
+	out, err := proto.Marshal(g)
+	if err != nil {
+		log.Printf("Failed to marshal entity '%s' (%s)", g.GetName(), err)
+	}
+
+	if err := ioutil.WriteFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
+		log.Printf("Failed to aquire write handle for '%s'", g.GetName())
+		return err
+	}
+
+	return nil
+}
+
 // ensureDataDirectory is called during initialization of this backend
 // to ensure that the data directories are available.
 func (pdb *ProtoDB) ensureDataDirectory() error {
@@ -127,8 +147,8 @@ func (pdb *ProtoDB) ensureDataDirectory() error {
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(pdb.data_root, "groups")); os.IsNotExist(err) {
-		if err := os.Mkdir(filepath.Join(pdb.data_root, "groups"), 0755); err != nil {
+	if _, err := os.Stat(filepath.Join(pdb.data_root, group_subdir)); os.IsNotExist(err) {
+		if err := os.Mkdir(filepath.Join(pdb.data_root, group_subdir), 0755); err != nil {
 			return err
 		}
 	}

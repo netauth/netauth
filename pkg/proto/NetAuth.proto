@@ -14,6 +14,10 @@ enum Capability {
   DESTORY_ENTITY = 2;
   MODIFY_ENTITY_META = 3;
   CHANGE_ENTITY_SECRET = 4;
+  CREATE_GROUP = 5;
+  DESTROY_GROUP = 6;
+  MODIFY_GROUP_DISPLAYNAME = 7;
+  MODIFY_GROUP_MEMBERS = 8;
 }
 
 service NetAuth {
@@ -44,6 +48,9 @@ service NetAuth {
   // The minimal directory functions require modifying the entity
   // information to update values.
   rpc ModifyEntityMeta(ModEntityRequest) returns (SimpleResult) {}
+
+  // NewGroup allows us to create arbitrary groups.
+  rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -138,6 +145,27 @@ message Group {
   // should be the same across all systems since it may be used for
   // internal matching of users.
   optional int32 gidNumber = 3;
+
+  // Groups may have capabilities that are conferred to members of the
+  // group on a membership basis.  This is the preferred way of
+  // granting capabilities to an entity since it means that when an
+  // entity is removed from the group they lose the capabilities that
+  // were granted from it.
+  repeated Capability capabilities = 4;
+}
+
+message ModGroupRequest {
+  // The entity that's authorizing this change.
+  required Entity entity = 1;
+
+  // The group that's being modified.
+  required Group group = 2;
+
+  // The ID of the client requesting this change
+  optional string clientID = 3;
+
+  // The serviceID on the client requesting this change.
+  optional string serviceID = 4;
 }
 
 message GroupMemberRequest {
