@@ -60,6 +60,24 @@ func (emds *EMDataStore) NewGroup(requestID, requestSecret, name, displayName st
 	return nil
 }
 
+func (emds *EMDataStore) loadGroupFromDisk(name string) error {
+	// If the persistence layer isn't available return nil since
+	// there was never going to be anything to load anyway...
+	if emds.db == nil {
+		return nil
+	}
+
+	g, err:= emds.db.LoadGroup(name)
+	if err != nil {
+		return err
+	}
+
+	emds.gByName[g.GetName()] = g
+	emds.gByGIDNumber[g.GetGidNumber()] = g
+
+	return nil
+}
+
 func (emds *EMDataStore) nextGIDNumber() int32 {
 	var largest int32 = 0
 

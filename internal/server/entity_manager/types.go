@@ -31,8 +31,8 @@ type EMDiskInterface interface {
 	DeleteEntity(string) error
 
 	// Group handling
-	// DiscoverGroupIDs() ([]string, error)
-	// LoadGroup(string) (*pb.Group, error)
+	DiscoverGroupNames() ([]string, error)
+	LoadGroup(string) (*pb.Group, error)
 	SaveGroup(*pb.Group) error
 	// DeleteGroup(string) error
 }

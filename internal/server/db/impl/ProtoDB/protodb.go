@@ -54,7 +54,7 @@ func New() entity_manager.EMDiskInterface {
 // DiscoverEntityIDs returns a list of entity IDs that this loader can
 // retrieve by globbing the entity directory of the data_root.  This
 // is not foolproof, but assuming that the data_root is not modified
-// by hand it should be safe enouth.
+// by hand it should be safe enough.
 func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 	// Locate all known entities.
 	globs, err := filepath.Glob(filepath.Join(pdb.data_root, entity_subdir, "*.dat"))
@@ -112,6 +112,43 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 func (pdb *ProtoDB) DeleteEntity(ID string) error {
 	return os.Remove(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
 }
+
+// DiscoverGroupNames returns a list of entity IDs that this loader
+// can retrieve by globbing the group directory of the data_root.
+// This is not foolproof, but assuming that the data_root is not
+// modified by hand it should be safe enough.
+func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
+	// Locate all known entities.
+	globs, err := filepath.Glob(filepath.Join(pdb.data_root, group_subdir, "*.dat"))
+	if err != nil {
+		return nil, err
+	}
+
+	// Strip the extensions off the files.
+	Names := make([]string, 0)
+	for _, g := range globs {
+		f := filepath.Base(g)
+		Names = append(Names, strings.Replace(f, ".dat", "", 1))
+	}
+	return Names, nil
+}
+
+// LoadGroup attempts to load a group by name from the disk.  It can
+// fail on proto errors or bogus file permissions reading the file.
+func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
+	in, err := ioutil.ReadFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
+	if err != nil {
+		log.Println("Error reading file:", err)
+		return nil, err
+	}
+	e := &pb.Group{}
+	if err := proto.Unmarshal(in, e); err != nil {
+		log.Printf("Failed to parse Group from disk: (%s):", err)
+		return nil, err
+	}
+	return e, nil
+}
+
 
 // SaveGroup writes  an entity to  disk.  Errors may be  returned for
 // proto marshal  errors or for  errors writing to disk.   No promises

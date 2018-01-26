@@ -63,7 +63,7 @@ func (emds *EMDataStore) Reload() {
 	// Load entities in from the disk.
 	loaded := 0
 	for _, en := range el {
-		emds.loadFromDisk(en)
+		emds.loadEntityFromDisk(en)
 		loaded++
 	}
 
@@ -72,6 +72,25 @@ func (emds *EMDataStore) Reload() {
 	if len(el) != loaded {
 		// If we have the wrong number, then return now
 		// without marking the server healthy again.
+		return
+	}
+
+	// Now its time to pick up the groups!
+	gl, err := emds.db.DiscoverGroupNames()
+	if err != nil {
+		log.Printf("Cannot reload the entity_manager (%s)", err)
+		return
+	}
+	// Load the groups
+	loaded = 0
+	for _, eg := range gl {
+		emds.loadGroupFromDisk(eg)
+		loaded++
+	}
+	// Log the reload
+	log.Printf("Discovered %d groups; loaded %d", len(gl), loaded)
+	if len(gl) != loaded {
+		// Wrong number loaded, return with bad state
 		return
 	}
 
@@ -111,7 +130,7 @@ func (emds *EMDataStore) getEntityByID(ID string) (*pb.Entity, error) {
 		// Attempt to load the entity if the persistence layer
 		// is available.
 		if emds.db != nil {
-			if err := emds.loadFromDisk(ID); err != nil {
+			if err := emds.loadEntityFromDisk(ID); err != nil {
 				return nil, err
 			}
 		}

@@ -53,6 +53,22 @@ func (m *MemDB) DeleteEntity(ID string) error {
 	return nil
 }
 
+func (m *MemDB) DiscoverGroupNames() ([]string, error) {
+	var groups []string
+	for _, g := range m.gMap {
+		groups = append(groups, g.GetName())
+	}
+	return groups, nil
+}
+
+func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
+	g, ok := m.gMap[name]
+	if !ok {
+		return nil, errors.E_NO_GROUP
+	}
+	return g, nil
+}
+
 func (m *MemDB) SaveGroup(g *pb.Group) error {
 	m.gMap[g.GetName()] = g
 	return nil

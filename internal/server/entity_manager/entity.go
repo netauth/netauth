@@ -135,10 +135,10 @@ func (emds *EMDataStore) DisableBootstrap() {
 	emds.bootstrap_done = true
 }
 
-// loadFromDisk attempts to load an entity from the disk.  This can be
+// loadEntityFromDisk attempts to load an entity from the disk.  This can be
 // useful if another server wrote it to disk but its not in the cache
 // yet.
-func (emds *EMDataStore) loadFromDisk(ID string) error {
+func (emds *EMDataStore) loadEntityFromDisk(ID string) error {
 	// If the persistence layer isn't available, just return.
 	// This isn't necessarily an error, but no data was available.
 	if emds.db == nil {
