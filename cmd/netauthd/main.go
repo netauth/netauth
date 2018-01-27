@@ -35,9 +35,7 @@ func newServer() *rpc.NetAuthServer {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
 
-	em := entity_manager.New(&db)
-	log.Println("Conducting initial entity_manager reload")
-	em.Reload()
+	em := entity_manager.New(db)
 
 	return &rpc.NetAuthServer{
 		EM: em,

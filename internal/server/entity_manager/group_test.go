@@ -3,12 +3,12 @@ package entity_manager
 import (
 	"testing"
 
+	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 
 func TestNewGroupInternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		name        string
@@ -30,8 +30,7 @@ func TestNewGroupInternal(t *testing.T) {
 }
 
 func TestGroupExternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Add some users to the system that can and cannot create
 	// groups.
@@ -67,15 +66,14 @@ func TestGroupExternal(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.NewGroup(c.name, "", c.gidNumber, c.ID, c.secret); err != c.wantErr {
+		if err := em.NewGroup(c.ID, c.secret, c.name, "", c.gidNumber); err != c.wantErr {
 			t.Error(err)
 		}
 	}
 }
 
 func TestListMembersALLInternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []string{
 		"foo",
@@ -93,15 +91,18 @@ func TestListMembersALLInternal(t *testing.T) {
 			t.Error(err)
 		}
 
-		if len(em.eByID) != len(listALL) {
+		dbAll, err := em.db.DiscoverEntityIDs()
+		if err != nil {
+			t.Error(err)
+		}
+		if len(dbAll) != len(listALL) {
 			t.Error("Different number of entities returned!")
 		}
 	}
 }
 
 func TestListMembersNoMatchInternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 	list, err := em.listMembers("")
 	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)
@@ -109,8 +110,7 @@ func TestListMembersNoMatchInternal(t *testing.T) {
 }
 
 func TestListMembersExternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []string{
 		"foo",
@@ -145,8 +145,7 @@ func TestListMembersExternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchExternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 	list, err := em.ListMembers("")
 	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)

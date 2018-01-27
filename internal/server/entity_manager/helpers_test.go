@@ -3,12 +3,12 @@ package entity_manager
 import (
 	"testing"
 
+	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
 	"github.com/golang/protobuf/proto"
 )
 
 func TestNextUIDNumber(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID            string
@@ -30,7 +30,11 @@ func TestNextUIDNumber(t *testing.T) {
 
 		// Validate that after a given mutation the number is
 		// still what we expect it to be.
-		if next := em.nextUIDNumber(); next != c.nextUIDNumber {
+		next, err := em.nextUIDNumber()
+		if err != nil {
+			t.Error(err)
+		}
+		if next != c.nextUIDNumber {
 			t.Errorf("Wrong next number; got: %v want %v", next, c.nextUIDNumber)
 		}
 	}
@@ -38,8 +42,7 @@ func TestNextUIDNumber(t *testing.T) {
 }
 
 func TestGetEntityByID(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -55,25 +58,24 @@ func TestGetEntityByID(t *testing.T) {
 			t.Error(err)
 		}
 
-		if _, err := em.getEntityByID(c.ID); err != nil {
+		if _, err := em.db.LoadEntity(c.ID); err != nil {
 			t.Error("Added entity does not exist!")
 		}
 	}
 
-	if _, err := em.getEntityByID("baz"); err == nil {
+	if _, err := em.db.LoadEntity("baz"); err == nil {
 		t.Error("Returned non-existant entity!")
 	}
 }
 
 func TestSafeCopyEntity(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	if err := em.newEntity("foo", -1, "bar"); err != nil {
 		t.Error(err)
 	}
 
-	e, err := em.getEntityByID("foo")
+	e, err := em.db.LoadEntity("foo")
 	if err != nil {
 		t.Error(err)
 	}

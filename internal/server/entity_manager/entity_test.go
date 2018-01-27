@@ -3,6 +3,7 @@ package entity_manager
 import (
 	"testing"
 
+	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
@@ -10,8 +11,7 @@ import (
 )
 
 func TestNewEntityWithAuth(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID           string
@@ -48,8 +48,7 @@ func TestNewEntityWithAuth(t *testing.T) {
 }
 
 func TestAddDuplicateID(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -69,8 +68,7 @@ func TestAddDuplicateID(t *testing.T) {
 }
 
 func TestAddDuplicateUIDNumber(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -90,8 +88,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 }
 
 func TestNewEntityAutoNumber(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -111,8 +108,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 }
 
 func TestMakeBootstrap(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID            string
@@ -147,8 +143,7 @@ func TestMakeBootstrap(t *testing.T) {
 }
 
 func TestDeleteEntityByID(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -174,20 +169,14 @@ func TestDeleteEntityByID(t *testing.T) {
 		}
 
 		// Make sure checking for that entity returns errors.E_NO_ENTITY
-		if _, err := em.getEntityByID(c.ID); err != errors.E_NO_ENTITY {
+		if _, err := em.db.LoadEntity(c.ID); err != errors.E_NO_ENTITY {
 			t.Error(err)
 		}
-	}
-
-	// Check that deleting something that doesn't exist works correctly.
-	if err := em.deleteEntityByID("DNE"); err != errors.E_NO_ENTITY {
-		t.Error(err)
 	}
 }
 
 func TestDeleteEntityWithAuth(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	x := []struct {
 		ID        string
@@ -241,8 +230,7 @@ func TestDeleteEntityWithAuth(t *testing.T) {
 }
 
 func TestBasicCapabilities(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID         string
@@ -263,7 +251,7 @@ func TestBasicCapabilities(t *testing.T) {
 			t.Error(err)
 		}
 
-		e, err := em.getEntityByID(c.ID)
+		e, err := em.db.LoadEntity(c.ID)
 		if err != nil {
 			t.Error(err)
 		}
@@ -277,15 +265,14 @@ func TestBasicCapabilities(t *testing.T) {
 }
 
 func TestSetSameCapabilityTwice(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Add an entity
 	if err := em.newEntity("foo", -1, ""); err != nil {
 		t.Error(err)
 	}
 
-	e, err := em.getEntityByID("foo")
+	e, err := em.db.LoadEntity("foo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -304,8 +291,7 @@ func TestSetSameCapabilityTwice(t *testing.T) {
 }
 
 func TestBasicCapabilitiesByID(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID         string
@@ -335,8 +321,7 @@ func TestBasicCapabilitiesByID(t *testing.T) {
 }
 
 func TestCapabilityBogusEntity(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
@@ -347,8 +332,7 @@ func TestCapabilityBogusEntity(t *testing.T) {
 }
 
 func TestSetEntitySecretByID(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID        string
@@ -376,8 +360,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 }
 
 func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Attempt to set the secret on an entity that doesn't exist.
 	if err := em.setEntitySecretByID("a", "a"); err != errors.E_NO_ENTITY {
@@ -386,8 +369,7 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 }
 
 func TestValidateSecretBogusEntity(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
@@ -397,8 +379,7 @@ func TestValidateSecretBogusEntity(t *testing.T) {
 }
 
 func TestValidateEntityCapabilityAndSecret(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	s := []struct {
 		ID         string
@@ -431,8 +412,7 @@ func TestValidateEntityCapabilityAndSecret(t *testing.T) {
 }
 
 func TestChangeSecret(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	entities := []struct {
 		ID     string
@@ -478,8 +458,7 @@ func TestChangeSecret(t *testing.T) {
 }
 
 func TestGetEntity(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Add a new entity with known values.
 	if err := em.newEntity("foo", -1, ""); err != nil {
@@ -512,8 +491,7 @@ func TestGetEntity(t *testing.T) {
 }
 
 func TestUpdateEntityMetaInternal(t *testing.T) {
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	// Add a new entity with known values
 	if err := em.newEntity("foo", -1, ""); err != nil {
@@ -526,7 +504,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 
 	// This checks that merging into the empty default meta works,
 	// since these will be the only values set.
-	e, err := em.getEntityByID("foo")
+	e, err := em.db.LoadEntity("foo")
 	if err != nil {
 		t.Error(err)
 	}
@@ -570,8 +548,7 @@ func TestUpdateEntityMetaExternal(t *testing.T) {
 		{"a", "a", "", "a", nil},
 	}
 
-	em := New(nil)
-	em.initMem()
+	em := New(MemDB.New())
 
 	if err := em.newEntity("foo", -1, "foo"); err != nil {
 		t.Error(err)

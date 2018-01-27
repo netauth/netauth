@@ -2,7 +2,6 @@ package MemDB
 
 import (
 	"github.com/NetAuth/NetAuth/internal/server/db"
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
@@ -19,7 +18,7 @@ type MemDB struct {
 	gMap map[string]*pb.Group
 }
 
-func New() entity_manager.EMDiskInterface {
+func New() db.EMDiskInterface {
 	return &MemDB{
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
@@ -41,6 +40,24 @@ func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
 		return nil, errors.E_NO_ENTITY
 	}
 	return e, nil
+}
+
+func (m *MemDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
+	l, err := m.DiscoverEntityIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, en := range l {
+		e, err := m.LoadEntity(en)
+		if err != nil {
+			return nil, err
+		}
+		if e.GetUidNumber() == number {
+			return e, nil
+		}
+	}
+	return nil, errors.E_NO_ENTITY
 }
 
 func (m *MemDB) SaveEntity(e *pb.Entity) error {
@@ -67,6 +84,24 @@ func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
 		return nil, errors.E_NO_GROUP
 	}
 	return g, nil
+}
+
+func (m *MemDB) LoadGroupNumber(number int32) (*pb.Group, error) {
+	l, err := m.DiscoverGroupNames()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, gn := range l {
+		g, err := m.LoadGroup(gn)
+		if err != nil {
+			return nil, err
+		}
+		if g.GetGidNumber() == number {
+			return g, nil
+		}
+	}
+	return nil, errors.E_NO_GROUP
 }
 
 func (m *MemDB) SaveGroup(g *pb.Group) error {

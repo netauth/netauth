@@ -2,10 +2,10 @@ package MemDB
 
 import (
 	"testing"
-	"os"
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
@@ -70,7 +70,81 @@ func TestSaveLoadDelete(t *testing.T) {
 	if err := x.DeleteEntity("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadEntity("foo"); !os.IsNotExist(err) {
+	if _, err := x.LoadEntity("foo"); err != errors.E_NO_ENTITY {
 		t.Error(err)
+	}
+}
+
+func TestLoadEntityNumber(t *testing.T) {
+	x := New()
+
+	e := &pb.Entity{ID: proto.String("foo"), UidNumber: proto.Int32(42), Secret: proto.String("")}
+
+	if err := x.SaveEntity(e); err != nil {
+		t.Error(err)
+	}
+
+	ne, err := x.LoadEntityNumber(42)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !proto.Equal(e, ne) {
+		t.Error("Entity Load Fault")
+	}
+}
+
+func TestDiscoverGroups(t *testing.T) {
+	x := New()
+	l, err := x.DiscoverGroupNames()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// At this point there are no groups, so the length should
+	// be 0.
+	if len(l) != 0 {
+		t.Error("DiscoverGroupNames made up an entity!")
+	}
+
+	// We'll save an entity that just has the ID set.  This isn't
+	// very realistic, but its the minimum data needed to put a
+	// file on disk.
+	if err := x.SaveGroup(&pb.Group{Name: proto.String("foo")}); err != nil {
+		t.Error(err)
+	}
+
+	// Rerun discovery.
+	l, err = x.DiscoverGroupNames()
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Now there should be one file on disk, and the ID that we've
+	// discovered should be 'foo'
+	if len(l) != 1 {
+		t.Error("DiscoverGroupNames failed to discover any groups!")
+	}
+	if l[0] != "foo" {
+		t.Errorf("DiscoverGroupNames discovered the wrong name: '%s'", l[0])
+	}
+}
+
+func TestLoadGroupNumber(t *testing.T) {
+	x := New()
+
+	g := &pb.Group{Name: proto.String("foo"), GidNumber: proto.Int32(42)}
+
+	if err := x.SaveGroup(g); err != nil {
+		t.Error(err)
+	}
+
+	ng, err := x.LoadGroupNumber(42)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if !proto.Equal(g, ng) {
+		t.Error("Group Load Fault")
 	}
 }

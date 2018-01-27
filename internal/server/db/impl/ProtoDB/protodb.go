@@ -14,9 +14,9 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/server/db"
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
@@ -41,7 +41,7 @@ func init() {
 // directory and children.  This function will bail out the entire
 // program as without the backing store the functionality of the rest
 // of the server is undefined!
-func New() entity_manager.EMDiskInterface {
+func New() db.EMDiskInterface {
 	x := new(ProtoDB)
 	x.data_root = *data_root
 	if err := x.ensureDataDirectory(); err != nil {
@@ -71,11 +71,16 @@ func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 	return IDs, nil
 }
 
-// LoadEntity loads a single entity fromt the data_root given the ID
+// LoadEntity loads a single entity from the data_root given the ID
 // associated with the entity.
 func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 	in, err := ioutil.ReadFile(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
 	if err != nil {
+		if os.IsNotExist(err) {
+			// In the specific case of a non-existance,
+			// that is a NO_ENTITY condition.
+			return nil, errors.E_NO_ENTITY
+		}
 		log.Println("Error reading file:", err)
 		return nil, err
 	}
@@ -85,6 +90,26 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 		return nil, err
 	}
 	return e, nil
+}
+
+// LoadEntityNumber loads a single entity from the data_root given the
+// uidNumber associated with the entity.
+func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
+	l, err := pdb.DiscoverEntityIDs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, en := range l {
+		e, err := pdb.LoadEntity(en)
+		if err != nil {
+			return nil, err
+		}
+		if e.GetUidNumber() == number {
+			return e, nil
+		}
+	}
+	return nil, errors.E_NO_ENTITY
 }
 
 // SaveEntity writes  an entity to  disk.  Errors may be  returned for
@@ -138,6 +163,11 @@ func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
 func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 	in, err := ioutil.ReadFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
 	if err != nil {
+		if os.IsNotExist(err) {
+			// This case is the group just flat not
+			// existing and is returned as such.
+			return nil, errors.E_NO_GROUP
+		}
 		log.Println("Error reading file:", err)
 		return nil, err
 	}
@@ -149,6 +179,24 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 	return e, nil
 }
 
+// LoadGroupNumber attempts to load a group by number.
+func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
+	l, err := pdb.DiscoverGroupNames()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, gn := range l {
+		g, err := pdb.LoadGroup(gn)
+		if err != nil {
+			return nil, err
+		}
+		if g.GetGidNumber() == number {
+			return g, nil
+		}
+	}
+	return nil, errors.E_NO_GROUP
+}
 
 // SaveGroup writes  an entity to  disk.  Errors may be  returned for
 // proto marshal  errors or for  errors writing to disk.   No promises
@@ -167,6 +215,13 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 	}
 
 	return nil
+}
+
+// DeleteGroup removes an entity from disk.  This is rather simple to
+// do given that each group is owned by exactly one file on disk.
+// Simply removing the file is sufficient to delete the entity.
+func (pdb *ProtoDB) DeleteGroup(name string) error {
+	return os.Remove(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
 }
 
 // ensureDataDirectory is called during initialization of this backend

@@ -18,22 +18,24 @@ import (
 // specified which will select the next available number.
 func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) error {
 	// Does this entity exist already?
-	_, exists := emds.eByID[ID]
-	if exists {
+	if _, err := emds.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
 		return errors.E_DUPLICATE_ID
 	}
-	_, exists = emds.eByUIDNumber[uidNumber]
-	if exists {
+	if _, err := emds.db.LoadEntityNumber(uidNumber); err == nil {
 		log.Printf("Entity with uidNumber '%d' already exists!", uidNumber)
 		return errors.E_DUPLICATE_UIDNUMBER
 	}
 
 	// Were we given a specific uidNumber?
 	if uidNumber == -1 {
+		var err error
 		// -1 is a sentinel value that tells us to pick the
 		// next available number and assign it.
-		uidNumber = emds.nextUIDNumber()
+		uidNumber, err = emds.nextUIDNumber()
+		if err != nil {
+			return err
+		}
 	}
 
 	// Ok, they don't exist so we'll make them exist now
@@ -44,19 +46,13 @@ func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) er
 		Meta:      &pb.EntityMeta{},
 	}
 
-	// Add this entity to the in-memory listings
-	emds.eByID[ID] = newEntity
-	emds.eByUIDNumber[uidNumber] = newEntity
-
-	// Save the entity if the persistence layer is available.
-	if emds.db != nil {
-		if err := emds.db.SaveEntity(newEntity); err != nil {
-			return err
-		}
+	// Save the entity
+	if err := emds.db.SaveEntity(newEntity); err != nil {
+		return err
 	}
 
 	// Now we set the entity secret, this could be inlined, but
-	// having it in the seperate func (emds *EMDataStore)tion makes resetting the
+	// having it in the seperate function makes resetting the
 	// secret trivial.
 	if err := emds.setEntitySecretByID(ID, secret); err != nil {
 		return err
@@ -102,7 +98,7 @@ func (emds *EMDataStore) MakeBootstrap(ID string, secret string) {
 	// admin, it is necessary to confer bootstrap powers to an
 	// existing user.  In that case they are just selected and
 	// then provided the GLOBAL_ROOT capability.
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		log.Printf("No entity with ID '%s' exists!  Creating...", ID)
 	}
@@ -135,45 +131,15 @@ func (emds *EMDataStore) DisableBootstrap() {
 	emds.bootstrap_done = true
 }
 
-// loadEntityFromDisk attempts to load an entity from the disk.  This can be
-// useful if another server wrote it to disk but its not in the cache
-// yet.
-func (emds *EMDataStore) loadEntityFromDisk(ID string) error {
-	// If the persistence layer isn't available, just return.
-	// This isn't necessarily an error, but no data was available.
-	if emds.db == nil {
-		return nil
-	}
-
-	e, err := emds.db.LoadEntity(ID)
-	if err != nil {
-		return err
-	}
-
-	emds.eByID[e.GetID()] = e
-	emds.eByUIDNumber[e.GetUidNumber()] = e
-
-	return nil
-}
-
 // DeleteEntityByID deletes the named entity.  This func (emds
 // *EMDataStore)tion will delete the entity in a non-atomic way, but
 // will ensure that the entity cannot be authenticated with before
 // returning.  If the named ID does not exist the function will return
 // errors.E_NO_ENTITY, in all other cases nil is returned.
 func (emds *EMDataStore) deleteEntityByID(ID string) error {
-	// Drop the entity from the in memory storage.
-	if err := emds.dropEntity(ID); err != nil {
+	if err := emds.db.DeleteEntity(ID); err != nil {
 		return err
 	}
-
-	// Delete the entity if the persistence layer is available.
-	if emds.db != nil {
-		if err := emds.db.DeleteEntity(ID); err != nil {
-			return err
-		}
-	}
-
 	log.Printf("Deleted entity '%s'", ID)
 
 	return nil
@@ -188,20 +154,6 @@ func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, de
 
 	// Delete the requested entity
 	return emds.deleteEntityByID(deleteID)
-}
-
-// dropEntity is similar to delete, but just removes the entity from
-// the in memory data store.
-func (emds *EMDataStore) dropEntity(ID string) error {
-	e, err := emds.getEntityByID(ID)
-	if err != nil {
-		return err
-	}
-
-	delete(emds.eByID, e.GetID())
-	delete(emds.eByUIDNumber, e.GetUidNumber())
-
-	return nil
 }
 
 // checkCapability is a helper function which allows a method to
@@ -225,7 +177,7 @@ func (emds *EMDataStore) checkEntityCapability(e *pb.Entity, c string) error {
 // query to retrieve the entity itself, rather than requirin the
 // caller to produce the pointer to the entity.
 func (emds *EMDataStore) checkEntityCapabilityByID(ID string, c string) error {
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
 	}
@@ -253,11 +205,8 @@ func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) error {
 
 	e.Meta.Capabilities = append(e.Meta.Capabilities, cap)
 
-	// Save the entity if the persistence layer is available.
-	if emds.db != nil {
-		if err := emds.db.SaveEntity(e); err != nil {
-			return err
-		}
+	if err := emds.db.SaveEntity(e); err != nil {
+		return err
 	}
 
 	log.Printf("Set capability %s on entity '%s'", c, e.GetID())
@@ -267,7 +216,7 @@ func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) error {
 // SetEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual setEntityCapability function
 func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
 	}
@@ -278,7 +227,7 @@ func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
 // SetEntitySecretByID sets the secret on a given entity using the
 // bcrypt secure hashing algorithm.
 func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
 	}
@@ -294,11 +243,8 @@ func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
 	hashedSecret := string(hash[:])
 	e.Secret = &hashedSecret
 
-	// Save the entity if the persistence layer is available.
-	if emds.db != nil {
-		if err := emds.db.SaveEntity(e); err != nil {
-			return err
-		}
+	if err := emds.db.SaveEntity(e); err != nil {
+		return err
 	}
 
 	log.Printf("Secret set for '%s'", e.GetID())
@@ -335,7 +281,7 @@ func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string,
 // ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
 func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
 	}
@@ -380,7 +326,7 @@ func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret str
 func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
 	// e will be the direct internal copy, we can't give this back
 	// though since it has secrets embedded.
-	e, err := emds.getEntityByID(ID)
+	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return nil, err
 	}
@@ -406,11 +352,9 @@ func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) 
 	// by this API.
 	proto.Merge(meta, newMeta)
 
-	// Save the entity if the persistence layer is available.
-	if emds.db != nil {
-		if err := emds.db.SaveEntity(e); err != nil {
-			return err
-		}
+	// Save changes
+	if err := emds.db.SaveEntity(e); err != nil {
+		return err
 	}
 
 	log.Printf("Updated metadata for '%s'", e.GetID())
@@ -434,7 +378,7 @@ func (emds *EMDataStore) UpdateEntityMeta(requestID, requestSecret, modEntityID 
 
 	// Get the actual entity that the metadata is being updated
 	// on.
-	e, err := emds.getEntityByID(modEntityID)
+	e, err := emds.db.LoadEntity(modEntityID)
 	if err != nil {
 		return err
 	}

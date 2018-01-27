@@ -7,17 +7,34 @@ import (
 	"log"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
+
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-type DBFactory func() entity_manager.EMDiskInterface
+type EMDiskInterface interface {
+	// Entity handling
+	DiscoverEntityIDs() ([]string, error)
+	LoadEntity(string) (*pb.Entity, error)
+	LoadEntityNumber(int32) (*pb.Entity, error)
+	SaveEntity(*pb.Entity) error
+	DeleteEntity(string) error
+
+	// Group handling
+	DiscoverGroupNames() ([]string, error)
+	LoadGroup(string) (*pb.Group, error)
+	LoadGroupNumber(int32) (*pb.Group, error)
+	SaveGroup(*pb.Group) error
+	DeleteGroup(string) error
+}
+
+type DBFactory func() EMDiskInterface
 
 var (
-	backends           = make(map[string]DBFactory)
+	backends = make(map[string]DBFactory)
 )
 
 // NewDB returns a db struct.
-func New(name string) (entity_manager.EMDiskInterface, error) {
+func New(name string) (EMDiskInterface, error) {
 	b, ok := backends[name]
 	if !ok {
 		return nil, errors.E_NO_SUCH_DATABASE

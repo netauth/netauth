@@ -30,9 +30,10 @@ v0.0.3:
       * multiple RPC calls will be made to the backend, but the CLI will abstract this
   * Cluster Support:
     * Multiple write capable masters with access to the data layer are available
-    * Initially this will be implemented by a cache-disable option
-      such that syncrhonizing the backing store is sufficient for
-      multiple write capable views.
+    * Initially this will be implemented by making the data layer safe
+      to synchronize between multiple masters.  Future cluster
+      improvements may involve Paxos based implementations of the data
+      storage layer.
 
 v0.0.4:
   * Group Enhancements:

@@ -11,18 +11,22 @@ import (
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
 func (emds *EMDataStore) newGroup(name, displayName string, gidNumber int32) error {
-	if _, found := emds.gByName[name]; found {
+	if _, err := emds.db.LoadGroup(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
 		return errors.E_DUPLICATE_GROUP_ID
 	}
 
-	if _, found := emds.gByGIDNumber[gidNumber]; found || gidNumber == 0 {
+	if _, err := emds.db.LoadGroupNumber(gidNumber); err == nil || gidNumber == 0 {
 		log.Printf("Group number %d is already assigned!", gidNumber)
 		return errors.E_DUPLICATE_GROUP_NUMBER
 	}
 
 	if gidNumber == -1 {
-		gidNumber = emds.nextGIDNumber()
+		var err error
+		gidNumber, err = emds.nextGIDNumber()
+		if err != nil {
+			return err
+		}
 	}
 
 	newGroup := &pb.Group{
@@ -31,14 +35,9 @@ func (emds *EMDataStore) newGroup(name, displayName string, gidNumber int32) err
 		GidNumber:   &gidNumber,
 	}
 
-	emds.gByName[newGroup.GetName()] = newGroup
-	emds.gByGIDNumber[newGroup.GetGidNumber()] = newGroup
-
-	// Save this group if the persistence layer is available
-	if emds.db != nil {
-		if err := emds.db.SaveGroup(newGroup); err != nil {
-			return err
-		}
+	// Save the group
+	if err := emds.db.SaveGroup(newGroup); err != nil {
+		return err
 	}
 
 	log.Printf("Allocated new group '%s'", name)
@@ -60,34 +59,27 @@ func (emds *EMDataStore) NewGroup(requestID, requestSecret, name, displayName st
 	return nil
 }
 
-func (emds *EMDataStore) loadGroupFromDisk(name string) error {
-	// If the persistence layer isn't available return nil since
-	// there was never going to be anything to load anyway...
-	if emds.db == nil {
-		return nil
-	}
-
-	g, err:= emds.db.LoadGroup(name)
-	if err != nil {
-		return err
-	}
-
-	emds.gByName[g.GetName()] = g
-	emds.gByGIDNumber[g.GetGidNumber()] = g
-
-	return nil
-}
-
-func (emds *EMDataStore) nextGIDNumber() int32 {
+// Convenience function to get the nextGIDNumber.  This is very
+// inefficient but it only is called when a new group is being
+// created, which is hopefully infrequent.
+func (emds *EMDataStore) nextGIDNumber() (int32, error) {
 	var largest int32 = 0
 
-	for i := range emds.gByName {
-		if emds.gByName[i].GetGidNumber() > largest {
-			largest = emds.gByName[i].GetGidNumber()
+	l, err := emds.db.DiscoverGroupNames()
+	if err != nil {
+		return 0, err
+	}
+	for _, i := range l {
+		g, err := emds.db.LoadGroup(i)
+		if err != nil {
+			return 0, err
+		}
+		if g.GetGidNumber() > largest {
+			largest = g.GetGidNumber()
 		}
 	}
 
-	return largest + 1
+	return largest + 1, nil
 }
 
 // listMembers takes a group ID in and returns a slice of entities
@@ -98,7 +90,15 @@ func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
 	// to return a global list as a convenience.
 	if groupID == "ALL" {
 		var entities []*pb.Entity
-		for _, e := range emds.eByID {
+		el, err := emds.db.DiscoverEntityIDs()
+		if err != nil {
+			return nil, err
+		}
+		for _, en := range el {
+			e, err := emds.db.LoadEntity(en)
+			if err != nil {
+				return nil, err
+			}
 			entities = append(entities, e)
 		}
 		return entities, nil
