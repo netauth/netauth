@@ -221,7 +221,12 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 // do given that each group is owned by exactly one file on disk.
 // Simply removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteGroup(name string) error {
-	return os.Remove(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
+	err := os.Remove(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
+
+	if os.IsNotExist(err) {
+		return errors.E_NO_GROUP
+	}
+	return err
 }
 
 // ensureDataDirectory is called during initialization of this backend

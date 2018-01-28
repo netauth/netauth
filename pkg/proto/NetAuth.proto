@@ -51,6 +51,9 @@ service NetAuth {
 
   // NewGroup allows us to create arbitrary groups.
   rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
+
+  // DeleteGroup deletes a group.
+  rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify

@@ -29,7 +29,7 @@ func TestNewGroupInternal(t *testing.T) {
 	}
 }
 
-func TestGroupExternal(t *testing.T) {
+func TestNewGroupExternal(t *testing.T) {
 	em := New(MemDB.New())
 
 	// Add some users to the system that can and cannot create
@@ -98,6 +98,66 @@ func TestListMembersALLInternal(t *testing.T) {
 		if len(dbAll) != len(listALL) {
 			t.Error("Different number of entities returned!")
 		}
+	}
+}
+
+func TestDeleteGroupInternal(t *testing.T) {
+	em := New(MemDB.New())
+
+	if err := em.newGroup("foo", "", -1); err != nil {
+		t.Error(err)
+	}
+
+	if _, err := em.getGroupByName("foo"); err != nil {
+		t.Error(err)
+	}
+
+	if err := em.deleteGroup("foo"); err != nil {
+		t.Error(err)
+	}
+
+	if _, err := em.getGroupByName("foo"); err != errors.E_NO_GROUP {
+		t.Error(err)
+	}
+}
+
+func TestDeleteGroupExternal(t *testing.T) {
+	em := New(MemDB.New())
+
+	// Add some users to the system that can and cannot delete
+	// groups.
+	e := []struct {
+		ID     string
+		secret string
+		cap    string
+	}{
+		{"foo", "foo", ""},
+		{"bar", "bar", "DESTROY_GROUP"},
+	}
+	for _, ne := range e {
+		if err := em.newEntity(ne.ID, -1, ne.secret); err != nil {
+			t.Error(err)
+		}
+
+		if err := em.setEntityCapabilityByID(ne.ID, ne.cap); err != nil {
+			t.Error(err)
+		}
+	}
+
+	if err := em.newGroup("foo", "", -1); err != nil {
+		t.Error(err)
+	}
+
+	if err := em.DeleteGroup("foo", "foo", "foo"); err != errors.E_ENTITY_UNQUALIFIED {
+		t.Error(err)
+	}
+
+	if err := em.DeleteGroup("bar", "bar", "foo"); err != nil {
+		t.Error(err)
+	}
+
+	if err := em.DeleteGroup("bar", "bar", "foo"); err != errors.E_NO_GROUP {
+		t.Error(err)
 	}
 }
 

@@ -108,3 +108,12 @@ func (m *MemDB) SaveGroup(g *pb.Group) error {
 	m.gMap[g.GetName()] = g
 	return nil
 }
+
+func (m *MemDB) DeleteGroup(name string) error {
+	if _, ok := m.gMap[name]; !ok {
+		return errors.E_NO_GROUP
+	}
+
+	delete(m.gMap, name)
+	return nil
+}

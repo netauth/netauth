@@ -45,7 +45,7 @@ func TestDiscoverEntities(t *testing.T) {
 	}
 }
 
-func TestSaveLoadDelete(t *testing.T) {
+func TestSaveLoadDeleteEntity(t *testing.T) {
 	x := New()
 
 	e := &pb.Entity{ID: proto.String("foo")}
@@ -146,5 +146,35 @@ func TestLoadGroupNumber(t *testing.T) {
 
 	if !proto.Equal(g, ng) {
 		t.Error("Group Load Fault")
+	}
+}
+
+func TestGroupSaveLoadDelete(t *testing.T) {
+	x := New()
+
+	g := &pb.Group{Name: proto.String("foo")}
+
+	// Write an entity to disk
+	if err := x.SaveGroup(g); err != nil {
+		t.Error(err)
+	}
+
+	// Load  it back, it  should still be  the same, but  we check
+	// this to be sure.
+	ng, err := x.LoadGroup("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	if !proto.Equal(g, ng) {
+		t.Errorf("Loaded group and original are not equivalent! '%v', '%v'", g, ng)
+	}
+
+	// Delete the group and confirm that loading it returns an
+	// error.
+	if err := x.DeleteGroup("foo"); err != nil {
+		t.Error(err)
+	}
+	if _, err := x.LoadGroup("foo"); err != errors.E_NO_GROUP {
+		t.Error(err)
 	}
 }

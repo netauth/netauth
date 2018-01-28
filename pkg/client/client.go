@@ -222,9 +222,9 @@ func (n *netAuthClient) ModifyEntityMeta(entity, secret, modID string, meta *pb.
 // NewGroup takes in a set of credentials to authorize the change and
 // parameters to create a new group with.
 func (n *netAuthClient) NewGroup(entity, secret, name, displayName string, gidNumber int32) (string, error) {
-	e:=new(pb.Entity)
-	e.ID =&entity
-	e.Secret=&secret
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
 
 	g := new(pb.Group)
 	g.Name = &name
@@ -243,6 +243,27 @@ func (n *netAuthClient) NewGroup(entity, secret, name, displayName string, gidNu
 	return result.GetMsg(), nil
 }
 
+// DeleteGroup deletes a group with the authorization of an existing
+// entity.
+func (n *netAuthClient) DeleteGroup(entity, secret, name string) (string, error) {
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	g := new(pb.Group)
+	g.Name = &name
+
+	request := new(pb.ModGroupRequest)
+	request.Entity = e
+	request.Group = g
+
+	result, err := n.c.DeleteGroup(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
 
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
