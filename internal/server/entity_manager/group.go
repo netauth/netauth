@@ -3,6 +3,8 @@ package entity_manager
 import (
 	"log"
 
+	"github.com/golang/protobuf/proto"
+
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
@@ -86,6 +88,44 @@ func (emds *EMDataStore) DeleteGroup(requestID, requestSecret, name string) erro
 
 	// Attempt to create the group as specified.
 	if err := emds.deleteGroup(name); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// updateGroupMeta updates metadata within the group.  Certain
+// information is not mutable and so that information is not merged
+// in.
+func (emds *EMDataStore) updateGroupMeta(name string, update *pb.Group) error {
+	g, err := emds.db.LoadGroup(name)
+	if err != nil {
+		return err
+	}
+
+	update.Name = nil
+	update.GidNumber = nil
+
+	proto.Merge(g, update)
+
+	if err := emds.db.SaveGroup(g); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateGroupMeta is the publicly available function which modifies
+// group metadata.
+func (emds *EMDataStore) UpdateGroupMeta(requestID, requestSecret, name string, update *pb.Group) error {
+	// Validate that the entity is real and is permitted to
+	// perform this action.
+	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_GROUP_META"); err != nil {
+		return err
+	}
+
+	// Attempt to modify the group as specified.
+	if err := emds.updateGroupMeta(name, update); err != nil {
 		return err
 	}
 

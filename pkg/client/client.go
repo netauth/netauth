@@ -265,6 +265,24 @@ func (n *netAuthClient) DeleteGroup(entity, secret, name string) (string, error)
 	return result.GetMsg(), nil
 }
 
+// ModifyGroupMeta modifies a group with the authorization of an
+// existing entity.
+func (n *netAuthClient) ModifyGroupMeta(entity, secret string, update *pb.Group) (string, error) {
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	request := new(pb.ModGroupRequest)
+	request.Entity = e
+	request.Group = update
+
+	result, err := n.c.ModifyGroupMeta(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

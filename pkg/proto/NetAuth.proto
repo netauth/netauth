@@ -16,7 +16,7 @@ enum Capability {
   CHANGE_ENTITY_SECRET = 4;
   CREATE_GROUP = 5;
   DESTROY_GROUP = 6;
-  MODIFY_GROUP_DISPLAYNAME = 7;
+  MODIFY_GROUP_META = 7;
   MODIFY_GROUP_MEMBERS = 8;
 }
 
@@ -54,6 +54,10 @@ service NetAuth {
 
   // DeleteGroup deletes a group.
   rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
+
+  // ModifyGroupMeta allows limited modifications of group metadata,
+  // largely the displayName
+  rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify

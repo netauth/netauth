@@ -3,8 +3,11 @@ package entity_manager
 import (
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+
 	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
 	"github.com/NetAuth/NetAuth/pkg/errors"
+	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 func TestNewGroupInternal(t *testing.T) {
@@ -158,6 +161,75 @@ func TestDeleteGroupExternal(t *testing.T) {
 
 	if err := em.DeleteGroup("bar", "bar", "foo"); err != errors.E_NO_GROUP {
 		t.Error(err)
+	}
+}
+
+func TestUpdateGroupMetaInternal(t *testing.T) {
+	em := New(MemDB.New())
+
+	if err := em.newGroup("foo", "foo", -1); err != nil {
+		t.Error(err)
+	}
+
+	update := &pb.Group{DisplayName: proto.String("Foo Group")}
+
+	if err := em.updateGroupMeta("foo", update); err != nil {
+		t.Error(err)
+	}
+
+	g, err := em.getGroupByName("foo")
+	if err != nil {
+		t.Error(err)
+	}
+
+	if g.GetDisplayName() != "Foo Group" {
+		t.Error("Meta update failed!")
+	}
+}
+
+func TestUpdateGroupMetaExternal(t *testing.T) {
+	em := New(MemDB.New())
+
+	// Add some users to the system that can and cannot modify
+	// groups.
+	e := []struct {
+		ID     string
+		secret string
+		cap    string
+	}{
+		{"foo", "foo", ""},
+		{"bar", "bar", "MODIFY_GROUP_META"},
+	}
+	for _, ne := range e {
+		if err := em.newEntity(ne.ID, -1, ne.secret); err != nil {
+			t.Error(err)
+		}
+
+		if err := em.setEntityCapabilityByID(ne.ID, ne.cap); err != nil {
+			t.Error(err)
+		}
+	}
+
+	if err := em.newGroup("foo", "", -1); err != nil {
+		t.Error(err)
+	}
+
+	update := &pb.Group{DisplayName: proto.String("foo display name")}
+
+	if err := em.UpdateGroupMeta("foo", "foo", "foo", update); err != errors.E_ENTITY_UNQUALIFIED {
+		t.Error(err)
+	}
+
+	if err := em.UpdateGroupMeta("bar", "bar", "foo", update); err != nil {
+		t.Error(err)
+	}
+
+	g, err := em.getGroupByName("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	if g.GetDisplayName() != "foo display name" {
+		t.Error("Group Update failed!")
 	}
 }
 
