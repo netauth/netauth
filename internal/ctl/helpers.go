@@ -74,5 +74,28 @@ func printEntity(entity *pb.Entity, fields string) {
 			}
 		}
 	}
+}
 
+func printGroup(group *pb.Group, fields string) {
+	fieldList := []string{}
+	if fields != "" {
+		fieldList = strings.Split(fields, ",")
+	} else {
+		fieldList = []string{
+			"name",
+			"displayName",
+			"gidNumber",
+		}
+	}
+
+	for _, f := range fieldList {
+		switch f {
+		case "name":
+			fmt.Printf("Name: %s\n", group.GetName())
+		case "displayName":
+			fmt.Printf("Display Name: %s\n", group.GetDisplayName())
+		case "gidNumber":
+			fmt.Printf("GID Number: %d\n", group.GetGidNumber())
+		}
+	}
 }

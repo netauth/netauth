@@ -15,6 +15,7 @@ type EntityManager interface {
 	NewGroup(string, string, string, string, int32) error
 	DeleteGroup(string, string, string) error
 	UpdateGroupMeta(string, string, string, *pb.Group) error
+	ListGroups() ([]*pb.Group, error)
 }
 
 type NetAuthServer struct {

@@ -283,6 +283,19 @@ func (n *netAuthClient) ModifyGroupMeta(entity, secret string, update *pb.Group)
 	return result.GetMsg(), nil
 }
 
+// ListGroups lists  the groups that  are known to the  server.  These
+// are just strings,  so additional requests are needed  to do things,
+// but this gives some idea of what the server knows about.
+func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
+	request := new(pb.GroupListRequest)
+	result, err := n.c.ListGroups(context.Background(), request)
+	if err != nil {
+		return nil, err
+	}
+	return result.GetGroups(), nil
+}
+
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

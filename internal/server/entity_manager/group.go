@@ -132,6 +132,24 @@ func (emds *EMDataStore) UpdateGroupMeta(requestID, requestSecret, name string, 
 	return nil
 }
 
+// ListGroups literally returns a list of groups
+func (emds *EMDataStore) ListGroups() ([]*pb.Group, error) {
+	names, err := emds.db.DiscoverGroupNames()
+	if err != nil {
+		return nil, err
+	}
+
+	groups := []*pb.Group{}
+	for _, name := range names {
+		g, err := emds.db.LoadGroup(name)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, g)
+	}
+	return groups, nil
+}
+
 // Convenience function to get the nextGIDNumber.  This is very
 // inefficient but it only is called when a new group is being
 // created, which is hopefully infrequent.

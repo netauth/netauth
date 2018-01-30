@@ -58,6 +58,9 @@ service NetAuth {
   // ModifyGroupMeta allows limited modifications of group metadata,
   // largely the displayName
   rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
+
+  // ListGroups provides a list of group names.
+  rpc ListGroups(GroupListRequest) returns (GroupList) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -184,6 +187,12 @@ message GroupMemberRequest {
 
   // The serviceID on the client requesting the information.
   optional string serviceID = 3;
+}
+
+message GroupListRequest{}
+
+message GroupList {
+  repeated Group groups = 1;
 }
 
 message EntityMeta {
