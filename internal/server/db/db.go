@@ -4,8 +4,6 @@ package db
 // various database options.
 
 import (
-	"log"
-
 	"github.com/NetAuth/NetAuth/pkg/errors"
 
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
@@ -50,7 +48,6 @@ func RegisterDB(name string, newFunc DBFactory) {
 		return
 	}
 	backends[name] = newFunc
-	log.Printf("Registered database implementation '%s'", name)
 }
 
 // GetBackendList returns a string list of the backends that are available
