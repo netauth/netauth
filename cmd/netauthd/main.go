@@ -43,11 +43,11 @@ func newServer() *rpc.NetAuthServer {
 		log.Fatalf("Fatal crypto error! (%s)", err)
 	}
 
+	// Initialize the entity manager
+	log.Printf("Initializing new Entity Manager with %s and %s", *db_impl, *crypto_impl)
 	em := entity_manager.New(db, crypto)
 
-	return &rpc.NetAuthServer{
-		EM: em,
-	}
+	return &rpc.NetAuthServer{EM: em}
 }
 
 func main() {
