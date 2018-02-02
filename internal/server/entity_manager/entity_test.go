@@ -518,7 +518,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 
 	// This is metadata that can't be updated with this call,
 	// verify that it gets dropped.
-	groups := []*pb.Group{&pb.Group{}}
+	groups := []string{"fooGroup"}
 	badMeta := &pb.EntityMeta{
 		Groups: groups,
 	}

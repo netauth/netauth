@@ -248,7 +248,7 @@ message EntityMeta {
   optional string badgeNumber = 8;
 
   // Entities may be direct members of groups
-  repeated Group groups = 9;
+  repeated string groups = 9;
 
   // Entities may have capabilities that provide special actions to
   // the holder within NetAuth.
