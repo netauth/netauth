@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/proto"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
@@ -225,23 +224,18 @@ func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the
-// bcrypt secure hashing algorithm.
+// crypto interface.
 func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
 	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
 	}
 
-	// todo(maldridge) This is currently configured to use the
-	// minimum cost hash.  THIS IS NOT SECURE.  Before releasing
-	// 1.0 this must be changes to pull this value either
-	// dynamically or from a config file somewhere.
-	hash, err := bcrypt.GenerateFromPassword([]byte(secret), 0)
+	ssecret, err := emds.crypto.SecureSecret(secret)
 	if err != nil {
 		return err
 	}
-	hashedSecret := string(hash[:])
-	e.Secret = &hashedSecret
+	e.Secret = &ssecret
 
 	if err := emds.db.SaveEntity(e); err != nil {
 		return err
@@ -286,11 +280,8 @@ func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
 		return err
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(*e.Secret), []byte(secret))
+	err = emds.crypto.VerifySecret(secret, *e.Secret)
 	if err != nil {
-		// This is strictly not in the style of go, but this
-		// is the best place to put this log message so that
-		// it works like all the others.
 		log.Printf("Failed to authenticate '%s'", e.GetID())
 		return errors.E_ENTITY_BADAUTH
 	}

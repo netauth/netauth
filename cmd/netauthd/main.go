@@ -7,6 +7,8 @@ import (
 	"net"
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/server/crypto"
+	_ "github.com/NetAuth/NetAuth/internal/server/crypto/impl"
 	"github.com/NetAuth/NetAuth/internal/server/db"
 	_ "github.com/NetAuth/NetAuth/internal/server/db/impl"
 	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
@@ -19,13 +21,14 @@ import (
 )
 
 var (
-	bindPort  = flag.Int("port", 8080, "Serving port, defaults to 8080")
-	bindAddr  = flag.String("bind", "localhost", "Bind address, defaults to localhost")
-	useTLS    = flag.Bool("tls", false, "Enable TLS, off by default")
-	certFile  = flag.String("cert_file", "", "Path to certificate file")
-	keyFile   = flag.String("key_file", "", "Path to key file")
-	bootstrap = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	db_impl   = flag.String("db", "MemDB", "Database implementation to use.")
+	bindPort    = flag.Int("port", 8080, "Serving port, defaults to 8080")
+	bindAddr    = flag.String("bind", "localhost", "Bind address, defaults to localhost")
+	useTLS      = flag.Bool("tls", false, "Enable TLS, off by default")
+	certFile    = flag.String("cert_file", "", "Path to certificate file")
+	keyFile     = flag.String("key_file", "", "Path to key file")
+	bootstrap   = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
+	db_impl     = flag.String("db", "MemDB", "Database implementation to use.")
+	crypto_impl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
 )
 
 func newServer() *rpc.NetAuthServer {
@@ -35,7 +38,12 @@ func newServer() *rpc.NetAuthServer {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
 
-	em := entity_manager.New(db)
+	crypto, err := crypto.New(*crypto_impl)
+	if err != nil {
+		log.Fatalf("Fatal crypto error! (%s)", err)
+	}
+
+	em := entity_manager.New(db, crypto)
 
 	return &rpc.NetAuthServer{
 		EM: em,
@@ -74,6 +82,12 @@ func main() {
 	// Spit out what backends we know about
 	log.Printf("The following DB backends are registered:")
 	for _, b := range db.GetBackendList() {
+		log.Printf("  %s", b)
+	}
+
+	// Spit out what crypto backends we know about
+	log.Printf("The following crypto implementations are registered:")
+	for _, b := range crypto.GetBackendList() {
 		log.Printf("  %s", b)
 	}
 

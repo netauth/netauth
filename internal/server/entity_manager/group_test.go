@@ -6,12 +6,13 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/server/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 func TestNewGroupInternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	s := []struct {
 		name        string
@@ -33,7 +34,7 @@ func TestNewGroupInternal(t *testing.T) {
 }
 
 func TestNewGroupExternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	// Add some users to the system that can and cannot create
 	// groups.
@@ -76,7 +77,7 @@ func TestNewGroupExternal(t *testing.T) {
 }
 
 func TestListMembersALLInternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	s := []string{
 		"foo",
@@ -105,7 +106,7 @@ func TestListMembersALLInternal(t *testing.T) {
 }
 
 func TestDeleteGroupInternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	if err := em.newGroup("foo", "", -1); err != nil {
 		t.Error(err)
@@ -125,7 +126,7 @@ func TestDeleteGroupInternal(t *testing.T) {
 }
 
 func TestDeleteGroupExternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	// Add some users to the system that can and cannot delete
 	// groups.
@@ -165,7 +166,7 @@ func TestDeleteGroupExternal(t *testing.T) {
 }
 
 func TestUpdateGroupMetaInternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	if err := em.newGroup("foo", "foo", -1); err != nil {
 		t.Error(err)
@@ -188,7 +189,7 @@ func TestUpdateGroupMetaInternal(t *testing.T) {
 }
 
 func TestUpdateGroupMetaExternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	// Add some users to the system that can and cannot modify
 	// groups.
@@ -234,7 +235,7 @@ func TestUpdateGroupMetaExternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchInternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 	list, err := em.listMembers("")
 	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)
@@ -242,7 +243,7 @@ func TestListMembersNoMatchInternal(t *testing.T) {
 }
 
 func TestListMembersExternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	s := []string{
 		"foo",
@@ -277,7 +278,7 @@ func TestListMembersExternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchExternal(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 	list, err := em.ListMembers("")
 	if list != nil && err != errors.E_NO_GROUP {
 		t.Error(err)

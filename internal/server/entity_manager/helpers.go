@@ -6,16 +6,18 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/server/db"
+	"github.com/NetAuth/NetAuth/internal/server/crypto"
 
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
 // New returns an initialized EMDataStore on to which all other
 // functions are bound.
-func New(db db.EMDiskInterface) *EMDataStore {
+func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *EMDataStore {
 	x := EMDataStore{}
 	x.bootstrap_done = false
 	x.db = db
+	x.crypto = crypto
 	log.Println("Initialized new Entity Manager")
 
 	return &x

@@ -4,11 +4,12 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/server/crypto/impl/nocrypto"
 	"github.com/golang/protobuf/proto"
 )
 
 func TestNextUIDNumber(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	s := []struct {
 		ID            string
@@ -42,7 +43,7 @@ func TestNextUIDNumber(t *testing.T) {
 }
 
 func TestGetEntityByID(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	s := []struct {
 		ID        string
@@ -69,7 +70,7 @@ func TestGetEntityByID(t *testing.T) {
 }
 
 func TestSafeCopyEntity(t *testing.T) {
-	em := New(MemDB.New())
+	em := New(MemDB.New(), nocrypto.New())
 
 	if err := em.newEntity("foo", -1, "bar"); err != nil {
 		t.Error(err)

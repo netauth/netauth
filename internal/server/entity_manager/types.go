@@ -2,6 +2,7 @@ package entity_manager
 
 import (
 	"github.com/NetAuth/NetAuth/internal/server/db"
+	"github.com/NetAuth/NetAuth/internal/server/crypto"
 )
 
 type EMDataStore struct {
@@ -13,4 +14,8 @@ type EMDataStore struct {
 	// The persistence layer contains the functions that actually
 	// deal with the disk and make this a useable server.
 	db db.EMDiskInterface
+
+	// The Crypto layer allows us to plug in different crypto
+	// engines
+	crypto crypto.EMCrypto
 }

@@ -13,4 +13,7 @@ var (
 	E_DUPLICATE_GROUP_ID     = errors.New("A group with that ID already exists!")
 	E_DUPLICATE_GROUP_NUMBER = errors.New("A group with that number already exists!")
 	E_NO_SUCH_DATABASE       = errors.New("No such database!")
+	E_NO_SUCH_CRYPTO         = errors.New("No such crypto engine!")
+	E_CRYPTO_FAULT           = errors.New("Unrecoverable crypto fault!  Check log for more details.")
+	E_CRYPTO_BADAUTH         = errors.New("Bad authentication information!")
 )
