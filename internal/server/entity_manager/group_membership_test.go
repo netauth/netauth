@@ -16,6 +16,10 @@ func TestInternalMembershipEdit(t *testing.T) {
 
 	e := &pb.Entity{}
 
+	if err := em.newGroup("fooGroup", "", 1000); err != nil {
+		t.Error(err)
+	}
+
 	if err := em.addEntityToGroup(e, "fooGroup"); err != nil {
 		t.Error(err)
 	}
@@ -51,6 +55,9 @@ func TestExternalMembershipEdit(t *testing.T) {
 		GroupName: proto.String("fooGroup"),
 	}
 
+	if err := em.newGroup("fooGroup", "", 1000); err != nil {
+		t.Error(err)
+	}
 	if err := em.AddEntityToGroup(&mer); err != nil {
 		t.Error(err)
 	}

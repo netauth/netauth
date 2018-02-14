@@ -7,6 +7,10 @@ import (
 // addEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
 func (emds *EMDataStore) addEntityToGroup(e *pb.Entity, groupName string) error {
+	if _, err := emds.db.LoadGroup(groupName); err != nil {
+		return err
+	}
+
 	if e.GetMeta() == nil {
 		e.Meta = &pb.EntityMeta{}
 	}
