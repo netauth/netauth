@@ -6,6 +6,8 @@ import (
 	"github.com/NetAuth/NetAuth/internal/server/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
 
+	"github.com/golang/protobuf/proto"
+
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
@@ -30,6 +32,49 @@ func TestInternalDirectMembershipEdit(t *testing.T) {
 	}
 }
 
+func TestExternalDirectMembershipEdit(t *testing.T) {
+	em := New(MemDB.New(), nocrypto.New())
+
+	if err := em.newEntity("foo", -1, "foo"); err != nil {
+		t.Error(err)
+	}
+	if err := em.setEntityCapabilityByID("foo", "MODIFY_GROUP_MEMBERS"); err != nil {
+		t.Error(err)
+	}
+	e, err := em.db.LoadEntity("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	mer := pb.ModGroupDirectMembershipRequest{
+		Entity:    e,
+		ModEntity: proto.String("foo"),
+		GroupName: proto.String("fooGroup"),
+	}
+
+	if err := em.AddEntityToDirectGroup(&mer); err != nil {
+		t.Error(err)
+	}
+	e, err = em.db.LoadEntity("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	groups := em.getDirectGroups(e)
+	if len(groups) != 1 || groups[0] != "fooGroup" {
+		t.Error("Wrong group number/membership")
+		t.Error(groups)
+	}
+
+	em.RemoveEntityFromDirectGroup(&mer)
+	e, err = em.db.LoadEntity("foo")
+	if err != nil {
+		t.Error(err)
+	}
+	groups = em.getDirectGroups(e)
+	if len(groups) != 0 {
+		t.Error("Wrong group number/membership")
+	}
+}
+
 func TestRemoveEntityFromGroupInternalNilMeta(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
@@ -45,7 +90,7 @@ func TestGetDirectGroupsNoMeta(t *testing.T) {
 
 	e := &pb.Entity{}
 
-	if groups := em.getDirectGroups(e); len(groups) !=0 {
+	if groups := em.getDirectGroups(e); len(groups) != 0 {
 		t.Error("getDirectGroups fabricated a group!")
 	}
 }

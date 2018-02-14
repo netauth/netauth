@@ -61,6 +61,10 @@ service NetAuth {
 
   // ListGroups provides a list of group names.
   rpc ListGroups(GroupListRequest) returns (GroupList) {}
+
+  // Group membership is modified either on entities or on groups.
+  rpc AddEntityToGroup(ModEntityRequest) returns (SimpleResult) {}
+  rpc RemoteEntityFromGroup(ModEntityRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify
@@ -94,6 +98,18 @@ message ModEntityRequest {
 
   // This is the entity to act on, it may be set or it may not be.
   optional Entity modEntity = 2;
+}
+
+message ModGroupDirectMembershipRequest {
+  // The change is authorized by an entity, not necessarily the one that's being changed.
+  required Entity entity = 1;
+  optional string modEntity = 2;
+
+  // The group that is being added or removed is taken as a group name
+  required string GroupName = 3;
+
+  optional string clientID = 4;
+  optional string serviceID = 5;
 }
 
 // An entity may be a person or a machine actor that wishes to act as
