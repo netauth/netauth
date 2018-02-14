@@ -16,6 +16,8 @@ type EntityManager interface {
 	DeleteGroup(string, string, string) error
 	UpdateGroupMeta(string, string, string, *pb.Group) error
 	ListGroups() ([]*pb.Group, error)
+	AddEntityToGroup(*pb.ModGroupDirectMembershipRequest) error
+	RemoveEntityFromGroup(*pb.ModGroupDirectMembershipRequest) error
 }
 
 type NetAuthServer struct {

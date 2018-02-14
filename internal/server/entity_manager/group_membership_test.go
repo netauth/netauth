@@ -11,12 +11,12 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-func TestInternalDirectMembershipEdit(t *testing.T) {
+func TestInternalMembershipEdit(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	e := &pb.Entity{}
 
-	if err := em.addEntityToDirectGroup(e, "fooGroup"); err != nil {
+	if err := em.addEntityToGroup(e, "fooGroup"); err != nil {
 		t.Error(err)
 	}
 
@@ -25,14 +25,14 @@ func TestInternalDirectMembershipEdit(t *testing.T) {
 		t.Error("Wrong group number/membership")
 	}
 
-	em.removeEntityFromDirectGroup(e, "fooGroup")
+	em.removeEntityFromGroup(e, "fooGroup")
 	groups = em.getDirectGroups(e)
 	if len(groups) != 0 {
 		t.Error("Wrong group number/membership")
 	}
 }
 
-func TestExternalDirectMembershipEdit(t *testing.T) {
+func TestExternalMembershipEdit(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	if err := em.newEntity("foo", -1, "foo"); err != nil {
@@ -51,7 +51,7 @@ func TestExternalDirectMembershipEdit(t *testing.T) {
 		GroupName: proto.String("fooGroup"),
 	}
 
-	if err := em.AddEntityToDirectGroup(&mer); err != nil {
+	if err := em.AddEntityToGroup(&mer); err != nil {
 		t.Error(err)
 	}
 	e, err = em.db.LoadEntity("foo")
@@ -64,7 +64,7 @@ func TestExternalDirectMembershipEdit(t *testing.T) {
 		t.Error(groups)
 	}
 
-	em.RemoveEntityFromDirectGroup(&mer)
+	em.RemoveEntityFromGroup(&mer)
 	e, err = em.db.LoadEntity("foo")
 	if err != nil {
 		t.Error(err)
@@ -82,10 +82,10 @@ func TestRemoveEntityFromGroupInternalNilMeta(t *testing.T) {
 
 	// This is just to make sure that this function doesn't
 	// explode.
-	em.removeEntityFromDirectGroup(e, "fooGroup")
+	em.removeEntityFromGroup(e, "fooGroup")
 }
 
-func TestGetDirectGroupsNoMeta(t *testing.T) {
+func TestGetGroupsNoMeta(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	e := &pb.Entity{}

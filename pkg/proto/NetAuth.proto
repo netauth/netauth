@@ -63,8 +63,8 @@ service NetAuth {
   rpc ListGroups(GroupListRequest) returns (GroupList) {}
 
   // Group membership is modified either on entities or on groups.
-  rpc AddEntityToGroup(ModEntityRequest) returns (SimpleResult) {}
-  rpc RemoteEntityFromGroup(ModEntityRequest) returns (SimpleResult) {}
+  rpc AddEntityToGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
+  rpc RemoveEntityFromGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
 }
 
 // An AuthRequest includes an Entity and some information to identify

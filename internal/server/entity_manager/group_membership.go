@@ -4,9 +4,9 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-// addEntityToDirectGroup adds an entity to a group by name, if the entity
+// addEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
-func (emds *EMDataStore) addEntityToDirectGroup(e *pb.Entity, groupName string) error {
+func (emds *EMDataStore) addEntityToGroup(e *pb.Entity, groupName string) error {
 	if e.GetMeta() == nil {
 		e.Meta = &pb.EntityMeta{}
 	}
@@ -30,9 +30,9 @@ func (emds *EMDataStore) addEntityToDirectGroup(e *pb.Entity, groupName string) 
 	return nil
 }
 
-// AddEntityToDirectGroup is an external facing function which handles
-// the authorization of the change and performs the change.
-func (emds *EMDataStore) AddEntityToDirectGroup(mer *pb.ModGroupDirectMembershipRequest) error {
+// AddEntityToGroup is an external facing function which handles the
+// authorization of the change and performs the change.
+func (emds *EMDataStore) AddEntityToGroup(mer *pb.ModGroupDirectMembershipRequest) error {
 	requestID := mer.GetEntity().GetID()
 	requestSecret := mer.GetEntity().GetSecret()
 
@@ -47,7 +47,7 @@ func (emds *EMDataStore) AddEntityToDirectGroup(mer *pb.ModGroupDirectMembership
 		return err
 	}
 
-	if err := emds.addEntityToDirectGroup(entity, mer.GetGroupName()); err != nil {
+	if err := emds.addEntityToGroup(entity, mer.GetGroupName()); err != nil {
 		return err
 	}
 
@@ -63,10 +63,10 @@ func (emds *EMDataStore) getDirectGroups(e *pb.Entity) []string {
 	return e.GetMeta().GetGroups()
 }
 
-// removeEntityFromDirectGroup removes  an entity from the  named group.  If
-// the entity  was not  in the group  to begin with  then nil  will be
+// removeEntityFromGroup removes an entity from the named group.  If
+// the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (emds *EMDataStore) removeEntityFromDirectGroup(e *pb.Entity, groupName string) {
+func (emds *EMDataStore) removeEntityFromGroup(e *pb.Entity, groupName string) {
 	if e.GetMeta() == nil {
 		return
 	}
@@ -81,10 +81,10 @@ func (emds *EMDataStore) removeEntityFromDirectGroup(e *pb.Entity, groupName str
 	e.Meta.Groups = newGroups
 }
 
-// RemoveEntityFromDirectGroup is an external facing function which
-// handles the authorization of the change and removes an entity from
-// a group in which they have direct membership.
-func (emds *EMDataStore) RemoveEntityFromDirectGroup(mer *pb.ModGroupDirectMembershipRequest) error {
+// RemoveEntityFromGroup is an external facing function which handles
+// the authorization of the change and removes an entity from a group
+// in which they have direct membership.
+func (emds *EMDataStore) RemoveEntityFromGroup(mer *pb.ModGroupDirectMembershipRequest) error {
 	requestID := mer.GetEntity().GetID()
 	requestSecret := mer.GetEntity().GetSecret()
 
@@ -99,6 +99,6 @@ func (emds *EMDataStore) RemoveEntityFromDirectGroup(mer *pb.ModGroupDirectMembe
 		return err
 	}
 
-	emds.removeEntityFromDirectGroup(entity, mer.GetGroupName())
+	emds.removeEntityFromGroup(entity, mer.GetGroupName())
 	return nil
 }
