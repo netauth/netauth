@@ -176,11 +176,12 @@ func (emds *EMDataStore) nextGIDNumber() (int32, error) {
 // listMembers takes a group ID in and returns a slice of entities
 // that are in that group.
 func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
+	var entities []*pb.Entity
+
 	// 'ALL' is a special groupID which returns everything, this
 	// isn't a group that exists in a real sense, it just serves
 	// to return a global list as a convenience.
 	if groupID == "ALL" {
-		var entities []*pb.Entity
 		el, err := emds.db.DiscoverEntityIDs()
 		if err != nil {
 			return nil, err
@@ -195,9 +196,28 @@ func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
 		return entities, nil
 	}
 
-	// No group matched (likely because no other group mechanisms
-	// are implemented).
-	return nil, errors.E_NO_GROUP
+	// If its not the all group then we check to make sure the
+	// group exists at all
+	if _, err := emds.db.LoadGroup(groupID); err != nil {
+		return nil, err
+	}
+
+	// Now we can be reasonably sure the group exists, this next
+	// bit is stupidly inefficient, but is the only way to extract
+	// the members since the membership graph has the arrows going
+	// the other way.
+	el, err := emds.listMembers("ALL")
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range el {
+		for _, g := range emds.getDirectGroups(e) {
+			if g == groupID {
+				entities = append(entities, e)
+			}
+		}
+	}
+	return entities, nil
 }
 
 // ListMembers fulfills the same function as the private version of
