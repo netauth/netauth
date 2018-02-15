@@ -295,6 +295,43 @@ func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
 	return result.GetGroups(), nil
 }
 
+func (n *netAuthClient) AddEntityToGroup(entity, secret, modEntity, groupName string) (string, error) {
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	request := new(pb.ModGroupDirectMembershipRequest)
+	request.Entity = e
+	request.ModEntity = &modEntity
+	request.GroupName = &groupName
+	request.ClientID = n.clientID
+	request.ServiceID = n.serviceID
+
+	result, err := n.c.AddEntityToGroup(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
+func (n *netAuthClient) RemoveEntityFromGroup(entity, secret, modEntity, groupName string) (string, error) {
+	e := new(pb.Entity)
+	e.ID = &entity
+	e.Secret = &secret
+
+	request := new(pb.ModGroupDirectMembershipRequest)
+	request.Entity = e
+	request.ModEntity = &modEntity
+	request.GroupName = &groupName
+	request.ClientID = n.clientID
+	request.ServiceID = n.serviceID
+
+	result, err := n.c.RemoveEntityFromGroup(context.Background(), request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
 
 func ensureClientID(clientID string) *string {
 	if clientID == "" {

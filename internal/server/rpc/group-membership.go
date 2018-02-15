@@ -13,12 +13,12 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, mer *pb.ModGroupDi
 	if err := s.EM.AddEntityToGroup(mer); err != nil {
 		return nil, err
 	}
-	return &pb.SimpleResult{Msg: proto.String("Membership updated")}, nil
+	return &pb.SimpleResult{Msg: proto.String("Membership updated"), Success: proto.Bool(true)}, nil
 }
 
 func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, mer *pb.ModGroupDirectMembershipRequest) (*pb.SimpleResult, error) {
 	if err := s.EM.RemoveEntityFromGroup(mer); err != nil {
 		return nil, err
 	}
-	return &pb.SimpleResult{Msg: proto.String("Membership updated")}, nil
+	return &pb.SimpleResult{Msg: proto.String("Membership updated"), Success: proto.Bool(true)}, nil
 }
