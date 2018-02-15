@@ -25,9 +25,8 @@ v0.0.2:
 v0.0.3:
   * Group support:
     * Users can be added to flat groups similar to the group file
+    * Users can be removed from these flat groups
     * Querying a user will return the groups for them
-    * entitites can be added to and removed from multiple groups simultaneously via the CLI
-      * multiple RPC calls will be made to the backend, but the CLI will abstract this
   * Cluster Support:
     * Multiple write capable masters with access to the data layer are available
     * Initially this will be implemented by making the data layer safe
@@ -43,10 +42,6 @@ v0.0.4:
       * exclude removes the contained entities from the containing group for this lookup
     * Groups can be managed by the CLI
       * groups can be moved around via the CLI
-      * the CLI will show deltas of actions in terms of ACL entries changed
-    * The entity graph will exist in memory as a directed acyclic graph with non-unique leaves
-      * Membership updates will regenerate the entire graph
-      * Leaf updates will act on leaves directly
 
 v0.0.5:
   * Entity capabilities
