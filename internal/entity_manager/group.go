@@ -160,7 +160,7 @@ func (emds *EMDataStore) listMembers(groupID string) ([]*pb.Entity, error) {
 		return nil, err
 	}
 	for _, e := range el {
-		for _, g := range emds.getDirectGroups(e) {
+		for _, g := range emds.GetDirectGroups(e) {
 			if g == groupID {
 				entities = append(entities, e)
 			}

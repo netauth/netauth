@@ -9,7 +9,7 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-func TestInternalMembershipEdit(t *testing.T) {
+func TestMembershipEdit(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	e := &pb.Entity{}
@@ -18,30 +18,30 @@ func TestInternalMembershipEdit(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := em.addEntityToGroup(e, "fooGroup"); err != nil {
+	if err := em.AddEntityToGroup(e, "fooGroup"); err != nil {
 		t.Error(err)
 	}
 
-	groups := em.getDirectGroups(e)
+	groups := em.GetDirectGroups(e)
 	if len(groups) != 1 || groups[0] != "fooGroup" {
 		t.Error("Wrong group number/membership")
 	}
 
-	em.removeEntityFromGroup(e, "fooGroup")
-	groups = em.getDirectGroups(e)
+	em.RemoveEntityFromGroup(e, "fooGroup")
+	groups = em.GetDirectGroups(e)
 	if len(groups) != 0 {
 		t.Error("Wrong group number/membership")
 	}
 }
 
-func TestRemoveEntityFromGroupInternalNilMeta(t *testing.T) {
+func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	e := &pb.Entity{}
 
 	// This is just to make sure that this function doesn't
 	// explode.
-	em.removeEntityFromGroup(e, "fooGroup")
+	em.RemoveEntityFromGroup(e, "fooGroup")
 }
 
 func TestGetGroupsNoMeta(t *testing.T) {
@@ -49,7 +49,7 @@ func TestGetGroupsNoMeta(t *testing.T) {
 
 	e := &pb.Entity{}
 
-	if groups := em.getDirectGroups(e); len(groups) != 0 {
+	if groups := em.GetDirectGroups(e); len(groups) != 0 {
 		t.Error("getDirectGroups fabricated a group!")
 	}
 }

@@ -4,9 +4,9 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-// addEntityToGroup adds an entity to a group by name, if the entity
+// AddEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
-func (emds *EMDataStore) addEntityToGroup(e *pb.Entity, groupName string) error {
+func (emds *EMDataStore) AddEntityToGroup(e *pb.Entity, groupName string) error {
 	if _, err := emds.db.LoadGroup(groupName); err != nil {
 		return err
 	}
@@ -34,8 +34,8 @@ func (emds *EMDataStore) addEntityToGroup(e *pb.Entity, groupName string) error 
 	return nil
 }
 
-// getDirectGroups gets the direct groups of an entity.
-func (emds *EMDataStore) getDirectGroups(e *pb.Entity) []string {
+// GetDirectGroups gets the direct groups of an entity.
+func (emds *EMDataStore) GetDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
 		return []string{}
 	}
@@ -43,10 +43,10 @@ func (emds *EMDataStore) getDirectGroups(e *pb.Entity) []string {
 	return e.GetMeta().GetGroups()
 }
 
-// removeEntityFromGroup removes an entity from the named group.  If
+// RemoveEntityFromGroup removes an entity from the named group.  If
 // the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (emds *EMDataStore) removeEntityFromGroup(e *pb.Entity, groupName string) {
+func (emds *EMDataStore) RemoveEntityFromGroup(e *pb.Entity, groupName string) {
 	if e.GetMeta() == nil {
 		return
 	}
