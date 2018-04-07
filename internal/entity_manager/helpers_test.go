@@ -3,8 +3,8 @@ package entity_manager
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/server/db/impl/MemDB"
-	"github.com/NetAuth/NetAuth/internal/server/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/golang/protobuf/proto"
 )
 

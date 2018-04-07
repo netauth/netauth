@@ -7,12 +7,12 @@ import (
 	"net"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/server/crypto"
-	_ "github.com/NetAuth/NetAuth/internal/server/crypto/impl"
-	"github.com/NetAuth/NetAuth/internal/server/db"
-	_ "github.com/NetAuth/NetAuth/internal/server/db/impl"
-	"github.com/NetAuth/NetAuth/internal/server/entity_manager"
-	"github.com/NetAuth/NetAuth/internal/server/rpc"
+	"github.com/NetAuth/NetAuth/internal/crypto"
+	_ "github.com/NetAuth/NetAuth/internal/crypto/impl"
+	"github.com/NetAuth/NetAuth/internal/db"
+	_ "github.com/NetAuth/NetAuth/internal/db/impl"
+	"github.com/NetAuth/NetAuth/internal/entity_manager"
+	"github.com/NetAuth/NetAuth/internal/rpc"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

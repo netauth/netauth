@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/NetAuth/NetAuth/internal/server/health"
+	"github.com/NetAuth/NetAuth/internal/health"
 
 	"github.com/golang/protobuf/proto"
 

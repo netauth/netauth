@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/server/db"
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"

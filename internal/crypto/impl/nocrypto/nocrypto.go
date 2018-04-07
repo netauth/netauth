@@ -4,7 +4,7 @@ package nocrypto
 // IT INTO YOUR LIVE INSTALL!
 
 import (
-	"github.com/NetAuth/NetAuth/internal/server/crypto"
+	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 

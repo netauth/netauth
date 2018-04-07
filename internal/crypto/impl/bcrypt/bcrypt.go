@@ -6,7 +6,7 @@ import (
 
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/NetAuth/NetAuth/internal/server/crypto"
+	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 

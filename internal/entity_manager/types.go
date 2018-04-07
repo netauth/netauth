@@ -1,8 +1,8 @@
 package entity_manager
 
 import (
-	"github.com/NetAuth/NetAuth/internal/server/db"
-	"github.com/NetAuth/NetAuth/internal/server/crypto"
+	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
 type EMDataStore struct {

@@ -1,7 +1,7 @@
 package MemDB
 
 import (
-	"github.com/NetAuth/NetAuth/internal/server/db"
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
