@@ -34,30 +34,6 @@ func (emds *EMDataStore) addEntityToGroup(e *pb.Entity, groupName string) error 
 	return nil
 }
 
-// AddEntityToGroup is an external facing function which handles the
-// authorization of the change and performs the change.
-func (emds *EMDataStore) AddEntityToGroup(mer *pb.ModGroupDirectMembershipRequest) error {
-	requestID := mer.GetEntity().GetID()
-	requestSecret := mer.GetEntity().GetSecret()
-
-	// Validate that the entity is real and is permitted to
-	// perform this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_GROUP_MEMBERS"); err != nil {
-		return err
-	}
-
-	entity, err := emds.db.LoadEntity(mer.GetModEntity())
-	if err != nil {
-		return err
-	}
-
-	if err := emds.addEntityToGroup(entity, mer.GetGroupName()); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // getDirectGroups gets the direct groups of an entity.
 func (emds *EMDataStore) getDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
@@ -83,26 +59,4 @@ func (emds *EMDataStore) removeEntityFromGroup(e *pb.Entity, groupName string) {
 		newGroups = append(newGroups, g)
 	}
 	e.Meta.Groups = newGroups
-}
-
-// RemoveEntityFromGroup is an external facing function which handles
-// the authorization of the change and removes an entity from a group
-// in which they have direct membership.
-func (emds *EMDataStore) RemoveEntityFromGroup(mer *pb.ModGroupDirectMembershipRequest) error {
-	requestID := mer.GetEntity().GetID()
-	requestSecret := mer.GetEntity().GetSecret()
-
-	// Validate that the entity is real and is permitted to
-	// perform this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_GROUP_MEMBERS"); err != nil {
-		return err
-	}
-
-	entity, err := emds.db.LoadEntity(mer.GetModEntity())
-	if err != nil {
-		return err
-	}
-
-	emds.removeEntityFromGroup(entity, mer.GetGroupName())
-	return nil
 }

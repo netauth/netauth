@@ -46,23 +46,6 @@ func (emds *EMDataStore) newGroup(name, displayName string, gidNumber int32) err
 	return nil
 }
 
-// NewGroup is the API facing function which performs group creation
-// only with appropriate authorization.
-func (emds *EMDataStore) NewGroup(requestID, requestSecret, name, displayName string, gidNumber int32) error {
-	// Validate that the entity is real and is permitted to
-	// perform this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "CREATE_GROUP"); err != nil {
-		return err
-	}
-
-	// Attempt to create the group as specified.
-	if err := emds.newGroup(name, displayName, gidNumber); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // getGroupByName fetches a group by name and returns a pointer to the
 // group and a nil error.  If the group cannot be loaded the error
 // will explain why.  This is very thin since it just obtains a value
@@ -75,23 +58,6 @@ func (emds *EMDataStore) getGroupByName(name string) (*pb.Group, error) {
 // here, it just passes the delete call through to the storage layer.
 func (emds *EMDataStore) deleteGroup(name string) error {
 	return emds.db.DeleteGroup(name)
-}
-
-// DeleteGroup is the API facing function which performs group creation
-// only with appropriate authorization.
-func (emds *EMDataStore) DeleteGroup(requestID, requestSecret, name string) error {
-	// Validate that the entity is real and is permitted to
-	// perform this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "DESTROY_GROUP"); err != nil {
-		return err
-	}
-
-	// Attempt to create the group as specified.
-	if err := emds.deleteGroup(name); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // updateGroupMeta updates metadata within the group.  Certain
@@ -109,23 +75,6 @@ func (emds *EMDataStore) updateGroupMeta(name string, update *pb.Group) error {
 	proto.Merge(g, update)
 
 	if err := emds.db.SaveGroup(g); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// UpdateGroupMeta is the publicly available function which modifies
-// group metadata.
-func (emds *EMDataStore) UpdateGroupMeta(requestID, requestSecret, name string, update *pb.Group) error {
-	// Validate that the entity is real and is permitted to
-	// perform this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_GROUP_META"); err != nil {
-		return err
-	}
-
-	// Attempt to modify the group as specified.
-	if err := emds.updateGroupMeta(name, update); err != nil {
 		return err
 	}
 

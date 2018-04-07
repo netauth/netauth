@@ -63,25 +63,6 @@ func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) er
 	return nil
 }
 
-// NewEntity is a public function which adds a new entity on behalf of
-// another one.  The requesting entity must be able to validate its
-// identity and posses the appropriate capability to add a new entity
-// to the system.
-func (emds *EMDataStore) NewEntity(requestID, requestSecret, newID string, newUIDNumber int32, newSecret string) error {
-	// Validate that the entity is real and permitted to perform
-	// this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "CREATE_ENTITY"); err != nil {
-		return err
-	}
-
-	// The entity is who they say they are and has the appropriate
-	// capability, time to actually create the new entity.
-	if err := emds.newEntity(newID, newUIDNumber, newSecret); err != nil {
-		return err
-	}
-	return nil
-}
-
 // NewBootstrapEntity is a function that can be called during the
 // startup of the srever to create an entity that has the appropriate
 // authority to create more entities and otherwise manage the server.
@@ -142,46 +123,6 @@ func (emds *EMDataStore) deleteEntityByID(ID string) error {
 	log.Printf("Deleted entity '%s'", ID)
 
 	return nil
-}
-
-func (emds *EMDataStore) DeleteEntity(requestID string, requestSecret string, deleteID string) error {
-	// Validate that the entity is real and permitted to perform
-	// this action.
-	if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "DELETE_ENTITY"); err != nil {
-		return err
-	}
-
-	// Delete the requested entity
-	return emds.deleteEntityByID(deleteID)
-}
-
-// checkCapability is a helper function which allows a method to
-// quickly check for a capability on an entity.  This check only looks
-// for capabilities that an entity has directly, not any which may be
-// conferred to it by group membership.
-func (emds *EMDataStore) checkEntityCapability(e *pb.Entity, c string) error {
-	for _, a := range e.Meta.Capabilities {
-		if a == pb.Capability_GLOBAL_ROOT {
-			return nil
-		}
-
-		if a == pb.Capability(pb.Capability_value[c]) {
-			return nil
-		}
-	}
-	return errors.E_ENTITY_UNQUALIFIED
-}
-
-// checkCapabilityByID is a convenience func (emds *EMDataStore)tion which performs the
-// query to retrieve the entity itself, rather than requirin the
-// caller to produce the pointer to the entity.
-func (emds *EMDataStore) checkEntityCapabilityByID(ID string, c string) error {
-	e, err := emds.db.LoadEntity(ID)
-	if err != nil {
-		return err
-	}
-
-	return emds.checkEntityCapability(e, c)
 }
 
 // SetCapability sets a capability on an entity.  The set operation is
@@ -245,33 +186,6 @@ func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
 	return nil
 }
 
-// ChangeSecret is a publicly available function to change an entity
-// secret.  This function requires either the CHANGE_ENTITY_SECRET
-// capability or the entity to be requesting the change for itself.
-func (emds *EMDataStore) ChangeSecret(ID string, secret string, changeID string, changeSecret string) error {
-	// If the entity isn't the one requesting the change then
-	// extra capabilities are required.
-	if ID != changeID {
-		if err := emds.validateEntityCapabilityAndSecret(ID, secret, "CHANGE_ENTITY_SECRET"); err != nil {
-			return err
-		}
-	} else {
-		if err := emds.ValidateSecret(ID, secret); err != nil {
-			return err
-		}
-	}
-
-	// At this point the entity is either the one that we're
-	// changing the secret for or is the one that is allowed to
-	// change the secrets of others.
-	if err := emds.setEntitySecretByID(changeID, changeSecret); err != nil {
-		return err
-	}
-
-	// At this point the secret has been changed.
-	return nil
-}
-
 // ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
 func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
@@ -287,28 +201,6 @@ func (emds *EMDataStore) ValidateSecret(ID string, secret string) error {
 	}
 	log.Printf("Successfully authenticated '%s'", e.GetID())
 
-	return nil
-}
-
-// validateEntityCapabilityAndSecret validates an entitity is who they
-// say they are and that they have a named capability.  This is a
-// convenience function and simply calls and aggregates responses from
-// other functions which perform the actual checks.
-func (emds *EMDataStore) validateEntityCapabilityAndSecret(ID string, secret string, capability string) error {
-	// First validate the entity identity.
-	if err := emds.ValidateSecret(ID, secret); err != nil {
-		return err
-	}
-
-	// Then validate the entity capability.
-	if err := emds.checkEntityCapabilityByID(ID, capability); err != nil {
-		return err
-	}
-
-	// todo(maldridge) When groups have capabilities this may be
-	// checked here as well.
-
-	// Entity is who they say they are and has the specified capability.
 	return nil
 }
 
@@ -350,30 +242,4 @@ func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) 
 
 	log.Printf("Updated metadata for '%s'", e.GetID())
 	return nil
-}
-
-func (emds *EMDataStore) UpdateEntityMeta(requestID, requestSecret, modEntityID string, newMeta *pb.EntityMeta) error {
-	// An entity can change its own metadata, but modifying other
-	// entities requires an administrative capability.
-	if modEntityID != requestID {
-		if err := emds.validateEntityCapabilityAndSecret(requestID, requestSecret, "MODIFY_ENTITY_META"); err != nil {
-			log.Printf("UpdateEntityMeta denied to '%s'", requestID)
-			return err
-		}
-	} else {
-		if err := emds.ValidateSecret(requestID, requestSecret); err != nil {
-			log.Printf("UpdateEntityMeta denied to '%s'", requestID)
-			return err
-		}
-	}
-
-	// Get the actual entity that the metadata is being updated
-	// on.
-	e, err := emds.db.LoadEntity(modEntityID)
-	if err != nil {
-		return err
-	}
-
-	// Run the update
-	return emds.updateEntityMeta(e, newMeta)
 }
