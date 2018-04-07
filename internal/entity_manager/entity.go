@@ -9,13 +9,13 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-// newEntity creates a new entity given an ID, uidNumber, and secret.
+// NewEntity creates a new entity given an ID, uidNumber, and secret.
 // Its not necessary to set the secret upon creation and it can be set
-// later.  If not set on creaction then the entity will not be usable.
+// later.  If not set on creation then the entity will not be usable.
 // uidNumber must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) error {
+func (emds *EMDataStore) NewEntity(ID string, uidNumber int32, secret string) error {
 	// Does this entity exist already?
 	if _, err := emds.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
@@ -53,7 +53,7 @@ func (emds *EMDataStore) newEntity(ID string, uidNumber int32, secret string) er
 	// Now we set the entity secret, this could be inlined, but
 	// having it in the seperate function makes resetting the
 	// secret trivial.
-	if err := emds.setEntitySecretByID(ID, secret); err != nil {
+	if err := emds.SetEntitySecretByID(ID, secret); err != nil {
 		return err
 	}
 
@@ -95,10 +95,10 @@ func (emds *EMDataStore) MakeBootstrap(ID string, secret string) {
 
 	// Even in the bootstrap case its still possible this can
 	// fail, in that case its useful to have the error.
-	if err := emds.newEntity(ID, -1, secret); err != nil {
+	if err := emds.NewEntity(ID, -1, secret); err != nil {
 		log.Printf("Could not create bootstrap user! (%s)", err)
 	}
-	if err := emds.setEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
+	if err := emds.SetEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
 		log.Printf("Couldn't provide root authority! (%s)", err)
 	}
 
@@ -111,12 +111,12 @@ func (emds *EMDataStore) DisableBootstrap() {
 	emds.bootstrap_done = true
 }
 
-// DeleteEntityByID deletes the named entity.  This func (emds
-// *EMDataStore)tion will delete the entity in a non-atomic way, but
-// will ensure that the entity cannot be authenticated with before
-// returning.  If the named ID does not exist the function will return
-// errors.E_NO_ENTITY, in all other cases nil is returned.
-func (emds *EMDataStore) deleteEntityByID(ID string) error {
+// DeleteEntityByID deletes the named entity.  This function will
+// delete the entity in a non-atomic way, but will ensure that the
+// entity cannot be authenticated with before returning.  If the named
+// ID does not exist the function will return errors.E_NO_ENTITY, in
+// all other cases nil is returned.
+func (emds *EMDataStore) DeleteEntityByID(ID string) error {
 	if err := emds.db.DeleteEntity(ID); err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (emds *EMDataStore) setEntityCapability(e *pb.Entity, c string) error {
 
 // SetEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual setEntityCapability function
-func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
+func (emds *EMDataStore) SetEntityCapabilityByID(ID string, c string) error {
 	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -166,7 +166,7 @@ func (emds *EMDataStore) setEntityCapabilityByID(ID string, c string) error {
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // crypto interface.
-func (emds *EMDataStore) setEntitySecretByID(ID string, secret string) error {
+func (emds *EMDataStore) SetEntitySecretByID(ID string, secret string) error {
 	e, err := emds.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -220,7 +220,7 @@ func (emds *EMDataStore) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e)
 }
 
-func (emds *EMDataStore) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
+func (emds *EMDataStore) UpdateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// get the existing metadata
 	meta := e.GetMeta()
 

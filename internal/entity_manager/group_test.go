@@ -43,7 +43,7 @@ func TestListMembersALLInternal(t *testing.T) {
 	}
 
 	for _, id := range s {
-		if err := em.newEntity(id, -1, ""); err != nil {
+		if err := em.NewEntity(id, -1, ""); err != nil {
 			t.Error(err)
 		}
 
@@ -123,7 +123,7 @@ func TestListMembersExternal(t *testing.T) {
 	}
 
 	for _, id := range s {
-		if err := em.newEntity(id, -1, ""); err != nil {
+		if err := em.NewEntity(id, -1, ""); err != nil {
 			t.Error(err)
 		}
 

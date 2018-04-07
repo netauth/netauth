@@ -25,7 +25,7 @@ func TestAddDuplicateID(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -45,7 +45,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -65,7 +65,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -86,14 +86,14 @@ func TestDeleteEntityByID(t *testing.T) {
 
 	// Populate some entities
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
 
 	for _, c := range s {
 		// Delete the entity
-		if err := em.deleteEntityByID(c.ID); err != nil {
+		if err := em.DeleteEntityByID(c.ID); err != nil {
 			t.Error(err)
 		}
 
@@ -108,7 +108,7 @@ func TestSetSameCapabilityTwice(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	// Add an entity
-	if err := em.newEntity("foo", -1, ""); err != nil {
+	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Error(err)
 	}
 
@@ -136,7 +136,7 @@ func TestCapabilityBogusEntity(t *testing.T) {
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
 	// should be returned.
-	if err := em.setEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != errors.E_NO_ENTITY {
+	if err := em.SetEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -156,7 +156,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	// Load in the entities
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -173,7 +173,7 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	// Attempt to set the secret on an entity that doesn't exist.
-	if err := em.setEntitySecretByID("a", "a"); err != errors.E_NO_ENTITY {
+	if err := em.SetEntitySecretByID("a", "a"); err != errors.E_NO_ENTITY {
 		t.Error(err)
 	}
 }
@@ -192,7 +192,7 @@ func TestGetEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	// Add a new entity with known values.
-	if err := em.newEntity("foo", -1, ""); err != nil {
+	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Error(err)
 	}
 
@@ -225,7 +225,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	// Add a new entity with known values
-	if err := em.newEntity("foo", -1, ""); err != nil {
+	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Error(err)
 	}
 
@@ -239,7 +239,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	em.updateEntityMeta(e, fullMeta)
+	em.UpdateEntityMeta(e, fullMeta)
 
 	// Verify that the update above took
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
@@ -252,7 +252,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	badMeta := &pb.EntityMeta{
 		Groups: groups,
 	}
-	em.updateEntityMeta(e, badMeta)
+	em.UpdateEntityMeta(e, badMeta)
 
 	// The update from badMeta should not have gone through, and
 	// the old value should still be present.

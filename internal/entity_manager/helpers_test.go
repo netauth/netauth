@@ -25,7 +25,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 	for _, c := range s {
 		//  Make sure the entity actually gets added
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
@@ -55,7 +55,7 @@ func TestGetEntityByID(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.newEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
 			t.Error(err)
 		}
 
@@ -72,7 +72,7 @@ func TestGetEntityByID(t *testing.T) {
 func TestSafeCopyEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.newEntity("foo", -1, "bar"); err != nil {
+	if err := em.NewEntity("foo", -1, "bar"); err != nil {
 		t.Error(err)
 	}
 
