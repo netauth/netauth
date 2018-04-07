@@ -9,11 +9,11 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-// newGroup adds a group to the datastore if it does not currently
+// NewGroup adds a group to the datastore if it does not currently
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
-func (emds *EMDataStore) newGroup(name, displayName string, gidNumber int32) error {
-	if _, err := emds.db.LoadGroup(name); err == nil {
+func (emds *EMDataStore) NewGroup(name, displayName string, gidNumber int32) error {
+	if _, err := emds.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
 		return errors.E_DUPLICATE_GROUP_ID
 	}
@@ -50,21 +50,21 @@ func (emds *EMDataStore) newGroup(name, displayName string, gidNumber int32) err
 // group and a nil error.  If the group cannot be loaded the error
 // will explain why.  This is very thin since it just obtains a value
 // from the storage layer.
-func (emds *EMDataStore) getGroupByName(name string) (*pb.Group, error) {
+func (emds *EMDataStore) GetGroupByName(name string) (*pb.Group, error) {
 	return emds.db.LoadGroup(name)
 }
 
 // deleteGroup unsurprisingly deletes a group.  There's no real logic
 // here, it just passes the delete call through to the storage layer.
-func (emds *EMDataStore) deleteGroup(name string) error {
+func (emds *EMDataStore) DeleteGroup(name string) error {
 	return emds.db.DeleteGroup(name)
 }
 
 // updateGroupMeta updates metadata within the group.  Certain
 // information is not mutable and so that information is not merged
 // in.
-func (emds *EMDataStore) updateGroupMeta(name string, update *pb.Group) error {
-	g, err := emds.db.LoadGroup(name)
+func (emds *EMDataStore) UpdateGroupMeta(name string, update *pb.Group) error {
+	g, err := emds.GetGroupByName(name)
 	if err != nil {
 		return err
 	}

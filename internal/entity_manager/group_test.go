@@ -11,7 +11,7 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-func TestNewGroupInternal(t *testing.T) {
+func TestNewGroup(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	s := []struct {
@@ -27,7 +27,7 @@ func TestNewGroupInternal(t *testing.T) {
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
-		if err := em.newGroup(c.name, c.displayName, c.gidNumber); err != c.wantErr {
+		if err := em.NewGroup(c.name, c.displayName, c.gidNumber); err != c.wantErr {
 			t.Errorf("Wrong Error: want '%v' got '%v'", c.wantErr, err)
 		}
 	}
@@ -62,22 +62,22 @@ func TestListMembersALLInternal(t *testing.T) {
 	}
 }
 
-func TestDeleteGroupInternal(t *testing.T) {
+func TestDeleteGroup(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.newGroup("foo", "", -1); err != nil {
+	if err := em.NewGroup("foo", "", -1); err != nil {
 		t.Error(err)
 	}
 
-	if _, err := em.getGroupByName("foo"); err != nil {
+	if _, err := em.GetGroupByName("foo"); err != nil {
 		t.Error(err)
 	}
 
-	if err := em.deleteGroup("foo"); err != nil {
+	if err := em.DeleteGroup("foo"); err != nil {
 		t.Error(err)
 	}
 
-	if _, err := em.getGroupByName("foo"); err != errors.E_NO_GROUP {
+	if _, err := em.GetGroupByName("foo"); err != errors.E_NO_GROUP {
 		t.Error(err)
 	}
 }
@@ -85,17 +85,17 @@ func TestDeleteGroupInternal(t *testing.T) {
 func TestUpdateGroupMetaInternal(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.newGroup("foo", "foo", -1); err != nil {
+	if err := em.NewGroup("foo", "foo", -1); err != nil {
 		t.Error(err)
 	}
 
 	update := &pb.Group{DisplayName: proto.String("Foo Group")}
 
-	if err := em.updateGroupMeta("foo", update); err != nil {
+	if err := em.UpdateGroupMeta("foo", update); err != nil {
 		t.Error(err)
 	}
 
-	g, err := em.getGroupByName("foo")
+	g, err := em.GetGroupByName("foo")
 	if err != nil {
 		t.Error(err)
 	}
