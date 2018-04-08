@@ -1,4 +1,4 @@
-package entity_manager
+package tree
 
 import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
@@ -6,8 +6,8 @@ import (
 
 // AddEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
-func (emds *EMDataStore) AddEntityToGroup(e *pb.Entity, groupName string) error {
-	if _, err := emds.db.LoadGroup(groupName); err != nil {
+func (m Manager) AddEntityToGroup(e *pb.Entity, groupName string) error {
+	if _, err := m.db.LoadGroup(groupName); err != nil {
 		return err
 	}
 
@@ -28,14 +28,14 @@ func (emds *EMDataStore) AddEntityToGroup(e *pb.Entity, groupName string) error 
 	// is not in the named group via direct membership.
 	e.Meta.Groups = append(e.Meta.Groups, groupName)
 
-	if err := emds.db.SaveEntity(e); err != nil {
+	if err := m.db.SaveEntity(e); err != nil {
 		return err
 	}
 	return nil
 }
 
 // GetDirectGroups gets the direct groups of an entity.
-func (emds *EMDataStore) GetDirectGroups(e *pb.Entity) []string {
+func (m Manager) GetDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
 		return []string{}
 	}
@@ -46,7 +46,7 @@ func (emds *EMDataStore) GetDirectGroups(e *pb.Entity) []string {
 // RemoveEntityFromGroup removes an entity from the named group.  If
 // the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (emds *EMDataStore) RemoveEntityFromGroup(e *pb.Entity, groupName string) {
+func (m Manager) RemoveEntityFromGroup(e *pb.Entity, groupName string) {
 	if e.GetMeta() == nil {
 		return
 	}

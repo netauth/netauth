@@ -1,11 +1,11 @@
-package entity_manager
+package tree
 
 import (
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
-type EMDataStore struct {
+type Manager struct {
 	// Making a bootstrap entity is a rare thing and short
 	// circuits most of the permissions logic.  As such we only
 	// allow it to be done once per server start.

@@ -1,4 +1,4 @@
-package entity_manager
+package tree
 
 import (
 	"log"
@@ -13,8 +13,8 @@ import (
 
 // New returns an initialized EMDataStore on to which all other
 // functions are bound.
-func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *EMDataStore {
-	x := EMDataStore{}
+func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *Manager {
+	x := Manager{}
 	x.bootstrap_done = false
 	x.db = db
 	x.crypto = crypto
@@ -26,7 +26,7 @@ func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *EMDataStore {
 // nextUIDNumber computes the next available uidNumber to be assigned.
 // This allows a NewEntity request to be made with the uidNumber field
 // unset.
-func (emds *EMDataStore) nextUIDNumber() (int32, error) {
+func (m Manager) nextUIDNumber() (int32, error) {
 	var largest int32 = 0
 
 	// Iterate over the entities and return the largest ID found
@@ -34,13 +34,13 @@ func (emds *EMDataStore) nextUIDNumber() (int32, error) {
 	// missing in the middle and still work.  Though an
 	// inefficient search this is worst case O(N) and happends
 	// only on provisioning a new entry in the database.
-	el, err := emds.db.DiscoverEntityIDs()
+	el, err := m.db.DiscoverEntityIDs()
 	if err != nil {
 		return 0, err
 	}
 
 	for _, en := range el {
-		e, err := emds.db.LoadEntity(en)
+		e, err := m.db.LoadEntity(en)
 		if err != nil {
 			return 0, err
 		}

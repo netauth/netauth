@@ -1,4 +1,4 @@
-package entity_manager
+package tree
 
 import (
 	"testing"
