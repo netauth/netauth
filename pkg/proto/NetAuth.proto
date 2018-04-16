@@ -25,6 +25,10 @@ service NetAuth {
   // attempt to validate that they are who they say they are.
   rpc AuthEntity(NetAuthRequest) returns (SimpleResult) {}
 
+  // GetToken takes in an entity and obtains a token, this is
+  // otherwise identical to AuthEntity.
+  rpc GetToken(NetAuthRequest) returns (TokenResult) {}
+
   // EntityInfo takes in an entity and will try to return as much info
   // as is known about it.
   rpc EntityInfo(NetAuthRequest) returns (Entity) {}
@@ -67,25 +71,32 @@ service NetAuth {
   rpc RemoveEntityFromGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
 }
 
+// The ClientInfo message contains information about the client
+// originating the request.  This information must not be used for
+// security functions of any kind, as it is directly editable by the
+// client.
+message ClientInfo {
+  // The ID is to be used to define the originating client, this
+  // should in general be set to the client's hostname, or otherwise
+  // some persistent system identifier.
+  optional string ID = 1;
+
+  // The Service is an identifier that defined what is asking the
+  // system for information.  This should usually be set to the
+  // application name, or 'SYSTEM' if the request is on behalf of the
+  // system itself.
+  optional string Service = 2;
+}
+
 // An AuthRequest includes an Entity and some information to identify
 // the system that is making the request.
 message NetAuthRequest {
   // The Entity is obviously the most important part of the
   // AuthRequest which is the thing we want to authenticate.
-  required Entity entity = 1;
+  required Entity Entity = 1;
 
-  // Additionally we want to know the client ID that is making the
-  // authentication request.  This is set by the client and must not
-  // be used for any security purposes.  Its intention is to be used
-  // for logging and statistics to find clients with problems.
-  optional string clientID = 2;
-
-  // It would also be nice to know what this authentication is for,
-  // this is again set by the client and shouldn't be used for
-  // security purposes.  The idea here is that if there are multiple
-  // systems all making requests with the same clientID this will
-  // differentiate them.
-  optional string serviceID = 3;
+  // Client information for logging
+  optional ClientInfo Info = 2;
 }
 
 // A ModEntityRequest takes an entity to authorize and an entity to
@@ -94,10 +105,17 @@ message NetAuthRequest {
 message ModEntityRequest {
   // The request must always have an entity, the second entity may not
   // be set in which case the first entity will be acted upon.
-  required Entity entity = 1;
+  required Entity Entity = 1;
 
   // This is the entity to act on, it may be set or it may not be.
-  optional Entity modEntity = 2;
+  optional Entity ModEntity = 2;
+
+  // Client information for logging
+  optional ClientInfo Info = 3;
+
+  // The authentication token is used to authorize changes made to the
+  // state of things in the NetAuth database.
+  required string AuthToken = 4;
 }
 
 message ModGroupDirectMembershipRequest {
@@ -108,8 +126,12 @@ message ModGroupDirectMembershipRequest {
   // The group that is being added or removed is taken as a group name
   required string GroupName = 3;
 
-  optional string clientID = 4;
-  optional string serviceID = 5;
+  // Client information for logging
+  optional ClientInfo Info = 4;
+
+  // The authentication token is used to authorize changes made to the
+  // state of things in the NetAuth database.
+  required string AuthToken = 5;
 }
 
 // An entity may be a person or a machine actor that wishes to act as
@@ -152,6 +174,22 @@ message SimpleResult {
   optional string msg = 2;
 }
 
+// A token reply will include the status of the authentication
+// request, and if successful, an authentication token that can be
+// used for future requests.
+message TokenResult {
+  // Success will provide a high level status of if the reply
+  // succeeded.
+  required bool success = 1 [default = false];
+
+  // Msg contains information about a failure if applicable.
+  optional string Msg = 2;
+
+  // Token contains the token if the request was successful or is
+  // empty otherwise.
+  optional string Token = 3;
+}
+
 // While machine entities may belong to only one group, people
 // entities often belong to many groups at once.  This message
 // structures the reply for the additional groups.
@@ -187,22 +225,20 @@ message ModGroupRequest {
   // The group that's being modified.
   required Group group = 2;
 
-  // The ID of the client requesting this change
-  optional string clientID = 3;
+  // Client information for logging
+  optional ClientInfo Info = 3;
 
-  // The serviceID on the client requesting this change.
-  optional string serviceID = 4;
+  // The authentication token is used to authorize changes made to the
+  // state of things in the NetAuth database.
+  required string AuthToken = 4;
 }
 
 message GroupMemberRequest {
   // The group for which info is being requested.
   optional Group group = 1;
 
-  // The ID of the client requesting the information.
-  optional string clientID = 2;
-
-  // The serviceID on the client requesting the information.
-  optional string serviceID = 3;
+  // Client information for logging
+  optional ClientInfo Info = 2;
 }
 
 message GroupListRequest{}
@@ -280,7 +316,8 @@ message EntityList {
 // The PingRequest is used to ask the server to return its health
 // status to the requestor.
 message PingRequest {
-  optional string clientID = 1;
+  // Client information for logging
+  optional ClientInfo Info = 1;
 }
 
 // The PingReply is used to tell the client if this server is healthy
