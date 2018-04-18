@@ -28,9 +28,9 @@ service NetAuth {
   // attempt to validate that they are who they say they are.
   rpc AuthEntity(NetAuthRequest) returns (SimpleResult) {}
 
-  // // GetToken takes in an entity and obtains a token, this is
-  // // otherwise identical to AuthEntity.
-  // rpc GetToken(NetAuthRequest) returns (TokenResult) {}
+  // GetToken takes in an entity and obtains a token, this is
+  // otherwise identical to AuthEntity.
+  rpc GetToken(NetAuthRequest) returns (TokenResult) {}
 
   // // EntityInfo takes in an entity and will try to return as much info
   // // as is known about it.

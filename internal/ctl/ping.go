@@ -20,9 +20,9 @@ func (*PingCmd) Usage() string {
 `
 }
 
-func (p *PingCmd) SetFlags(f *flag.FlagSet) {}
+func (*PingCmd) SetFlags(f *flag.FlagSet) {}
 
-func (p *PingCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (*PingCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
 	if err != nil {

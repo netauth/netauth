@@ -20,13 +20,9 @@ func (*AuthCmd) Usage() string {
 `
 }
 
-func (p *AuthCmd) SetFlags(f *flag.FlagSet) {}
+func (*AuthCmd) SetFlags(f *flag.FlagSet) {}
 
-func (p *AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure the secret has been obtained if it wasn't specified
-	// on the command line.
-	ensureSecret()
-
+func (*AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
 	if err != nil {

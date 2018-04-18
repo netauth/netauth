@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"time"
+	"log"
 )
 
 type TokenServiceFactory func() (TokenService, error)
@@ -43,8 +44,13 @@ func init() {
 	services = make(map[string]TokenServiceFactory)
 }
 
-func New(impl string) (TokenService, error) {
-	t, ok := services[impl]
+func New() (TokenService, error) {
+	if *impl == "" && len(services) == 1 {
+		log.Println("Warning: No token implementation selected, using only registered option...")
+		*impl = GetBackendList()[0]
+	}
+		
+	t, ok := services[*impl]
 	if !ok {
 		return nil, NO_SUCH_TOKENSERVICE
 	}
@@ -59,7 +65,7 @@ func RegisterService(name string, impl TokenServiceFactory) {
 	services[name] = impl
 }
 
-func ListImpls() []string {
+func GetBackendList() []string {
 	l := []string{}
 
 	for b, _ := range services {

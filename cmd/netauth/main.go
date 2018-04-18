@@ -13,7 +13,7 @@ import (
 var (
 	serverAddr = flag.String("server", "localhost", "Server Address")
 	serverPort = flag.Int("port", 8080, "Server port")
-	clientID   = flag.String("client", "netauthctl", "Client ID to send")
+	clientID   = flag.String("client", "", "Client ID to send")
 	serviceID  = flag.String("service", "netauthctl", "Service ID to send")
 	entity     = flag.String("entity", "", "Entity to send in the request")
 	secret     = flag.String("secret", "", "Secret to send in the request")
@@ -43,7 +43,8 @@ func main() {
 	subcommands.Register(subcommands.FlagsCommand(), "")
 	subcommands.Register(subcommands.CommandsCommand(), "")
 	subcommands.Register(&ctl.PingCmd{}, "System")
-	subcommands.Register(&ctl.AuthCmd{}, "Entity Management")
+	subcommands.Register(&ctl.AuthCmd{}, "Authentication")
+	subcommands.Register(&ctl.GetTokenCmd{}, "Authentication")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")

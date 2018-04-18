@@ -1,5 +1,9 @@
 package rpc
 
+import (
+	"github.com/NetAuth/NetAuth/internal/token"
+)
+
 type EntityTree interface {
 	ValidateSecret(string, string) error
 	MakeBootstrap(string, string)
@@ -8,4 +12,5 @@ type EntityTree interface {
 
 type NetAuthServer struct {
 	Tree EntityTree
+	Token token.TokenService
 }

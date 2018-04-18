@@ -11,6 +11,9 @@ import (
 	_ "github.com/NetAuth/NetAuth/internal/crypto/impl"
 	"github.com/NetAuth/NetAuth/internal/db"
 	_ "github.com/NetAuth/NetAuth/internal/db/impl"
+	"github.com/NetAuth/NetAuth/internal/token"
+	_ "github.com/NetAuth/NetAuth/internal/token/impl"
+
 	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/rpc"
 
@@ -47,7 +50,17 @@ func newServer() *rpc.NetAuthServer {
 	log.Printf("Initializing new Entity Tree with %s and %s", *db_impl, *crypto_impl)
 	tree := tree.New(db, crypto)
 
-	return &rpc.NetAuthServer{Tree: tree}
+	// Initialize the token service
+	log.Println("Initializing token service")
+	tokenService, err := token.New()
+	if err != nil {
+		log.Fatalf("Fatal error initializing token service: %s", err)
+	}
+
+	return &rpc.NetAuthServer{
+		Tree: tree,
+		Token: tokenService,
+	}
 }
 
 func main() {
@@ -88,6 +101,12 @@ func main() {
 	// Spit out what crypto backends we know about
 	log.Printf("The following crypto implementations are registered:")
 	for _, b := range crypto.GetBackendList() {
+		log.Printf("  %s", b)
+	}
+
+	// Spit out the token services we know about
+	log.Printf("The following token services are registered:")
+	for _, b := range token.GetBackendList() {
 		log.Printf("  %s", b)
 	}
 
