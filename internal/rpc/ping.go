@@ -17,7 +17,8 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 	// Ping takes in a request from the client, and then replies
 	// with a Pong containing the server status.
 
-	log.Printf("Ping from %s", pingRequest.GetClientID())
+	client := pingRequest.GetInfo()
+	log.Printf("Ping from %s@%s", client.GetService(), client.GetID())
 
 	reply := new(pb.PingResponse)
 	reply.Healthy = proto.Bool(health.Get())

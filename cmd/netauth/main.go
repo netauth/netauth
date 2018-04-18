@@ -44,18 +44,6 @@ func main() {
 	subcommands.Register(subcommands.CommandsCommand(), "")
 	subcommands.Register(&ctl.PingCmd{}, "System")
 	subcommands.Register(&ctl.AuthCmd{}, "Entity Management")
-	subcommands.Register(&ctl.NewEntityCmd{}, "Entity Management")
-	subcommands.Register(&ctl.RemoveEntityCmd{}, "Entity Management")
-	subcommands.Register(&ctl.ChangeSecretCmd{}, "Entity Management")
-	subcommands.Register(&ctl.EntityInfoCmd{}, "Entity Management")
-	subcommands.Register(&ctl.ModifyMetaCmd{}, "Entity Management")
-	subcommands.Register(&ctl.GroupMembersCmd{}, "Group Management")
-	subcommands.Register(&ctl.NewGroupCmd{}, "Group Management")
-	subcommands.Register(&ctl.DeleteGroupCmd{}, "Group Management")
-	subcommands.Register(&ctl.ModifyGroupCmd{}, "Group Management")
-	subcommands.Register(&ctl.ListGroupsCmd{}, "Group Management")
-	subcommands.Register(&ctl.EntityIntoGroupCmd{}, "Group Management")
-	subcommands.Register(&ctl.EntityOutOfGroupCmd{}, "Group Management")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")

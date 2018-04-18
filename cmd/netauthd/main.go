@@ -11,7 +11,7 @@ import (
 	_ "github.com/NetAuth/NetAuth/internal/crypto/impl"
 	"github.com/NetAuth/NetAuth/internal/db"
 	_ "github.com/NetAuth/NetAuth/internal/db/impl"
-	"github.com/NetAuth/NetAuth/internal/entity_manager"
+	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/rpc"
 
 	"google.golang.org/grpc"
@@ -32,7 +32,7 @@ var (
 )
 
 func newServer() *rpc.NetAuthServer {
-	// Need to setup the EMDiskInterface to pass to the entity_manager.
+	// Need to setup the Database for use with the entity tree
 	db, err := db.New(*db_impl)
 	if err != nil {
 		log.Fatalf("Fatal database error! (%s)", err)
@@ -43,11 +43,11 @@ func newServer() *rpc.NetAuthServer {
 		log.Fatalf("Fatal crypto error! (%s)", err)
 	}
 
-	// Initialize the entity manager
-	log.Printf("Initializing new Entity Manager with %s and %s", *db_impl, *crypto_impl)
-	em := entity_manager.New(db, crypto)
+	// Initialize the entity tree
+	log.Printf("Initializing new Entity Tree with %s and %s", *db_impl, *crypto_impl)
+	tree := tree.New(db, crypto)
 
-	return &rpc.NetAuthServer{EM: em}
+	return &rpc.NetAuthServer{Tree: tree}
 }
 
 func main() {
@@ -98,13 +98,13 @@ func main() {
 	if len(*bootstrap) != 0 {
 		log.Println("Commencing Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
-		srv.EM.MakeBootstrap(eParts[0], eParts[1])
+		srv.Tree.MakeBootstrap(eParts[0], eParts[1])
 		log.Println("Bootstrap phase complete")
 	}
 
 	// If it wasn't used make sure its disabled since it can
 	// create arbitrary root users.
-	srv.EM.DisableBootstrap()
+	srv.Tree.DisableBootstrap()
 
 	// Instantiate and launch.  This will block and the server
 	// will server forever.

@@ -18,16 +18,17 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, netAuthRequest *pb.NetAu
 	// where, and for what.  This is for diagnostics, and is not
 	// really intended to be used for security purposes, but can
 	// be nice to look at if things fail below.
+	client := netAuthRequest.GetInfo()
 	log.Printf("Authenticating %s for service %s to client %s",
 		netAuthRequest.GetEntity().GetID(),
-		netAuthRequest.GetServiceID(),
-		netAuthRequest.GetClientID())
+		client.GetID(),
+		client.GetService())
 
 	// Construct and return the response.
 	result := new(pb.SimpleResult)
 	entityID := netAuthRequest.GetEntity().GetID()
 	entitySecret := netAuthRequest.GetEntity().GetSecret()
-	authStatus := s.EM.ValidateSecret(entityID, entitySecret)
+	authStatus := s.Tree.ValidateSecret(entityID, entitySecret)
 	msg := ""
 	if authStatus != nil {
 		success = false
