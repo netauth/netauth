@@ -3,8 +3,8 @@ package token
 import (
 	"errors"
 	"flag"
-	"time"
 	"log"
+	"time"
 )
 
 type TokenServiceFactory func() (TokenService, error)
@@ -49,7 +49,7 @@ func New() (TokenService, error) {
 		log.Println("Warning: No token implementation selected, using only registered option...")
 		*impl = GetBackendList()[0]
 	}
-		
+
 	t, ok := services[*impl]
 	if !ok {
 		return nil, NO_SUCH_TOKENSERVICE
@@ -77,7 +77,9 @@ func GetBackendList() []string {
 
 func GetConfig() TokenConfig {
 	return TokenConfig{
-		Lifetime: *lifetime,
-		Renewals: *renewals,
+		Lifetime:  *lifetime,
+		Renewals:  *renewals,
+		IssuedAt:  time.Now(),
+		NotBefore: time.Now(),
 	}
 }

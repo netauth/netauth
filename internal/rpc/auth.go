@@ -36,7 +36,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	client := r.GetInfo()
 	e := r.GetEntity()
 
-	log.Printf("Authenticating %s (%s@%s)",
+	log.Printf("Token requested for %s (%s@%s)",
 		e.GetID(),
 		client.GetService(),
 		client.GetID())

@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"google.golang.org/grpc"
@@ -11,26 +12,34 @@ import (
 )
 
 type netAuthClient struct {
-	c         pb.NetAuthClient
-	serviceID *string
-	clientID  *string
+	c          pb.NetAuthClient
+	serviceID  *string
+	clientID   *string
+	tokenStore TokenStore
 }
 
 // New takes in the values that set up a client and builds a
 // client.netAuthClient struct on which all other methods are bound.
 // This drastically simplifies the construction of other functions.
 func New(server string, port int, serviceID string, clientID string) (*netAuthClient, error) {
-	// Setup the connection and defer the close.
+	// Setup the connection.
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", server, port), grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
 
+	// Get a tokenstore
+	t, err := getTokenStore()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create a client to use later on.
 	client := netAuthClient{
-		c:         pb.NewNetAuthClient(conn),
-		serviceID: ensureServiceID(serviceID),
-		clientID:  ensureClientID(clientID),
+		c:          pb.NewNetAuthClient(conn),
+		serviceID:  ensureServiceID(serviceID),
+		clientID:   ensureClientID(clientID),
+		tokenStore: t,
 	}
 
 	return &client, nil
@@ -80,6 +89,12 @@ func (n *netAuthClient) Authenticate(entity string, secret string) (string, erro
 // return a token which can be used to authorize additional later
 // requests.
 func (n *netAuthClient) GetToken(entity, secret string) (string, error) {
+	// See if we have a local copy first.
+	t, err := n.getTokenFromStore(entity)
+	if err == nil {
+		return t, nil
+	}
+
 	request := pb.NetAuthRequest{
 		Entity: &pb.Entity{
 			ID:     &entity,
