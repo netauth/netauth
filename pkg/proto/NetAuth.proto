@@ -32,6 +32,10 @@ service NetAuth {
   // otherwise identical to AuthEntity.
   rpc GetToken(NetAuthRequest) returns (TokenResult) {}
 
+  // ValidateToken takes a token and attempts to validate it on the
+  // server.
+  rpc ValidateToken(NetAuthRequest) returns (SimpleResult) {}
+
   // // EntityInfo takes in an entity and will try to return as much info
   // // as is known about it.
   // rpc EntityInfo(NetAuthRequest) returns (Entity) {}
@@ -95,8 +99,10 @@ message NetAuthRequest {
   // AuthRequest which is the thing we want to authenticate.
   required Entity Entity = 1;
 
+  optional string AuthToken = 2;
+
   // Client information for logging
-  optional ClientInfo Info = 2;
+  optional ClientInfo Info = 3;
 }
 
 // A ModEntityRequest takes an entity to authorize and an entity to

@@ -115,6 +115,34 @@ func (n *netAuthClient) GetToken(entity, secret string) (string, error) {
 	return t, err
 }
 
+// ValidateToken sends the token to the server for validation.  This
+// is effectively asking the server to authenticate the token and not
+// do anything else.  Returns a comment from the server and an error.
+func (n *netAuthClient) ValidateToken(entity string) (string, error) {
+	t, err := n.getTokenFromStore(entity)
+	if err != nil {
+		return "", err
+	}
+
+	request := pb.NetAuthRequest{
+		Entity: &pb.Entity{
+			ID: &entity,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ValidateToken(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

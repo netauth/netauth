@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/golang/protobuf/proto"
@@ -64,5 +65,35 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 		Token:   &tkn,
 	}
 
+	return &reply, nil
+}
+
+func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	t := r.GetAuthToken()
+
+	log.Printf("Token validation requested by %s (%s@%s)",
+		e.GetID(),
+		client.GetService(),
+		client.GetID())
+
+	// These will get cleared to error values if there's a fault
+	msg := "Token validation successful"
+	success := true
+
+	// Validate the token and if it validates, return that the
+	// token is valid.
+	_, err := s.Token.Validate(t)
+	if err != nil {
+		msg = fmt.Sprintf("%s", err)
+		success = false
+	}
+
+	// Compose and return the reply
+	reply := pb.SimpleResult{
+		Success: &success,
+		Msg:     &msg,
+	}
 	return &reply, nil
 }
