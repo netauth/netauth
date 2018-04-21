@@ -110,7 +110,9 @@ func (n *netAuthClient) GetToken(entity, secret string) (string, error) {
 		return "", err
 	}
 
-	return tokenResult.GetToken(), nil
+	t = tokenResult.GetToken()
+	err = n.putTokenInStore(entity, t)
+	return t, err
 }
 
 func ensureClientID(clientID string) *string {

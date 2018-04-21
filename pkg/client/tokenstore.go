@@ -3,6 +3,10 @@ package client
 import (
 	"errors"
 	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 )
 
 // This file implements a plugin token storage system, it is
@@ -14,11 +18,12 @@ import (
 type TokenStore interface {
 	StoreToken(string, string) error
 	GetToken(string) (string, error)
+	DestroyToken(string) error
 }
 
 var (
 	backends map[string]TokenStore
-	impl     = flag.String("tokenstore", "", "Token storage system")
+	impl     = flag.String("tokenstore", "disk", "Token storage system")
 
 	NoSuchTokenStore = errors.New("No token store with that name exists!")
 	TokenUnavailable = errors.New("The stored token is unavailable")
@@ -27,6 +32,7 @@ var (
 func init() {
 	backends = make(map[string]TokenStore)
 	Register("memory", &memTokenStore{})
+	Register("disk", &fsTokenStore{})
 }
 
 // Mechanism to register token storage systems
@@ -71,6 +77,14 @@ func (n *netAuthClient) getTokenFromStore(name string) (string, error) {
 	return n.tokenStore.GetToken(name)
 }
 
+func (n *netAuthClient) putTokenInStore(name, token string) error {
+	return n.tokenStore.StoreToken(name, token)
+}
+
+func (n *netAuthClient) DestroyToken(name string) error {
+	return n.tokenStore.DestroyToken(name)
+}
+
 // Basic in memory token store
 type memTokenStore struct {
 	token string
@@ -83,4 +97,39 @@ func (m *memTokenStore) StoreToken(name, token string) error {
 
 func (m *memTokenStore) GetToken(name string) (string, error) {
 	return m.token, nil
+}
+
+func (m *memTokenStore) DestroyToken(name string) error {
+	m.token = ""
+	return nil
+}
+
+// Basic filesystem token store
+type fsTokenStore struct{}
+
+func (*fsTokenStore) StoreToken(name, token string) error {
+	tokenFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", name, "token"))
+
+	if err := ioutil.WriteFile(tokenFile, []byte(token), 0400); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (*fsTokenStore) GetToken(name string) (string, error) {
+	tokenFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", name, "token"))
+
+	d, err := ioutil.ReadFile(tokenFile)
+	if err != nil {
+		return "", err
+	}
+
+	return string(d), nil
+}
+
+func (*fsTokenStore) DestroyToken(name string) error {
+	tokenFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", name, "token"))
+
+	return os.Remove(tokenFile)
 }

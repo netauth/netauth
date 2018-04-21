@@ -45,6 +45,7 @@ func main() {
 	subcommands.Register(&ctl.PingCmd{}, "System")
 	subcommands.Register(&ctl.AuthCmd{}, "Authentication")
 	subcommands.Register(&ctl.GetTokenCmd{}, "Authentication")
+	subcommands.Register(&ctl.DestroyTokenCmd{}, "Authentication")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")
