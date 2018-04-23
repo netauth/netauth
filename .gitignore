@@ -25,4 +25,5 @@
 ### Local Ignores ###
 vendor/
 data/
-key.dat
+*.key
+*.pem

@@ -2,10 +2,12 @@ package jwt
 
 import (
 	"crypto/rsa"
-	"encoding/json"
+	"crypto/x509"
+	"encoding/pem"
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -48,80 +50,104 @@ func cleanTmpTestDir(dir string, t *testing.T) {
 }
 
 func genFixedKey(t *testing.T) {
-	// Chosen by fair dice role.
+	// Chosen by fair dice roll.
 	r := rand.New(rand.NewSource(4))
 
-	key, err := rsa.GenerateKey(r, 2048)
+	// No keys, we need to create them
+	privateKey, err := rsa.GenerateKey(r, *rsa_bits)
 	if err != nil {
-		t.Error(err)
+		t.Log("Keys unavailable")
+	}
+	publicKey := &privateKey.PublicKey
+
+	// Marshal the private key
+	pridata := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PRIVATE KEY",
+			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
+		},
+	)
+	if err := ioutil.WriteFile(*privateKeyFile, pridata, 0400); err != nil {
+		t.Log("Keys unavailable")
 	}
 
-	d, err := json.Marshal(key)
+	// Marshal the public key
+	pubASN1, err := x509.MarshalPKIXPublicKey(publicKey)
 	if err != nil {
-		t.Error(err)
+		t.Log("Keys unavailable")
 	}
-	if err := ioutil.WriteFile(*key_blob, d, 0400); err != nil {
-		t.Error(err)
+	pubdata := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PUBLIC KEY",
+			Bytes: pubASN1,
+		},
+	)
+	if err := ioutil.WriteFile(*publicKeyFile, pubdata, 0644); err != nil {
+		t.Log("Keys unavailable")
 	}
 }
 
 func TestNewGenerateKeys(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*key_blob = testDir + "/key.dat"
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
 	*generate = true
 
 	_, err := NewRSA()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
 func TestNewMissingKeys(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*key_blob = testDir + "/key.dat"
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
 	*generate = false
 
 	_, err := NewRSA()
 	if err != token.NO_GENERATE_KEYS {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
 func TestLoadExistingKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*key_blob = testDir + "/key.dat"
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
 
 	// This one should generate keys
 	*generate = true
 	_, err := NewRSA()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	// This one should be loading the existing key
 	*generate = false
 	_, err = NewRSA()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 }
 
 func TestGenerateToken(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*key_blob = testDir + "/key.dat"
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
 
-	// generate a fixed value key
+	// Generate a fixed key
 	genFixedKey(t)
 
 	// Create the token service which will use the key generated
 	// earlier
 	x, err := NewRSA()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	c := token.Claims{
@@ -140,7 +166,8 @@ func TestGenerateToken(t *testing.T) {
 func TestValidateKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*key_blob = testDir + "/key.dat"
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
 
 	// generate a fixed value key
 	genFixedKey(t)
@@ -149,7 +176,7 @@ func TestValidateKey(t *testing.T) {
 	// earlier
 	x, err := NewRSA()
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	c := token.Claims{
@@ -167,6 +194,12 @@ func TestValidateKey(t *testing.T) {
 	tkn, err := x.Generate(c, cfg)
 	if err != nil {
 		t.Error(err)
+	}
+
+	os.Remove(*privateKeyFile)
+	x, err = NewRSA()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	claims, err := x.Validate(tkn)
