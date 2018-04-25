@@ -84,6 +84,9 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 		}
 		return s.publicKey, nil
 	})
+	if err != nil {
+		return token.Claims{}, err
+	}
 
 	if claims, ok := t.Claims.(*RSAToken); ok && t.Valid {
 		return claims.Claims, err

@@ -6,6 +6,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/NetAuth/NetAuth/internal/token"
+	_ "github.com/NetAuth/NetAuth/internal/token/impl"
+
 	"google.golang.org/grpc"
 
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
@@ -16,6 +19,8 @@ type netAuthClient struct {
 	serviceID  *string
 	clientID   *string
 	tokenStore TokenStore
+
+	tokenService token.TokenService
 }
 
 // New takes in the values that set up a client and builds a
@@ -34,12 +39,19 @@ func New(server string, port int, serviceID string, clientID string) (*netAuthCl
 		log.Fatal(err)
 	}
 
+	// Get a token service
+	ts, err := token.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Create a client to use later on.
 	client := netAuthClient{
-		c:          pb.NewNetAuthClient(conn),
-		serviceID:  ensureServiceID(serviceID),
-		clientID:   ensureClientID(clientID),
-		tokenStore: t,
+		c:            pb.NewNetAuthClient(conn),
+		serviceID:    ensureServiceID(serviceID),
+		clientID:     ensureClientID(clientID),
+		tokenStore:   t,
+		tokenService: ts,
 	}
 
 	return &client, nil
