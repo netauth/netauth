@@ -104,7 +104,9 @@ func (n *netAuthClient) GetToken(entity, secret string) (string, error) {
 	// See if we have a local copy first.
 	t, err := n.getTokenFromStore(entity)
 	if err == nil {
-		return t, nil
+		if _, err := n.InspectToken(t); err == nil {
+			return t, nil
+		}
 	}
 
 	request := pb.NetAuthRequest{
@@ -123,6 +125,9 @@ func (n *netAuthClient) GetToken(entity, secret string) (string, error) {
 	}
 
 	t = tokenResult.GetToken()
+	if err := n.tokenStore.DestroyToken(entity); err != nil {
+		return "", err
+	}
 	err = n.putTokenInStore(entity, t)
 	return t, err
 }
