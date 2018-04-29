@@ -131,5 +131,9 @@ func (*fsTokenStore) GetToken(name string) (string, error) {
 func (*fsTokenStore) DestroyToken(name string) error {
 	tokenFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", name, "token"))
 
-	return os.Remove(tokenFile)
+	err := os.Remove(tokenFile)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	return err
 }

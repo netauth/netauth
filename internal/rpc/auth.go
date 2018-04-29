@@ -47,9 +47,25 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 		return nil, err
 	}
 
+	// Get the full fledged entity
+	e, err := s.Tree.GetEntity(e.GetID())
+	if err != nil {
+		log.Println("Entity Vanished!")
+	}
+
+	// Get the capabilities list for the token
+	capabilities := []string{}
+	if e.GetMeta() != nil {
+		for _, c := range e.GetMeta().GetCapabilities() {
+			capabilities = append(capabilities, pb.Capability_name[int32(c)])
+		}
+	}
+
 	// Successfully authenticated, now to construct a token
+	log.Println(capabilities)
 	claims := token.Claims{
 		EntityID: e.GetID(),
+		Capabilities: capabilities,
 	}
 
 	// Generate the token with the specified claims
