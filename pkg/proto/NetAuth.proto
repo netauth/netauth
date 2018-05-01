@@ -24,53 +24,53 @@ service NetAuth {
   // It is desireable to ping the server for status and health
   rpc Ping(PingRequest) returns (PingResponse) {}
 
-  // AuthEntity takes in an entity with an ID and secret set and will
-  // attempt to validate that they are who they say they are.
+  //////////////////////////////////////////
+  // Authentication and secret management //
+  //////////////////////////////////////////
+
+  // AuthEntity and GetToken both verify that an entity is who they
+  // claim to be (or at least that they posses the identifying
+  // information) with the only difference being that GetToken will
+  // unsurprisingly return a token on success.
   rpc AuthEntity(NetAuthRequest) returns (SimpleResult) {}
-
-  // GetToken takes in an entity and obtains a token, this is
-  // otherwise identical to AuthEntity.
   rpc GetToken(NetAuthRequest) returns (TokenResult) {}
-
-  // ValidateToken takes a token and attempts to validate it on the
-  // server.
   rpc ValidateToken(NetAuthRequest) returns (SimpleResult) {}
 
-  // // EntityInfo takes in an entity and will try to return as much info
-  // // as is known about it.
-  // rpc EntityInfo(NetAuthRequest) returns (Entity) {}
-
-  // Obviously we'll need to be able to add entities to the server
-  rpc NewEntity(ModEntityRequest) returns (SimpleResult) {}
-
-  // Entities may need to be removed.
-  rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}
-
-  // Secrets should be changed periodically
+  // ChangeSecret is unusual in that it uses the token if vouching for
+  // *another* entitie's secret being changed, but if the change is
+  // for the requesting entity, the original secret must be provided.
   rpc ChangeSecret(ModEntityRequest) returns (SimpleResult) {}
 
-  // // Getting a member list from a group is the beginning of the group
-  // // functionality.
-  // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 
-  // // The minimal directory functions require modifying the entity
-  // // information to update values.
+  ///////////////////////
+  // Entity Management //
+  ///////////////////////
+
+  // Add and remove Entities
+  rpc NewEntity(ModEntityRequest) returns (SimpleResult) {}
+  rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}
+
+  // // Get and set meta information about entities
+  // rpc EntityInfo(NetAuthRequest) returns (Entity) {}
   // rpc ModifyEntityMeta(ModEntityRequest) returns (SimpleResult) {}
 
-  // // NewGroup allows us to create arbitrary groups.
-  // rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
 
-  // // DeleteGroup deletes a group.
+  //////////////////////
+  // Group Management //
+  //////////////////////
+
+  // // Add and remove groups
+  // rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
   // rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
 
-  // // ModifyGroupMeta allows limited modifications of group metadata,
-  // // largely the displayName
+  // // Modify group metadata
   // rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
 
-  // // ListGroups provides a list of group names.
+  // // List group names and group members
   // rpc ListGroups(GroupListRequest) returns (GroupList) {}
+  // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 
-  // // Group membership is modified either on entities or on groups.
+  // // Modify direct group membership
   // rpc AddEntityToGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
   // rpc RemoveEntityFromGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
 }
