@@ -187,6 +187,29 @@ func (n *netAuthClient) ChangeSecret(e, s, me, ms, t string) (string, error) {
 	return result.GetMsg(), nil
 }
 
+// NewEntity crafts a modEntity request with the correct fields to
+// create a new entity.
+func (n *netAuthClient) NewEntity(id string, uidn int32, secret, t string) (string, error) {
+	request := pb.ModEntityRequest{
+		Entity: &pb.Entity{
+			ID:        &id,
+			UidNumber: &uidn,
+			Secret:    &secret,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.NewEntity(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

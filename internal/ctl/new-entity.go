@@ -32,12 +32,15 @@ func (p *NewEntityCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure that the secret has been obtained to authorize this
-	// command
-	ensureSecret()
-
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
@@ -46,7 +49,7 @@ func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfac
 	// The uidNumber has to be an int32 to be accepted into the
 	// system.  This is for reasons related to protobuf.
 	uidNumber := int32(p.uidNumber)
-	msg, err := c.NewEntity(entity, secret, p.ID, uidNumber, p.secret)
+	msg, err := c.NewEntity(p.ID, uidNumber, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

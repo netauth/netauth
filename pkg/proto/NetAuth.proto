@@ -40,8 +40,8 @@ service NetAuth {
   // // as is known about it.
   // rpc EntityInfo(NetAuthRequest) returns (Entity) {}
 
-  // // Obviously we'll need to be able to add entities to the server
-  // rpc NewEntity(ModEntityRequest) returns (SimpleResult) {}
+  // Obviously we'll need to be able to add entities to the server
+  rpc NewEntity(ModEntityRequest) returns (SimpleResult) {}
 
   // // Entities may need to be removed.
   // rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}

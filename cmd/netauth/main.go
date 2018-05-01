@@ -50,6 +50,8 @@ func main() {
 	subcommands.Register(&ctl.InspectTokenCmd{}, "Authentication")
 	subcommands.Register(&ctl.ChangeSecretCmd{}, "Authentication")
 
+	subcommands.Register(&ctl.NewEntityCmd{}, "Entity Administration")
+
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")
 	subcommands.ImportantFlag("port")

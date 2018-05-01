@@ -12,6 +12,8 @@ type EntityTree interface {
 	MakeBootstrap(string, string)
 	DisableBootstrap()
 	SetEntitySecretByID(string, string) error
+
+	NewEntity(string, int32, string) error
 }
 
 type NetAuthServer struct {
