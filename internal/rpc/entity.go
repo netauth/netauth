@@ -20,8 +20,10 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
 	}
 
-	// TODO(maldridge) check capabilities here so that you
-	// actually need the right capability to do things.
+	// Verify the correct capability is present in the token.
+	if !c.HasCapability("CREATE_ENTITY") {
+		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+	}
 
 	if err := s.Tree.NewEntity(e.GetID(), e.GetUidNumber(), e.GetSecret()); err != nil {
 		return &pb.SimpleResult{Success: proto.Bool(false), Msg: proto.String(fmt.Sprintf("%s", err))}, nil

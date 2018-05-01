@@ -159,11 +159,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	// This change is being done administratively since modself
 	// was false, so this needs a valid token to proceed.
 	c, err := s.Token.Validate(t)
-	//TODO(maldridge): This should check to make sure that the
-	//token contains the CHANGE_SECRET capability, otherwise this
-	//lets anyone change anyone else's password.  This needs
-	//entity additions though to be working to test.
-	if err != nil {
+	if err != nil || !c.HasCapability("CHANGE_ENTITY_SECRET") {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
 			Msg:     proto.String("Error Authenticating"),

@@ -83,3 +83,12 @@ func GetConfig() TokenConfig {
 		NotBefore: time.Now(),
 	}
 }
+
+func (c *Claims) HasCapability(cap string) bool {
+	for _, tc := range c.Capabilities {
+		if tc == cap || tc == "GLOBAL_ROOT" {
+			return true
+		}
+	}
+	return false
+}
