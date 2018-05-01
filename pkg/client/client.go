@@ -210,6 +210,27 @@ func (n *netAuthClient) NewEntity(id string, uidn int32, secret, t string) (stri
 	return result.GetMsg(), nil
 }
 
+// RemoveEntity removes an entity by the given name.  Only the
+// 'entity' field of the modEntityRequest is required.
+func (n *netAuthClient) RemoveEntity(id, token string) (string, error) {
+	request := pb.ModEntityRequest{
+		Entity: &pb.Entity{
+			ID: &id,
+		},
+		AuthToken: &token,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.RemoveEntity(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

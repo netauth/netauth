@@ -14,6 +14,7 @@ type EntityTree interface {
 	SetEntitySecretByID(string, string) error
 
 	NewEntity(string, int32, string) error
+	DeleteEntityByID(string) error
 }
 
 type NetAuthServer struct {

@@ -26,10 +26,6 @@ func (p *RemoveEntityCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure that the secret has been obtained to authorize this
-	// command
-	ensureSecret()
-
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
 	if err != nil {
@@ -37,8 +33,15 @@ func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		return subcommands.ExitFailure
 	}
 
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
 	// Remove the entity
-	msg, err := c.RemoveEntity(entity, secret, p.ID)
+	msg, err := c.RemoveEntity(p.ID, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
