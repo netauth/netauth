@@ -64,7 +64,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	// Successfully authenticated, now to construct a token
 	log.Println(capabilities)
 	claims := token.Claims{
-		EntityID: e.GetID(),
+		EntityID:     e.GetID(),
 		Capabilities: capabilities,
 	}
 
@@ -112,4 +112,78 @@ func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest)
 		Msg:     &msg,
 	}
 	return &reply, nil
+}
+
+func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	me := r.GetModEntity()
+	t := r.GetAuthToken()
+
+	modself := false
+
+	// Determine if this is a self modifying request or not
+	if me != nil && e.GetID() == me.GetID() {
+		modself = true
+	}
+
+	// Self modifying requests require the original password to
+	// proceed
+	err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret())
+	if modself && err == nil {
+		err := s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret())
+		if err != nil {
+			return &pb.SimpleResult{
+				Success: proto.Bool(false),
+				Msg:     proto.String("Error Authenticating"),
+			}, nil
+		}
+		log.Printf("Secret for %s changed (%s@%s)",
+			me.GetID(),
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Success: proto.Bool(true),
+			Msg:     proto.String("Secret Changed"),
+		}, nil
+	}
+	if err != nil {
+		// Problem with the password in the self modifying
+		// request, bail out!
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg:     proto.String("Error Authenticating"),
+		}, nil
+	}
+
+	// This change is being done administratively since modself
+	// was false, so this needs a valid token to proceed.
+	c, err := s.Token.Validate(t)
+	//TODO(maldridge): This should check to make sure that the
+	//token contains the CHANGE_SECRET capability, otherwise this
+	//lets anyone change anyone else's password.  This needs
+	//entity additions though to be working to test.
+	if err != nil {
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg:     proto.String("Error Authenticating"),
+		}, nil
+	}
+
+	// Change the secret per what was specified in the
+	// modification entity struct.
+	if err = s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret()); err != nil {
+		return &pb.SimpleResult{}, err
+	}
+
+	// Log this as an administrative change.
+	log.Printf("Secret for %s administratively changed by %s (%s@%s)",
+		me.GetID(),
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+	return &pb.SimpleResult{
+		Success: proto.Bool(true),
+		Msg:     proto.String("Secret Changed"),
+	}, nil
 }

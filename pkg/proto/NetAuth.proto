@@ -46,8 +46,8 @@ service NetAuth {
   // // Entities may need to be removed.
   // rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}
 
-  // // Secrets should be changed periodically
-  // rpc ChangeSecret(ModEntityRequest) returns (SimpleResult) {}
+  // Secrets should be changed periodically
+  rpc ChangeSecret(ModEntityRequest) returns (SimpleResult) {}
 
   // // Getting a member list from a group is the beginning of the group
   // // functionality.

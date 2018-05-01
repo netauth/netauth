@@ -160,6 +160,33 @@ func (n *netAuthClient) ValidateToken(entity string) (string, error) {
 	return result.GetMsg(), nil
 }
 
+// ChangeSecret crafts a modEntity request with the correct fields to
+// change an entity secret either via self authentication or via token
+// authentication which is held by an appropriate administrator.
+func (n *netAuthClient) ChangeSecret(e, s, me, ms, t string) (string, error) {
+	request := pb.ModEntityRequest{
+		Entity: &pb.Entity{
+			ID:     &e,
+			Secret: &s,
+		},
+		ModEntity: &pb.Entity{
+			ID:     &me,
+			Secret: &ms,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ChangeSecret(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

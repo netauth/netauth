@@ -29,24 +29,10 @@ func (p *ChangeSecretCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure that the secret has been obtained to authorize this
-	// command
-	ensureSecret()
-
 	// If the entity wasn't provided, use the one that was set
 	// earlier.
 	if p.ID == "" {
 		p.ID = entity
-	}
-
-	// Allow the secret to be set to be prompted from the command
-	// line
-	if p.secret == "" {
-		fmt.Print("New Secret: ")
-		_, err := fmt.Scanln(&p.secret)
-		if err != nil {
-			fmt.Printf("Error: %s", err)
-		}
 	}
 
 	// Grab a client
@@ -56,8 +42,15 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		return subcommands.ExitFailure
 	}
 
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
 	// Change the secret
-	msg, err := c.ChangeSecret(entity, secret, p.ID, p.secret)
+	msg, err := c.ChangeSecret(entity, secret, p.ID, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
