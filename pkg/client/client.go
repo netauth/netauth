@@ -231,6 +231,10 @@ func (n *netAuthClient) RemoveEntity(id, token string) (string, error) {
 	return result.GetMsg(), nil
 }
 
+
+// Obtain the entity object with the secure fields redacted.  This is
+// primarily used for displaying the values of the metadata struct
+// internally.
 func (n *netAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 	request := pb.NetAuthRequest{
 		Entity: &pb.Entity{
@@ -242,6 +246,28 @@ func (n *netAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 		},
 	}
 	return n.c.EntityInfo(context.Background(), &request)
+}
+
+// ModifyEntityMeta makes an authenticated request to the server to
+// update the metadata of an entity.
+func (n *netAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (string, error) {
+	request := pb.ModEntityRequest{
+		Entity: &pb.Entity{
+			ID: &id,
+			Meta: meta,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ModifyEntityMeta(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
 }
 
 func ensureClientID(clientID string) *string {

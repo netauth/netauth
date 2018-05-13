@@ -83,3 +83,32 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 
 	return s.Tree.GetEntity(e.GetID())
 }
+
+func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	t := r.GetAuthToken()
+
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+	}
+
+	// Verify the correct capability is present in the token.
+	if !c.HasCapability("MODIFY_ENTITY_META") {
+		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+	}
+
+	if err := s.Tree.UpdateEntityMeta(e.GetID(), e.GetMeta()); err != nil {
+		log.Printf("Metadata update error: %s", err)
+		return nil, err
+	}
+
+	log.Printf("Metadata for '%s' by '%s' completed (%s@%s)",
+		e.GetID(),
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+
+	return &pb.SimpleResult{Success: proto.Bool(true), Msg: proto.String("Metadata Updated")}, nil
+}

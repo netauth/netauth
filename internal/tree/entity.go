@@ -220,7 +220,7 @@ func (m Manager) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e)
 }
 
-func (m Manager) UpdateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
+func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// get the existing metadata
 	meta := e.GetMeta()
 
@@ -242,4 +242,15 @@ func (m Manager) UpdateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 
 	log.Printf("Updated metadata for '%s'", e.GetID())
 	return nil
+}
+
+// UpdateEntityMeta drives the internal version by obtaining the
+// entity from the database based on the ID.
+func (m Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error {
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return err
+	}
+
+	return m.updateEntityMeta(e, newMeta)
 }

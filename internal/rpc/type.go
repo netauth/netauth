@@ -15,6 +15,8 @@ type EntityTree interface {
 
 	NewEntity(string, int32, string) error
 	DeleteEntityByID(string) error
+
+	UpdateEntityMeta(string, *pb.EntityMeta) error
 }
 
 type NetAuthServer struct {
