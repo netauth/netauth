@@ -51,7 +51,7 @@ service NetAuth {
   rpc RemoveEntity(ModEntityRequest) returns (SimpleResult) {}
 
   // // Get and set meta information about entities
-  // rpc EntityInfo(NetAuthRequest) returns (Entity) {}
+  rpc EntityInfo(NetAuthRequest) returns (Entity) {}
   // rpc ModifyEntityMeta(ModEntityRequest) returns (SimpleResult) {}
 
 

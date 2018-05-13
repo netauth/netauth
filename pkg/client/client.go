@@ -231,6 +231,19 @@ func (n *netAuthClient) RemoveEntity(id, token string) (string, error) {
 	return result.GetMsg(), nil
 }
 
+func (n *netAuthClient) EntityInfo(id string) (*pb.Entity, error) {
+	request := pb.NetAuthRequest{
+		Entity: &pb.Entity{
+			ID: &id,
+		},
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+	return n.c.EntityInfo(context.Background(), &request)
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

@@ -71,3 +71,15 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 		Success: proto.Bool(true),
 	}, nil
 }
+
+func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*pb.Entity, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+
+	log.Printf("Info requested on '%s' (%s@%s)",
+		e.GetID(),
+		client.GetService(),
+		client.GetID())
+
+	return s.Tree.GetEntity(e.GetID())
+}
