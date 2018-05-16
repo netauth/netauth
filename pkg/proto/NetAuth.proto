@@ -59,20 +59,18 @@ service NetAuth {
   // Group Management //
   //////////////////////
 
-  // Add and remove groups
+  // Add, Remove, and Modify groups
   rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
   rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
+  rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
 
-  // // Modify group metadata
-  // rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
-
-  // List group names and group members
+  // List groups
   rpc ListGroups(GroupListRequest) returns (GroupList) {}
-  // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 
   // // Modify direct group membership
   // rpc AddEntityToGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
   // rpc RemoveEntityFromGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
+  // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 }
 
 // The ClientInfo message contains information about the client

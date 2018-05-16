@@ -331,6 +331,25 @@ func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
 	return result.GetGroups(), nil
 }
 
+// ModifyGroupMeta allows a group's metadata to be altered after the
+// fact.  This action must be authorized.
+func (n *netAuthClient) ModifyGroupMeta(group *pb.Group, token string) (string, error) {
+	request := pb.ModGroupRequest{
+		Group: group,
+		AuthToken: &token,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ModifyGroupMeta(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

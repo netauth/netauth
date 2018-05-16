@@ -30,11 +30,15 @@ func (p *ModifyGroupCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Get the secret
-	ensureSecret()
-
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
@@ -53,7 +57,7 @@ func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 		group.DisplayName = &p.displayName
 	}
 
-	msg, err := c.ModifyGroupMeta(entity, secret, group)
+	msg, err := c.ModifyGroupMeta(group, t)
 	fmt.Println(msg)
 	if err != nil {
 		return subcommands.ExitFailure

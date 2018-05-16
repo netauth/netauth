@@ -91,3 +91,37 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 
 	return &pb.GroupList{Groups: list}, nil
 }
+
+func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	t := r.GetAuthToken()
+	g := r.GetGroup()
+
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+	}
+
+	// Verify the correct capability is present in the token.
+	if !c.HasCapability("MODIFY_GROUP_META") {
+		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+	}
+
+	if err := s.Tree.UpdateGroupMeta(g.GetName(), g); err != nil {
+		return &pb.SimpleResult{
+			Msg:     proto.String("Group could not be modified"),
+			Success: proto.Bool(false),
+		}, err
+	}
+
+	log.Printf("Group '%s' modified by '%s' (%s@%s)",
+		g.GetName(),
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+
+	return &pb.SimpleResult{
+		Msg:     proto.String("Group modified successfully"),
+		Success: proto.Bool(true),
+	}, nil
+}

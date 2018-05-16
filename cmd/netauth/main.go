@@ -58,6 +58,7 @@ func main() {
 	subcommands.Register(&ctl.NewGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.DeleteGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.ListGroupsCmd{}, "Group Administration")
+	subcommands.Register(&ctl.ModifyGroupCmd{}, "Group Administration")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")

@@ -20,9 +20,10 @@ type EntityTree interface {
 	NewGroup(string, string, int32) error
 	DeleteGroup(string) error
 	ListGroups() ([]*pb.Group, error)
+	UpdateGroupMeta(string, *pb.Group) error
 }
 
 type NetAuthServer struct {
-	Tree EntityTree
+	Tree  EntityTree
 	Token token.TokenService
 }
