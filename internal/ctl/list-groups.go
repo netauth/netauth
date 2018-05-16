@@ -20,7 +20,8 @@ func (*ListGroupsCmd) Usage() string {
 	return `list-groups [--fields field1,field2,field3...]
 This command will return a list of groups, additional formatting
 options can be selected for additional information.
-` }
+`
+}
 
 func (p *ListGroupsCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")

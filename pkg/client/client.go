@@ -231,7 +231,6 @@ func (n *netAuthClient) RemoveEntity(id, token string) (string, error) {
 	return result.GetMsg(), nil
 }
 
-
 // Obtain the entity object with the secure fields redacted.  This is
 // primarily used for displaying the values of the metadata struct
 // internally.
@@ -253,7 +252,7 @@ func (n *netAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 func (n *netAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (string, error) {
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
-			ID: &id,
+			ID:   &id,
 			Meta: meta,
 		},
 		AuthToken: &t,
@@ -268,6 +267,68 @@ func (n *netAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (str
 		return "", err
 	}
 	return result.GetMsg(), nil
+}
+
+// NewGroup creates a new group with the given name, display name, and
+// group number.  This action must be authorized.
+func (n *netAuthClient) NewGroup(name, displayname, t string, number int) (string, error) {
+	gid := int32(number)
+	request := pb.ModGroupRequest{
+		Group: &pb.Group{
+			Name:        &name,
+			DisplayName: &displayname,
+			GidNumber:   &gid,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.NewGroup(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
+// DeleteGroup removes a group by name.  This action must be
+// authorized.
+func (n *netAuthClient) DeleteGroup(name, t string) (string, error) {
+	request := pb.ModGroupRequest{
+		Group: &pb.Group{
+			Name: &name,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.DeleteGroup(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
+// ListGroups returns a list of groups to the caller.  This action
+// does not require authorization.
+func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
+	request := pb.GroupListRequest{
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ListGroups(context.Background(), &request)
+	if err != nil {
+		return nil, err
+	}
+	return result.GetGroups(), nil
 }
 
 func ensureClientID(clientID string) *string {

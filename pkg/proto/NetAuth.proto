@@ -59,15 +59,15 @@ service NetAuth {
   // Group Management //
   //////////////////////
 
-  // // Add and remove groups
-  // rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
-  // rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
+  // Add and remove groups
+  rpc NewGroup(ModGroupRequest) returns (SimpleResult) {}
+  rpc DeleteGroup(ModGroupRequest) returns (SimpleResult) {}
 
   // // Modify group metadata
   // rpc ModifyGroupMeta(ModGroupRequest) returns (SimpleResult) {}
 
-  // // List group names and group members
-  // rpc ListGroups(GroupListRequest) returns (GroupList) {}
+  // List group names and group members
+  rpc ListGroups(GroupListRequest) returns (GroupList) {}
   // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 
   // // Modify direct group membership
@@ -203,13 +203,13 @@ message Group {
   // A group name must satisfy the requirements of the UNIX group
   // naming conventions.  This should be one word, lower case, with no
   // spaces and cannot begin with a number.
-  optional string name = 1;
+  optional string Name = 1;
 
   // Since the name has strict naming requirements, its nice to have a
   // displayName for the group which has a more friendly display.
   // Instead of trying to reason out what naacct means, its much nicer
   // to just know that its "Accounting team - North America"
-  optional string displayName = 2;
+  optional string DisplayName = 2;
 
   // On *nix systems the group should also have a number.  This number
   // should be the same across all systems since it may be used for
@@ -221,36 +221,34 @@ message Group {
   // granting capabilities to an entity since it means that when an
   // entity is removed from the group they lose the capabilities that
   // were granted from it.
-  repeated Capability capabilities = 4;
+  repeated Capability Capabilities = 4;
 }
 
 message ModGroupRequest {
-  // The entity that's authorizing this change.
-  required Entity entity = 1;
+  // The AuthToken for authorization of changes to the database.
+  required string AuthToken = 1;
 
   // The group that's being modified.
-  required Group group = 2;
+  required Group Group = 2;
 
   // Client information for logging
   optional ClientInfo Info = 3;
-
-  // The authentication token is used to authorize changes made to the
-  // state of things in the NetAuth database.
-  required string AuthToken = 4;
 }
 
 message GroupMemberRequest {
   // The group for which info is being requested.
-  optional Group group = 1;
+  optional Group Group = 1;
 
   // Client information for logging
   optional ClientInfo Info = 2;
 }
 
-message GroupListRequest{}
+message GroupListRequest{
+  optional ClientInfo Info = 1;
+}
 
 message GroupList {
-  repeated Group groups = 1;
+  repeated Group Groups = 1;
 }
 
 message EntityMeta {
