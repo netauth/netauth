@@ -11,8 +11,8 @@ import (
 )
 
 type EntityOutOfGroupCmd struct {
-	modentityname string
-	groupname     string
+	entityID  string
+	groupName string
 }
 
 func (*EntityOutOfGroupCmd) Name() string { return "remove-entity-from-group" }
@@ -28,15 +28,11 @@ Both the entity and the group must already exist.
 }
 
 func (c *EntityOutOfGroupCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.modentityname, "ID", entity, "ID of the entity to remove from the group")
-	f.StringVar(&c.groupname, "group", "", "Name of the group to remove from")
+	f.StringVar(&c.entityID, "ID", entity, "ID of the entity to remove from the group")
+	f.StringVar(&c.groupName, "group", "", "Name of the group to remove from")
 }
 
 func (cmd *EntityOutOfGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure that the secret has been obtained to authorize this
-	// command
-	ensureSecret()
-
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
 	if err != nil {
@@ -44,7 +40,14 @@ func (cmd *EntityOutOfGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ..
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.RemoveEntityFromGroup(entity, secret, cmd.modentityname, cmd.groupname)
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	msg, err := c.RemoveEntityFromGroup(t, cmd.groupName, cmd.entityID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

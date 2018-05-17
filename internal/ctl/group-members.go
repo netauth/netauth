@@ -41,13 +41,13 @@ func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Obtain the membership list
-	membersList, err := c.GroupMembers(p.ID)
+	membersList, err := c.ListGroupMembers(p.ID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	for _, m := range membersList.Members {
+	for _, m := range membersList {
 		printEntity(m, p.fields)
 	}
 

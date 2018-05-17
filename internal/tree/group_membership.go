@@ -4,9 +4,19 @@ import (
 	pb "github.com/NetAuth/NetAuth/pkg/proto"
 )
 
-// AddEntityToGroup adds an entity to a group by name, if the entity
+// AddEntityToGroup is the same as the internal function, but takes an
+// entity ID rather than a pointer
+func (m Manager) AddEntityToGroup(entityID, groupName string) error {
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return err
+	}
+	return m.addEntityToGroup(e, groupName)
+}
+
+// addEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
-func (m Manager) AddEntityToGroup(e *pb.Entity, groupName string) error {
+func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 	if _, err := m.db.LoadGroup(groupName); err != nil {
 		return err
 	}
@@ -43,10 +53,21 @@ func (m Manager) GetDirectGroups(e *pb.Entity) []string {
 	return e.GetMeta().GetGroups()
 }
 
-// RemoveEntityFromGroup removes an entity from the named group.  If
+// RemoveEntityFromGroup performs the same function as the internal
+// variant, but does so by name rather than by entity pointer.
+func (m Manager) RemoveEntityFromGroup(entityID, groupName string) error {
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return err
+	}
+	m.removeEntityFromGroup(e, groupName)
+	return nil
+}
+
+// removeEntityFromGroup removes an entity from the named group.  If
 // the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (m Manager) RemoveEntityFromGroup(e *pb.Entity, groupName string) {
+func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) {
 	if e.GetMeta() == nil {
 		return
 	}
@@ -59,4 +80,9 @@ func (m Manager) RemoveEntityFromGroup(e *pb.Entity, groupName string) {
 		newGroups = append(newGroups, g)
 	}
 	e.Meta.Groups = newGroups
+
+	if err := m.db.SaveEntity(e); err != nil {
+		return
+	}
+	return
 }

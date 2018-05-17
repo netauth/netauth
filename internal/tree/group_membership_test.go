@@ -18,7 +18,7 @@ func TestMembershipEdit(t *testing.T) {
 		t.Error(err)
 	}
 
-	if err := em.AddEntityToGroup(e, "fooGroup"); err != nil {
+	if err := em.addEntityToGroup(e, "fooGroup"); err != nil {
 		t.Error(err)
 	}
 
@@ -27,7 +27,7 @@ func TestMembershipEdit(t *testing.T) {
 		t.Error("Wrong group number/membership")
 	}
 
-	em.RemoveEntityFromGroup(e, "fooGroup")
+	em.removeEntityFromGroup(e, "fooGroup")
 	groups = em.GetDirectGroups(e)
 	if len(groups) != 0 {
 		t.Error("Wrong group number/membership")
@@ -41,7 +41,7 @@ func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
 
 	// This is just to make sure that this function doesn't
 	// explode.
-	em.RemoveEntityFromGroup(e, "fooGroup")
+	em.removeEntityFromGroup(e, "fooGroup")
 }
 
 func TestGetGroupsNoMeta(t *testing.T) {

@@ -11,11 +11,11 @@ import (
 )
 
 type EntityIntoGroupCmd struct {
-	modentityname string
-	groupname     string
+	entityID  string
+	groupName string
 }
 
-func (*EntityIntoGroupCmd) Name() string { return "add-entity-to-group" }
+func (*EntityIntoGroupCmd) Name() string     { return "add-entity-to-group" }
 func (*EntityIntoGroupCmd) Synopsis() string { return "Add an existing entity to an existing group" }
 func (*EntityIntoGroupCmd) Usage() string {
 	return `add-entity-to-group --ID <ID> --group <name>
@@ -25,16 +25,12 @@ the entity and the group must already exist.
 `
 }
 
-func (c *EntityIntoGroupCmd) SetFlags( f*flag.FlagSet) {
-	f.StringVar(&c.modentityname, "ID", entity, "ID of the entity to add to the group")
-	f.StringVar(&c.groupname, "group", "", "Name of the group to add to")
+func (c *EntityIntoGroupCmd) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&c.entityID, "ID", entity, "ID of the entity to add to the group")
+	f.StringVar(&c.groupName, "group", "", "Name of the group to add to")
 }
 
 func (cmd *EntityIntoGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Ensure that the secret has been obtained to authorize this
-	// command
-	ensureSecret()
-
 	// Grab a client
 	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
 	if err != nil {
@@ -42,7 +38,14 @@ func (cmd *EntityIntoGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.AddEntityToGroup(entity, secret, cmd.modentityname, cmd.groupname)
+	// Get the authorization token
+	t, err := c.GetToken(entity, secret)
+	if err != nil {
+		fmt.Println(err)
+		return subcommands.ExitFailure
+	}
+
+	msg, err := c.AddEntityToGroup(t, cmd.groupName, cmd.entityID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

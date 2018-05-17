@@ -335,7 +335,7 @@ func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
 // fact.  This action must be authorized.
 func (n *netAuthClient) ModifyGroupMeta(group *pb.Group, token string) (string, error) {
 	request := pb.ModGroupRequest{
-		Group: group,
+		Group:     group,
 		AuthToken: &token,
 		Info: &pb.ClientInfo{
 			ID:      n.clientID,
@@ -348,6 +348,71 @@ func (n *netAuthClient) ModifyGroupMeta(group *pb.Group, token string) (string, 
 		return "", err
 	}
 	return result.GetMsg(), nil
+}
+
+// AddEntityToGroup modifies direct membership of entities.  This
+// action must be authorized.
+func (n *netAuthClient) AddEntityToGroup(t, g, e string) (string, error) {
+	request := pb.ModEntityMembershipRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		Group: &pb.Group{
+			Name: &g,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.AddEntityToGroup(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
+// RemoveEntityFromGroup modifies direct membership of entities.  This
+// action must be authorized.
+func (n *netAuthClient) RemoveEntityFromGroup(t, g, e string) (string, error) {
+	request := pb.ModEntityMembershipRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		Group: &pb.Group{
+			Name: &g,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.RemoveEntityFromGroup(context.Background(), &request)
+	if err != nil {
+		return "", err
+	}
+	return result.GetMsg(), nil
+}
+
+// ListGroupMembers returns a list of members for the requested group.
+// This action does not require authorization.
+func (n *netAuthClient) ListGroupMembers(g string) ([]*pb.Entity, error) {
+	request := pb.GroupMemberRequest{
+		Group: &pb.Group{
+			Name: &g,
+		},
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+
+	result, err := n.c.ListGroupMembers(context.Background(), &request)
+	return result.GetMembers(), err
 }
 
 func ensureClientID(clientID string) *string {

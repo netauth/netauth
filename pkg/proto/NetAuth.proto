@@ -67,10 +67,10 @@ service NetAuth {
   // List groups
   rpc ListGroups(GroupListRequest) returns (GroupList) {}
 
-  // // Modify direct group membership
-  // rpc AddEntityToGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
-  // rpc RemoveEntityFromGroup(ModGroupDirectMembershipRequest) returns (SimpleResult) {}
-  // rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
+  // Modify direct group membership
+  rpc AddEntityToGroup(ModEntityMembershipRequest) returns (SimpleResult) {}
+  rpc RemoveEntityFromGroup(ModEntityMembershipRequest) returns (SimpleResult) {}
+  rpc ListGroupMembers(GroupMemberRequest) returns (EntityList) {}
 }
 
 // The ClientInfo message contains information about the client
@@ -122,13 +122,12 @@ message ModEntityRequest {
   required string AuthToken = 4;
 }
 
-message ModGroupDirectMembershipRequest {
-  // The change is authorized by an entity, not necessarily the one that's being changed.
+message ModEntityMembershipRequest {
+  // The entity in question
   required Entity entity = 1;
-  optional string modEntity = 2;
 
   // The group that is being added or removed is taken as a group name
-  required string GroupName = 3;
+  required Group Group = 3;
 
   // Client information for logging
   optional ClientInfo Info = 4;
@@ -312,7 +311,7 @@ message EntityMeta {
 // GroupMemberList is returned when a query generates a list of
 // entities.
 message EntityList {
-  repeated Entity members = 1;
+  repeated Entity Members = 1;
 }
 
 // The PingRequest is used to ask the server to return its health
