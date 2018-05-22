@@ -61,8 +61,7 @@ func main() {
 	subcommands.Register(&ctl.ModifyGroupCmd{}, "Group Administration")
 
 	subcommands.Register(&ctl.GroupMembersCmd{}, "Membership Administration")
-	subcommands.Register(&ctl.EntityIntoGroupCmd{}, "Membership Administration")
-	subcommands.Register(&ctl.EntityOutOfGroupCmd{}, "Membership Administration")
+	subcommands.Register(&ctl.EntityMembershipCmd{}, "Membership Administration")
 
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")
