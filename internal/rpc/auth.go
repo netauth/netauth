@@ -62,7 +62,6 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	}
 
 	// Successfully authenticated, now to construct a token
-	log.Println(capabilities)
 	claims := token.Claims{
 		EntityID:     e.GetID(),
 		Capabilities: capabilities,
