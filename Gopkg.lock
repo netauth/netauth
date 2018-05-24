@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/NetAuth/Protocol"
+  packages = ["."]
+  revision = "978ae4abd3ad246782b90ea0661b9517852b8eb4"
+
+[[projects]]
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
@@ -107,6 +113,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6757a01eef58894005f1d4d63ba0cb495427a2f6174936777503ec6ad587749f"
+  inputs-digest = "a0f952f8ae4f5407a360ff6cacb87e6fe5df13c9416afd5eb245c2343ea89323"
   solver-name = "gps-cdcl"
   solver-version = 1

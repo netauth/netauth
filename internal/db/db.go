@@ -6,7 +6,7 @@ package db
 import (
 	"github.com/NetAuth/NetAuth/pkg/errors"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 type EMDiskInterface interface {

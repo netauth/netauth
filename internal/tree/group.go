@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 // NewGroup adds a group to the datastore if it does not currently

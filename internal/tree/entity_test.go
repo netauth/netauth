@@ -8,7 +8,7 @@ import (
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 func TestAddDuplicateID(t *testing.T) {

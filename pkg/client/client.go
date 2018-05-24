@@ -11,7 +11,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 type netAuthClient struct {

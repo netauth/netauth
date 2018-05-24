@@ -1,7 +1,7 @@
 package tree
 
 import (
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 // AddEntityToGroup is the same as the internal function, but takes an

@@ -8,7 +8,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/crypto"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 // New returns an initialized EMDataStore on to which all other

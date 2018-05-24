@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 // NewEntity creates a new entity given an ID, uidNumber, and secret.

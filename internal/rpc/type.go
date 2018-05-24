@@ -3,7 +3,7 @@ package rpc
 import (
 	"github.com/NetAuth/NetAuth/internal/token"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 type EntityTree interface {

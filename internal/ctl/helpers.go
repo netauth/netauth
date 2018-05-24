@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 // ensureSecret prompts for the secret if it was not provided already.

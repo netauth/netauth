@@ -6,7 +6,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
 
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 func TestMembershipEdit(t *testing.T) {

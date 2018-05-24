@@ -8,7 +8,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/pkg/errors"
-	pb "github.com/NetAuth/NetAuth/pkg/proto"
+	pb "github.com/NetAuth/Protocol"
 )
 
 func TestNewGroup(t *testing.T) {
