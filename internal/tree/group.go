@@ -75,6 +75,10 @@ func (m Manager) UpdateGroupMeta(name string, update *pb.Group) error {
 		return err
 	}
 
+	// Stash and clear some choice values
+	gName := update.GetName()
+	number := update.GetGidNumber()
+
 	update.Name = nil
 	update.GidNumber = nil
 
@@ -83,6 +87,10 @@ func (m Manager) UpdateGroupMeta(name string, update *pb.Group) error {
 	if err := m.db.SaveGroup(g); err != nil {
 		return err
 	}
+
+	// Put the values back, since this was accessed by pointer
+	update.Name = &gName
+	update.GidNumber = &number
 
 	return nil
 }
