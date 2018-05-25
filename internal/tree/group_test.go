@@ -27,7 +27,7 @@ func TestNewGroup(t *testing.T) {
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
-		if err := em.NewGroup(c.name, c.displayName, c.gidNumber); err != c.wantErr {
+		if err := em.NewGroup(c.name, c.displayName, "", c.gidNumber); err != c.wantErr {
 			t.Errorf("Wrong Error: want '%v' got '%v'", c.wantErr, err)
 		}
 	}
@@ -65,7 +65,7 @@ func TestListMembersALLInternal(t *testing.T) {
 func TestDeleteGroup(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.NewGroup("foo", "", -1); err != nil {
+	if err := em.NewGroup("foo", "", "", -1); err != nil {
 		t.Error(err)
 	}
 
@@ -85,7 +85,7 @@ func TestDeleteGroup(t *testing.T) {
 func TestUpdateGroupMetaInternal(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.NewGroup("foo", "foo", -1); err != nil {
+	if err := em.NewGroup("foo", "foo", "", -1); err != nil {
 		t.Error(err)
 	}
 

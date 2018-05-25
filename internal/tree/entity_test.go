@@ -239,7 +239,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	em.UpdateEntityMeta(e, fullMeta)
+	em.UpdateEntityMeta(e.GetID(), fullMeta)
 
 	// Verify that the update above took
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
@@ -252,7 +252,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	badMeta := &pb.EntityMeta{
 		Groups: groups,
 	}
-	em.UpdateEntityMeta(e, badMeta)
+	em.UpdateEntityMeta(e.GetID(), badMeta)
 
 	// The update from badMeta should not have gone through, and
 	// the old value should still be present.

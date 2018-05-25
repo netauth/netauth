@@ -14,7 +14,7 @@ func TestMembershipEdit(t *testing.T) {
 
 	e := &pb.Entity{}
 
-	if err := em.NewGroup("fooGroup", "", 1000); err != nil {
+	if err := em.NewGroup("fooGroup", "", "", 1000); err != nil {
 		t.Error(err)
 	}
 
