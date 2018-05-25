@@ -12,10 +12,15 @@ import (
 // NewGroup adds a group to the datastore if it does not currently
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
-func (m Manager) NewGroup(name, displayName string, gidNumber int32) error {
+func (m Manager) NewGroup(name, displayName, managedBy string, gidNumber int32) error {
 	if _, err := m.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
 		return errors.E_DUPLICATE_GROUP_ID
+	}
+
+	// Verify that the managing group exists.
+	if _, err := m.GetGroupByName(managedBy); managedBy != "" && managedBy != name && err != nil {
+		return err
 	}
 
 	if _, err := m.db.LoadGroupNumber(gidNumber); err == nil || gidNumber == 0 {
@@ -35,6 +40,7 @@ func (m Manager) NewGroup(name, displayName string, gidNumber int32) error {
 		Name:        &name,
 		DisplayName: &displayName,
 		GidNumber:   &gidNumber,
+		ManagedBy:   &managedBy,
 	}
 
 	// Save the group

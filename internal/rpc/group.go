@@ -24,7 +24,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
 	}
 
-	if err := s.Tree.NewGroup(g.GetName(), g.GetDisplayName(), g.GetGidNumber()); err != nil {
+	if err := s.Tree.NewGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetGidNumber()); err != nil {
 		return &pb.SimpleResult{
 			Msg:     proto.String("Group could not be created"),
 			Success: proto.Bool(false),

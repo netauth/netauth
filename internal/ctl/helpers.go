@@ -19,7 +19,6 @@ func ensureSecret() {
 	}
 }
 
-
 func printEntity(entity *pb.Entity, fields string) {
 	fieldList := []string{}
 	if fields != "" {
@@ -57,7 +56,7 @@ func printEntity(entity *pb.Entity, fields string) {
 				fmt.Printf("displayname: %s\n", entity.GetMeta().GetDisplayName())
 			}
 		case "homedir":
-			if  entity.Meta != nil && entity.GetMeta().GetHomedir() != "" {
+			if entity.Meta != nil && entity.GetMeta().GetHomedir() != "" {
 				fmt.Printf("homedir: %s\n", entity.GetMeta().GetHomedir())
 			}
 		case "shell":
@@ -85,6 +84,7 @@ func printGroup(group *pb.Group, fields string) {
 			"name",
 			"displayName",
 			"gidNumber",
+			"managedBy",
 		}
 	}
 
@@ -96,6 +96,11 @@ func printGroup(group *pb.Group, fields string) {
 			fmt.Printf("Display Name: %s\n", group.GetDisplayName())
 		case "gidNumber":
 			fmt.Printf("GID Number: %d\n", group.GetGidNumber())
+		case "managedBy":
+			if group.GetManagedBy() == "" {
+				continue
+			}
+			fmt.Printf("Managed By: %s\n", group.GetManagedBy())
 		}
 	}
 }

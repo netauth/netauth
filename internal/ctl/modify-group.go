@@ -14,6 +14,7 @@ import (
 type ModifyGroupCmd struct {
 	name        string
 	displayName string
+	managedby   string
 }
 
 func (*ModifyGroupCmd) Name() string     { return "modify-group" }
@@ -27,6 +28,7 @@ Modify a group by updating the named fields to the provided values.
 func (p *ModifyGroupCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.name, "name", "", "Name of the group to modify")
 	f.StringVar(&p.displayName, "display_name", "NO_CHANGE", "Group displayName")
+	f.StringVar(&p.managedby, "managed_by", "NO_CHANGE", "Group that manages this group")
 }
 
 func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
@@ -55,6 +57,10 @@ func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 	// "NO_CHANGE" this is somewhat impossible to do with the CLI.
 	if p.displayName != "NO_CHANGE" {
 		group.DisplayName = &p.displayName
+	}
+
+	if p.managedby != "NO_CHANGE" {
+		group.ManagedBy = &p.managedby
 	}
 
 	msg, err := c.ModifyGroupMeta(group, t)

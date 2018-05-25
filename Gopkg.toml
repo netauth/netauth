@@ -11,9 +11,5 @@
   name = "golang.org/x/crypto"
 
 [[constraint]]
-  branch = "master"
-  name = "golang.org/x/net"
-
-[[constraint]]
   name = "google.golang.org/grpc"
   version = "1.9.1"
