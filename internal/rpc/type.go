@@ -20,7 +20,9 @@ type EntityTree interface {
 	NewGroup(string, string, string, int32) error
 	DeleteGroup(string) error
 	ListGroups() ([]*pb.Group, error)
+	GetGroupByName(string) (*pb.Group, error)
 	UpdateGroupMeta(string, *pb.Group) error
+	GetMemberships(*pb.Entity, bool) []string
 
 	AddEntityToGroup(string, string) error
 	RemoveEntityFromGroup(string, string) error

@@ -20,8 +20,10 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
 	}
 
-	// Verify the correct capability is present in the token.
-	if !c.HasCapability("MODIFY_GROUP_MEMBERS") {
+	// Either the entity must posses the right capability, or they
+	// must be in the a group that is permitted to manage this one
+	// based on membership.  Either is sufficient.
+	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
 		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
 	}
 
@@ -54,8 +56,10 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
 	}
 
-	// Verify the correct capability is present in the token.
-	if !c.HasCapability("MODIFY_GROUP_MEMBERS") {
+	// Either the entity must posses the right capability, or they
+	// must be in the a group that is permitted to manage this one
+	// based on membership.  Either is sufficient.
+	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
 		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
 	}
 

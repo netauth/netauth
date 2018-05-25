@@ -44,6 +44,12 @@ func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 	return nil
 }
 
+// GetMemberships returns all groups the entity is a member of,
+// optionally including indirect memberships
+func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
+	return m.GetDirectGroups(e)
+}
+
 // GetDirectGroups gets the direct groups of an entity.
 func (m Manager) GetDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
