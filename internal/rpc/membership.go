@@ -99,3 +99,37 @@ func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberR
 		Members: memberlist,
 	}, nil
 }
+
+func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNestingRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	t := r.GetAuthToken()
+	parent := r.GetParentGroup()
+	child := r.GetChildGroup()
+	mode := r.GetMode()
+
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+	}
+
+	// Either the entity must posses the right capability, or they
+	// must be in the a group that is permitted to manage this one
+	// based on membership.  Either is sufficient.
+	if !s.manageByMembership(c.EntityID, child.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
+		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+	}
+
+	if err := s.Tree.ModifyGroupExpansions(parent.GetName(), child.GetName(), mode); err != nil {
+		return &pb.SimpleResult{Msg: proto.String("Membership could not be updated"), Success: proto.Bool(false)}, err
+	}
+
+	log.Printf("Group '%s'->'%s' expansion to '%s' by '%s' (%s@%s)",
+		parent.GetName(),
+		child.GetName(),
+		mode,
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+
+	return &pb.SimpleResult{Msg: proto.String("Nesting updated successfully"), Success: proto.Bool(true)}, nil
+}

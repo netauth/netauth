@@ -416,6 +416,30 @@ func (n *netAuthClient) ListGroupMembers(g string) ([]*pb.Entity, error) {
 	return result.GetMembers(), err
 }
 
+// ModifyGroupExpansions modifies the parent/child status of the provided groups.
+// This action must be authorized.
+func (n *netAuthClient) ModifyGroupExpansions(t, p, c, m string) (string, error) {
+	mode := pb.ExpansionMode(pb.ExpansionMode_value[m])
+
+	request := pb.ModGroupNestingRequest{
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+		AuthToken: &t,
+		ParentGroup: &pb.Group{
+			Name: &p,
+		},
+		ChildGroup: &pb.Group{
+			Name: &c,
+		},
+		Mode: &mode,
+	}
+
+	result, err := n.c.ModifyGroupNesting(context.Background(), &request)
+	return result.GetMsg(), err
+}
+
 func ensureClientID(clientID string) *string {
 	if clientID == "" {
 		hostname, err := os.Hostname()
