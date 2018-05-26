@@ -97,6 +97,75 @@ func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) {
 	return
 }
 
+// listMembers takes a group ID in and returns a slice of entities
+// that are in that group.
+func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
+	var entities []*pb.Entity
+
+	// 'ALL' is a special groupID which returns everything, this
+	// isn't a group that exists in a real sense, it just serves
+	// to return a global list as a convenience.
+	if groupID == "ALL" {
+		el, err := m.db.DiscoverEntityIDs()
+		if err != nil {
+			return nil, err
+		}
+		for _, en := range el {
+			e, err := m.db.LoadEntity(en)
+			if err != nil {
+				return nil, err
+			}
+			entities = append(entities, e)
+		}
+		return entities, nil
+	}
+
+	// If its not the all group then we check to make sure the
+	// group exists at all
+	if _, err := m.db.LoadGroup(groupID); err != nil {
+		return nil, err
+	}
+
+	// Now we can be reasonably sure the group exists, this next
+	// bit is stupidly inefficient, but is the only way to extract
+	// the members since the membership graph has the arrows going
+	// the other way.
+	el, err := m.listMembers("ALL")
+	if err != nil {
+		return nil, err
+	}
+	for _, e := range el {
+		for _, g := range m.GetDirectGroups(e) {
+			if g == groupID {
+				entities = append(entities, e)
+			}
+		}
+	}
+	return entities, nil
+}
+
+// ListMembers fulfills the same function as the private version of
+// this function, but with one crucial difference, it produces copies
+// of the entities that have the secret redacted.
+func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
+	// This set of members has secrets and can't be returned.
+	members, err := m.listMembers(groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	var safeMembers []*pb.Entity
+	for _, e := range members {
+		ne, err := safeCopyEntity(e)
+		if err != nil {
+			return nil, err
+		}
+		safeMembers = append(safeMembers, ne)
+	}
+
+	return safeMembers, nil
+}
+
 // checkExistingGroupExpansions verifies that there is no expansion
 // already directly on this group that conflicts with the proposed
 // group expansion.
