@@ -85,6 +85,7 @@ func printGroup(group *pb.Group, fields string) {
 			"displayName",
 			"gidNumber",
 			"managedBy",
+			"expansions",
 		}
 	}
 
@@ -101,6 +102,10 @@ func printGroup(group *pb.Group, fields string) {
 				continue
 			}
 			fmt.Printf("Managed By: %s\n", group.GetManagedBy())
+		case "expansions":
+			for _, exp := range group.GetChildren() {
+				fmt.Printf("Expansion: %s\n", exp)
+			}
 		}
 	}
 }

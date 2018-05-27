@@ -10,6 +10,7 @@ import (
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
 
 	"google.golang.org/grpc"
+	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -330,6 +331,26 @@ func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
 		return nil, err
 	}
 	return result.GetGroups(), nil
+}
+
+// GroupInfo provides information about a single group.
+func (n *netAuthClient) GroupInfo(name string) (*pb.Group, []string, error) {
+	request := pb.ModGroupRequest{
+		Info: &pb.ClientInfo{
+			ID: n.clientID,
+			Service: n.serviceID,
+		},
+		Group: &pb.Group{
+			Name: &name,
+		},
+		AuthToken: proto.String(""),
+	}
+
+	result, err := n.c.GroupInfo(context.Background(), &request)
+	if err != nil {
+		return nil, nil, err
+	}
+	return result.GetGroup(), result.GetManaged(), nil
 }
 
 // ModifyGroupMeta allows a group's metadata to be altered after the

@@ -77,6 +77,34 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	}, nil
 }
 
+func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*pb.GroupInfoResult, error) {
+	client := r.GetInfo()
+	g := r.GetGroup()
+
+	grp, err := s.Tree.GetGroupByName(g.GetName())
+	if err != nil {
+		return nil, err
+	}
+
+	log.Printf("Information on %s requested (%s@%s)",
+		g.GetName(),
+		client.GetService(),
+		client.GetID())
+
+	allGroups, err := s.Tree.ListGroups()
+	if err != nil {
+		log.Printf("Error summoning groups: %s", err)
+	}
+	var mgd []string
+	for _, g := range allGroups {
+		if g.GetManagedBy() == r.GetGroup().GetName() {
+			mgd = append(mgd, g.GetName())
+		}
+	}
+
+	return &pb.GroupInfoResult{Group: grp, Managed: mgd}, nil
+}
+
 func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
 	client := r.GetInfo()
 
