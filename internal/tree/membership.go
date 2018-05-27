@@ -2,6 +2,7 @@ package tree
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/pkg/errors"
@@ -51,11 +52,11 @@ func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 // GetMemberships returns all groups the entity is a member of,
 // optionally including indirect memberships
 func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
-	return m.GetDirectGroups(e)
+	return m.getDirectGroups(e)
 }
 
-// GetDirectGroups gets the direct groups of an entity.
-func (m Manager) GetDirectGroups(e *pb.Entity) []string {
+// getDirectGroups gets the direct groups of an entity.
+func (m Manager) getDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
 		return []string{}
 	}
@@ -97,32 +98,37 @@ func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) {
 	return
 }
 
+// allEntities is a convenient way to return all the entities
+func (m Manager) allEntities() ([]*pb.Entity, error) {
+	var entities []*pb.Entity
+	el, err := m.db.DiscoverEntityIDs()
+	if err != nil {
+		return nil, err
+	}
+	for _, en := range el {
+		e, err := m.db.LoadEntity(en)
+		if err != nil {
+			return nil, err
+		}
+		entities = append(entities, e)
+	}
+	return entities, nil
+}
+
 // listMembers takes a group ID in and returns a slice of entities
 // that are in that group.
 func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
-	var entities []*pb.Entity
-
 	// 'ALL' is a special groupID which returns everything, this
 	// isn't a group that exists in a real sense, it just serves
 	// to return a global list as a convenience.
 	if groupID == "ALL" {
-		el, err := m.db.DiscoverEntityIDs()
-		if err != nil {
-			return nil, err
-		}
-		for _, en := range el {
-			e, err := m.db.LoadEntity(en)
-			if err != nil {
-				return nil, err
-			}
-			entities = append(entities, e)
-		}
-		return entities, nil
+		return m.allEntities()
 	}
 
 	// If its not the all group then we check to make sure the
 	// group exists at all
-	if _, err := m.db.LoadGroup(groupID); err != nil {
+	g, err := m.db.LoadGroup(groupID)
+	if err != nil {
 		return nil, err
 	}
 
@@ -130,17 +136,48 @@ func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 	// bit is stupidly inefficient, but is the only way to extract
 	// the members since the membership graph has the arrows going
 	// the other way.
-	el, err := m.listMembers("ALL")
+	var entities []*pb.Entity
+	el, err := m.allEntities()
 	if err != nil {
 		return nil, err
 	}
 	for _, e := range el {
-		for _, g := range m.GetDirectGroups(e) {
+		for _, g := range m.getDirectGroups(e) {
 			if g == groupID {
 				entities = append(entities, e)
 			}
 		}
 	}
+
+	// Now we parse the expansions.
+	var exclude []*pb.Entity
+	for _, exp := range g.GetChildren() {
+		parts := strings.Split(exp, ":")
+		ents, err := m.listMembers(parts[1])
+		if err != nil {
+			log.Printf("Expansion parsing error! %s", err)
+		}
+		switch parts[0] {
+		case "INCLUDE":
+			entities = append(entities, ents...)
+		case "EXCLUDE":
+			exclude = append(exclude, ents...)
+		}
+	}
+
+	// Its likely that we've got duplicates in the lists now, so
+	// dedup things to get back down to one copy of everything.
+	entities = dedupEntityList(entities)
+	exclude = dedupEntityList(exclude)
+
+	// Actually exclude the excluded entities
+	if len(exclude) > 0 {
+		entities = entityListDifference(entities, exclude)
+	}
+
+	// This will be the entities that are in this group and all of
+	// its expansions, but not any that would be excluded from
+	// this group or the subexpansions.
 	return entities, nil
 }
 
@@ -194,6 +231,9 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 	if err := m.checkExistingGroupExpansions(p, child); err != nil && mode != pb.ExpansionMode_DROP {
 		return err
 	}
+
+	// TODO(themaldridge) There needs to be a cycle check, it is
+	// vital that the group never loop back to itself.
 
 	// Make sure the child exists...
 	c, err := m.GetGroupByName(child)
