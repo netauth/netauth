@@ -10,24 +10,27 @@ import (
 	"github.com/google/subcommands"
 )
 
-type GroupMembersCmd struct {
+type ListMembersCmd struct {
 	ID     string
 	fields string
 }
 
-func (*GroupMembersCmd) Name() string     { return "group-members" }
-func (*GroupMembersCmd) Synopsis() string { return "List members in a named group" }
-func (*GroupMembersCmd) Usage() string {
-	return `group-members --ID <ID> [--fields field1,field2...]
-List the members of the group identified by <ID>.`
+func (*ListMembersCmd) Name() string     { return "list-members" }
+func (*ListMembersCmd) Synopsis() string { return "List members in a named group" }
+func (*ListMembersCmd) Usage() string {
+	return `list-members --group <group> [--fields field1,field2...]
+
+List the members of the group identified by <group>.  Additionally
+show only the named fields in the result.
+`
 }
 
-func (p *GroupMembersCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", "", "ID of the group to list")
+func (p *ListMembersCmd) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&p.ID, "group", "", "Name of the group to list")
 	f.StringVar(&p.fields, "fields", "", "Fields to display")
 }
 
-func (p *GroupMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (p *ListMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	if p.ID == "" {
 		fmt.Println("--ID must be specified for group-members")
 		return subcommands.ExitFailure
