@@ -17,7 +17,7 @@ func TestNewGroup(t *testing.T) {
 	s := []struct {
 		name        string
 		displayName string
-		gidNumber   int32
+		number   int32
 		wantErr     error
 	}{
 		{"fooGroup", "", 1, nil},
@@ -27,7 +27,7 @@ func TestNewGroup(t *testing.T) {
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
-		if err := em.NewGroup(c.name, c.displayName, "", c.gidNumber); err != c.wantErr {
+		if err := em.NewGroup(c.name, c.displayName, "", c.number); err != c.wantErr {
 			t.Errorf("Wrong Error: want '%v' got '%v'", c.wantErr, err)
 		}
 	}

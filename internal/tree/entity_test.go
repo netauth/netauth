@@ -16,7 +16,7 @@ func TestAddDuplicateID(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 		err       error
 	}{
@@ -25,7 +25,7 @@ func TestAddDuplicateID(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -36,7 +36,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 		err       error
 	}{
@@ -45,7 +45,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != c.err {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != c.err {
 			t.Errorf("Got %v; Want: %v", err, c.err)
 		}
 	}
@@ -56,7 +56,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 	}{
 		{"foo", 1, ""},
@@ -65,7 +65,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -76,7 +76,7 @@ func TestDeleteEntityByID(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 	}{
 		{"foo", 1, ""},
@@ -86,7 +86,7 @@ func TestDeleteEntityByID(t *testing.T) {
 
 	// Populate some entities
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -146,7 +146,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 	}{
 		{"foo", 1, "a"},
@@ -156,7 +156,7 @@ func TestSetEntitySecretByID(t *testing.T) {
 
 	// Load in the entities
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
 			t.Error(err)
 		}
 	}
@@ -211,7 +211,7 @@ func TestGetEntity(t *testing.T) {
 
 	entityTest := &pb.Entity{
 		ID:        proto.String("foo"),
-		UidNumber: proto.Int32(1),
+		Number: proto.Int32(1),
 		Secret:    proto.String("<REDACTED>"),
 		Meta:      &pb.EntityMeta{},
 	}

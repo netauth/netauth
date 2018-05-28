@@ -25,7 +25,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
 	}
 
-	if err := s.Tree.NewEntity(e.GetID(), e.GetUidNumber(), e.GetSecret()); err != nil {
+	if err := s.Tree.NewEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err != nil {
 		return &pb.SimpleResult{Success: proto.Bool(false), Msg: proto.String(fmt.Sprintf("%s", err))}, nil
 	}
 

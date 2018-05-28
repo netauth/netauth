@@ -93,7 +93,7 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 }
 
 // LoadEntityNumber loads a single entity from the data_root given the
-// uidNumber associated with the entity.
+// number associated with the entity.
 func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 	l, err := pdb.DiscoverEntityIDs()
 	if err != nil {
@@ -105,7 +105,7 @@ func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 		if err != nil {
 			return nil, err
 		}
-		if e.GetUidNumber() == number {
+		if e.GetNumber() == number {
 			return e, nil
 		}
 	}
@@ -191,7 +191,7 @@ func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 		if err != nil {
 			return nil, err
 		}
-		if g.GetGidNumber() == number {
+		if g.GetNumber() == number {
 			return g, nil
 		}
 	}

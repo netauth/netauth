@@ -9,29 +9,29 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// NewEntity creates a new entity given an ID, uidNumber, and secret.
+// NewEntity creates a new entity given an ID, number, and secret.
 // Its not necessary to set the secret upon creation and it can be set
 // later.  If not set on creation then the entity will not be usable.
-// uidNumber must be a unique positive integer.  Because these are
+// number must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func (m Manager) NewEntity(ID string, uidNumber int32, secret string) error {
+func (m Manager) NewEntity(ID string, number int32, secret string) error {
 	// Does this entity exist already?
 	if _, err := m.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
 		return errors.E_DUPLICATE_ID
 	}
-	if _, err := m.db.LoadEntityNumber(uidNumber); err == nil {
-		log.Printf("Entity with uidNumber '%d' already exists!", uidNumber)
+	if _, err := m.db.LoadEntityNumber(number); err == nil {
+		log.Printf("Entity with number '%d' already exists!", number)
 		return errors.E_DUPLICATE_UIDNUMBER
 	}
 
-	// Were we given a specific uidNumber?
-	if uidNumber == -1 {
+	// Were we given a specific number?
+	if number == -1 {
 		var err error
 		// -1 is a sentinel value that tells us to pick the
 		// next available number and assign it.
-		uidNumber, err = m.nextUIDNumber()
+		number, err = m.nextUIDNumber()
 		if err != nil {
 			return err
 		}
@@ -40,7 +40,7 @@ func (m Manager) NewEntity(ID string, uidNumber int32, secret string) error {
 	// Ok, they don't exist so we'll make them exist now
 	newEntity := &pb.Entity{
 		ID:        &ID,
-		UidNumber: &uidNumber,
+		Number: &number,
 		Secret:    &secret,
 		Meta:      &pb.EntityMeta{},
 	}

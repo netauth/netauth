@@ -12,7 +12,7 @@ import (
 // NewGroup adds a group to the datastore if it does not currently
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
-func (m Manager) NewGroup(name, displayName, managedBy string, gidNumber int32) error {
+func (m Manager) NewGroup(name, displayName, managedBy string, number int32) error {
 	if _, err := m.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
 		return errors.E_DUPLICATE_GROUP_ID
@@ -23,14 +23,14 @@ func (m Manager) NewGroup(name, displayName, managedBy string, gidNumber int32) 
 		return err
 	}
 
-	if _, err := m.db.LoadGroupNumber(gidNumber); err == nil || gidNumber == 0 {
-		log.Printf("Group number %d is already assigned!", gidNumber)
+	if _, err := m.db.LoadGroupNumber(number); err == nil || number == 0 {
+		log.Printf("Group number %d is already assigned!", number)
 		return errors.E_DUPLICATE_GROUP_NUMBER
 	}
 
-	if gidNumber == -1 {
+	if number == -1 {
 		var err error
-		gidNumber, err = m.nextGIDNumber()
+		number, err = m.nextGIDNumber()
 		if err != nil {
 			return err
 		}
@@ -39,7 +39,7 @@ func (m Manager) NewGroup(name, displayName, managedBy string, gidNumber int32) 
 	newGroup := &pb.Group{
 		Name:        &name,
 		DisplayName: &displayName,
-		GidNumber:   &gidNumber,
+		Number:   &number,
 		ManagedBy:   &managedBy,
 	}
 
@@ -77,10 +77,10 @@ func (m Manager) UpdateGroupMeta(name string, update *pb.Group) error {
 
 	// Stash and clear some choice values
 	gName := update.GetName()
-	number := update.GetGidNumber()
+	number := update.GetNumber()
 
 	update.Name = nil
-	update.GidNumber = nil
+	update.Number = nil
 
 	proto.Merge(g, update)
 
@@ -90,7 +90,7 @@ func (m Manager) UpdateGroupMeta(name string, update *pb.Group) error {
 
 	// Put the values back, since this was accessed by pointer
 	update.Name = &gName
-	update.GidNumber = &number
+	update.Number = &number
 
 	return nil
 }
@@ -128,8 +128,8 @@ func (m Manager) nextGIDNumber() (int32, error) {
 		if err != nil {
 			return 0, err
 		}
-		if g.GetGidNumber() > largest {
-			largest = g.GetGidNumber()
+		if g.GetNumber() > largest {
+			largest = g.GetNumber()
 		}
 	}
 

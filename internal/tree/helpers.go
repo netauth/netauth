@@ -24,8 +24,8 @@ func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *Manager {
 	return &x
 }
 
-// nextUIDNumber computes the next available uidNumber to be assigned.
-// This allows a NewEntity request to be made with the uidNumber field
+// nextUIDNumber computes the next available number to be assigned.
+// This allows a NewEntity request to be made with the number field
 // unset.
 func (m Manager) nextUIDNumber() (int32, error) {
 	var largest int32 = 0
@@ -45,8 +45,8 @@ func (m Manager) nextUIDNumber() (int32, error) {
 		if err != nil {
 			return 0, err
 		}
-		if e.GetUidNumber() > largest {
-			largest = e.GetUidNumber()
+		if e.GetNumber() > largest {
+			largest = e.GetNumber()
 		}
 	}
 
@@ -99,17 +99,17 @@ func dedupEntityList(entList []*pb.Entity) []*pb.Entity {
 func entityListDifference(a, b []*pb.Entity) []*pb.Entity {
 	// Sort the slices, this makes the end check a bit faster
 	sort.Slice(a, func(i, j int) bool {
-		return a[i].GetUidNumber() < a[j].GetUidNumber()
+		return a[i].GetNumber() < a[j].GetNumber()
 	})
 	sort.Slice(b, func(i, j int) bool {
-		return b[i].GetUidNumber() < b[j].GetUidNumber()
+		return b[i].GetNumber() < b[j].GetNumber()
 	})
 
 	// Iterate over both lists and pick the ones that are in A and
 	// not in B.
 	var entList []*pb.Entity
 	for i, j := 0, 0; i < len(a); i++ {
-		if a[i].GetUidNumber() != b[j].GetUidNumber() && j+1 < len(b) && a[i].GetUidNumber() < b[j+1].GetUidNumber() {
+		if a[i].GetNumber() != b[j].GetNumber() && j+1 < len(b) && a[i].GetNumber() < b[j+1].GetNumber() {
 			entList = append(entList, a[i])
 		}
 		if j+1 < len(b) {

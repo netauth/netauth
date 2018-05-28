@@ -53,7 +53,7 @@ func (m *MemDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 		if err != nil {
 			return nil, err
 		}
-		if e.GetUidNumber() == number {
+		if e.GetNumber() == number {
 			return e, nil
 		}
 	}
@@ -97,7 +97,7 @@ func (m *MemDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 		if err != nil {
 			return nil, err
 		}
-		if g.GetGidNumber() == number {
+		if g.GetNumber() == number {
 			return g, nil
 		}
 	}

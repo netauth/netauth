@@ -194,7 +194,7 @@ func (n *netAuthClient) NewEntity(id string, uidn int32, secret, t string) (stri
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
 			ID:        &id,
-			UidNumber: &uidn,
+			Number: &uidn,
 			Secret:    &secret,
 		},
 		AuthToken: &t,
@@ -278,7 +278,7 @@ func (n *netAuthClient) NewGroup(name, displayname, managedby, t string, number 
 		Group: &pb.Group{
 			Name:        &name,
 			DisplayName: &displayname,
-			GidNumber:   &gid,
+			Number:   &gid,
 			ManagedBy:   &managedby,
 		},
 		AuthToken: &t,

@@ -81,7 +81,7 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 		meta.DisplayName = &p.displayName
 	}
 	if p.homedir != "NO_CHANGE" {
-		meta.Homedir = &p.homedir
+		meta.Home = &p.homedir
 	}
 	if p.shell != "NO_CHANGE" {
 		meta.Shell = &p.shell

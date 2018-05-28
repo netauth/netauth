@@ -13,7 +13,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 	s := []struct {
 		ID            string
-		uidNumber     int32
+		number     int32
 		secret        string
 		nextUIDNumber int32
 	}{
@@ -25,7 +25,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 	for _, c := range s {
 		//  Make sure the entity actually gets added
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
 			t.Error(err)
 		}
 
@@ -47,7 +47,7 @@ func TestGetEntityByID(t *testing.T) {
 
 	s := []struct {
 		ID        string
-		uidNumber int32
+		number int32
 		secret    string
 	}{
 		{"foo", 1, ""},
@@ -55,7 +55,7 @@ func TestGetEntityByID(t *testing.T) {
 	}
 
 	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.uidNumber, c.secret); err != nil {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
 			t.Error(err)
 		}
 

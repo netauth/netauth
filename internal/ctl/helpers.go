@@ -26,7 +26,7 @@ func printEntity(entity *pb.Entity, fields string) {
 	} else {
 		fieldList = []string{
 			"ID",
-			"uidNumber",
+			"number",
 			"GECOS",
 			"legalName",
 			"displayName",
@@ -41,8 +41,8 @@ func printEntity(entity *pb.Entity, fields string) {
 		switch f {
 		case "ID":
 			fmt.Printf("ID: %s\n", entity.GetID())
-		case "uidNumber":
-			fmt.Printf("uidNumber: %d\n", entity.GetUidNumber())
+		case "number":
+			fmt.Printf("Number: %d\n", entity.GetNumber())
 		case "GECOS":
 			if entity.Meta != nil && entity.GetMeta().GetGECOS() != "" {
 				fmt.Printf("GECOS: %s\n", entity.GetMeta().GetGECOS())
@@ -56,8 +56,8 @@ func printEntity(entity *pb.Entity, fields string) {
 				fmt.Printf("displayname: %s\n", entity.GetMeta().GetDisplayName())
 			}
 		case "homedir":
-			if entity.Meta != nil && entity.GetMeta().GetHomedir() != "" {
-				fmt.Printf("homedir: %s\n", entity.GetMeta().GetHomedir())
+			if entity.Meta != nil && entity.GetMeta().GetHome() != "" {
+				fmt.Printf("homedir: %s\n", entity.GetMeta().GetHome())
 			}
 		case "shell":
 			if entity.Meta != nil && entity.GetMeta().GetShell() != "" {
@@ -83,7 +83,7 @@ func printGroup(group *pb.Group, fields string) {
 		fieldList = []string{
 			"name",
 			"displayName",
-			"gidNumber",
+			"number",
 			"managedBy",
 			"expansions",
 		}
@@ -95,8 +95,8 @@ func printGroup(group *pb.Group, fields string) {
 			fmt.Printf("Name: %s\n", group.GetName())
 		case "displayName":
 			fmt.Printf("Display Name: %s\n", group.GetDisplayName())
-		case "gidNumber":
-			fmt.Printf("GID Number: %d\n", group.GetGidNumber())
+		case "number":
+			fmt.Printf("Number: %d\n", group.GetNumber())
 		case "managedBy":
 			if group.GetManagedBy() == "" {
 				continue

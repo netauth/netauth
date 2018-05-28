@@ -78,7 +78,7 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 func TestLoadEntityNumber(t *testing.T) {
 	x := New()
 
-	e := &pb.Entity{ID: proto.String("foo"), UidNumber: proto.Int32(42), Secret: proto.String("")}
+	e := &pb.Entity{ID: proto.String("foo"), Number: proto.Int32(42), Secret: proto.String("")}
 
 	if err := x.SaveEntity(e); err != nil {
 		t.Error(err)
@@ -133,7 +133,7 @@ func TestDiscoverGroups(t *testing.T) {
 func TestLoadGroupNumber(t *testing.T) {
 	x := New()
 
-	g := &pb.Group{Name: proto.String("foo"), GidNumber: proto.Int32(42)}
+	g := &pb.Group{Name: proto.String("foo"), Number: proto.Int32(42)}
 
 	if err := x.SaveGroup(g); err != nil {
 		t.Error(err)
