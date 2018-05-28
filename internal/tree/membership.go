@@ -266,6 +266,26 @@ func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) err
 	return nil
 }
 
+// checkGroupCycles recurses down the group tree and tries to find the
+// candidate group below the entry point.  If it does, it returns
+// true, if not, it returns false.
+func (m Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
+	for _, exp := range g.GetExpansions() {
+		parts := strings.Split(exp, ":")
+		if parts[1] == candidate { return true }
+		g, err := m.GetGroupByName(parts[1])
+		if err != nil {
+			// Play it safe, if we can't get the group
+			// something may already be wrong.  Returning
+			// true here can prevent further damage to the
+			// tree.
+			return true
+		}
+		return m.checkGroupCycles(g, candidate)
+	}
+	return false
+}
+
 // ModifyGroupExpansions handles changing the expansions on a group.
 // This can include adding an INCLUDE or EXCLUDE type expansion, or
 // using the special expansion type DROP, removing an existing one.
@@ -283,8 +303,9 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 		return err
 	}
 
-	// TODO(themaldridge) There needs to be a cycle check, it is
-	// vital that the group never loop back to itself.
+	if m.checkGroupCycles(p, child) {
+		return errors.E_EXISTING_EXPANSION
+	}
 
 	// Make sure the child exists...
 	c, err := m.GetGroupByName(child)
