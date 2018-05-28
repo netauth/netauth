@@ -103,7 +103,7 @@ func printGroup(group *pb.Group, fields string) {
 			}
 			fmt.Printf("Managed By: %s\n", group.GetManagedBy())
 		case "expansions":
-			for _, exp := range group.GetChildren() {
+			for _, exp := range group.GetExpansions() {
 				fmt.Printf("Expansion: %s\n", exp)
 			}
 		}

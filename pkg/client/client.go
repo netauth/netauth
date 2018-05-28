@@ -9,8 +9,8 @@ import (
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
 
-	"google.golang.org/grpc"
 	"github.com/golang/protobuf/proto"
+	"google.golang.org/grpc"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -318,12 +318,17 @@ func (n *netAuthClient) DeleteGroup(name, t string) (string, error) {
 
 // ListGroups returns a list of groups to the caller.  This action
 // does not require authorization.
-func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
+func (n *netAuthClient) ListGroups(entity string, indirects bool) ([]*pb.Group, error) {
 	request := pb.GroupListRequest{
 		Info: &pb.ClientInfo{
 			ID:      n.clientID,
 			Service: n.serviceID,
 		},
+		IncludeIndirects: &indirects,
+	}
+
+	if entity != "" {
+		request.Entity = &pb.Entity{ID: &entity}
 	}
 
 	result, err := n.c.ListGroups(context.Background(), &request)
@@ -337,7 +342,7 @@ func (n *netAuthClient) ListGroups() ([]*pb.Group, error) {
 func (n *netAuthClient) GroupInfo(name string) (*pb.Group, []string, error) {
 	request := pb.ModGroupRequest{
 		Info: &pb.ClientInfo{
-			ID: n.clientID,
+			ID:      n.clientID,
 			Service: n.serviceID,
 		},
 		Group: &pb.Group{

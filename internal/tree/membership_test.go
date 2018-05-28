@@ -23,13 +23,13 @@ func TestMembershipEdit(t *testing.T) {
 		t.Error(err)
 	}
 
-	groups := em.GetDirectGroups(e)
+	groups := em.getDirectGroups(e)
 	if len(groups) != 1 || groups[0] != "fooGroup" {
 		t.Error("Wrong group number/membership")
 	}
 
 	em.removeEntityFromGroup(e, "fooGroup")
-	groups = em.GetDirectGroups(e)
+	groups = em.getDirectGroups(e)
 	if len(groups) != 0 {
 		t.Error("Wrong group number/membership")
 	}
@@ -50,7 +50,7 @@ func TestGetGroupsNoMeta(t *testing.T) {
 
 	e := &pb.Entity{}
 
-	if groups := em.GetDirectGroups(e); len(groups) != 0 {
+	if groups := em.getDirectGroups(e); len(groups) != 0 {
 		t.Error("getDirectGroups fabricated a group!")
 	}
 }

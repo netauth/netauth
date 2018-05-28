@@ -81,6 +81,44 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	}, nil
 }
 
+func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	inclindr := r.GetIncludeIndirects()
+
+	var list []*pb.Group
+
+	if e != nil {
+		// If e is defined then we want the groups for a
+		// specific entity
+		entity, err := s.Tree.GetEntity(e.GetID())
+		if err != nil {
+			return nil, err
+		}
+		groupNames := s.Tree.GetMemberships(entity, inclindr)
+		for _, name := range groupNames {
+			g, err := s.Tree.GetGroupByName(name)
+			if err != nil {
+				return nil, err
+			}
+			list = append(list, g)
+		}
+	} else {
+		// If e is not defined then we want all groups.
+		var err error
+		list, err = s.Tree.ListGroups()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	log.Printf("Group list requested (%s@%s)",
+		client.GetService(),
+		client.GetID())
+
+	return &pb.GroupList{Groups: list}, nil
+}
+
 func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberRequest) (*pb.EntityList, error) {
 	client := r.GetInfo()
 	g := r.GetGroup()

@@ -105,21 +105,6 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 	return &pb.GroupInfoResult{Group: grp, Managed: mgd}, nil
 }
 
-func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
-	client := r.GetInfo()
-
-	list, err := s.Tree.ListGroups()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("Group list requested (%s@%s)",
-		client.GetService(),
-		client.GetID())
-
-	return &pb.GroupList{Groups: list}, nil
-}
-
 func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()

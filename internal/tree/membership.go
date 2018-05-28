@@ -52,7 +52,58 @@ func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 // GetMemberships returns all groups the entity is a member of,
 // optionally including indirect memberships
 func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
-	return m.getDirectGroups(e)
+	directs := m.getDirectGroups(e)
+	var allGroups []string
+
+	// Though inneficient, its easier to understand.  We get the
+	// membership of all groups, and evaluate if this entity is a
+	// member of those groups.
+	grps, err := m.ListGroups()
+	if err != nil {
+		log.Printf("Error getting group list: %s", grps)
+		return []string{}
+	}
+	for _, g := range grps {
+		members, err := m.listMembers(g.GetName())
+		if err != nil {
+			log.Printf("Error expanding groups: %s", err)
+			continue
+		}
+		for _, m := range members {
+			if m.GetID() == e.GetID() {
+				allGroups = append(allGroups, g.GetName())
+				break
+			}
+		}
+	}
+
+	// If we're including indirects, then we can return allGroups
+	// here
+	if includeIndirects { return allGroups }
+
+	// This far?  Only returning directs as filtered by allGroups.
+	// This is because there could be things that filter entities
+	// out of groups they would otherwise be directly in.
+	gm := make(map[string]int)
+	for _, g := range directs {
+		gm[g]++
+	}
+	for _, g := range allGroups {
+		gm[g]++
+	}
+
+	// gm now contains a map where groups that are both in
+	// allGroups (membership is valid) and in directs (groups we
+	// want to return here) will have a value of 2, so all we do
+	// at this stage is get the groups that are equal to 2 and
+	// return those.
+	var retGroups []string
+	for name, value := range gm {
+		if value == 2 {
+			retGroups = append(retGroups, name)
+		}
+	}
+	return retGroups
 }
 
 // getDirectGroups gets the direct groups of an entity.
@@ -151,7 +202,7 @@ func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 
 	// Now we parse the expansions.
 	var exclude []*pb.Entity
-	for _, exp := range g.GetChildren() {
+	for _, exp := range g.GetExpansions() {
 		parts := strings.Split(exp, ":")
 		ents, err := m.listMembers(parts[1])
 		if err != nil {
@@ -207,7 +258,7 @@ func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 // already directly on this group that conflicts with the proposed
 // group expansion.
 func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
-	for _, exp := range g.GetChildren() {
+	for _, exp := range g.GetExpansions() {
 		if strings.Contains(exp, candidate) {
 			return errors.E_EXISTING_EXPANSION
 		}
@@ -245,11 +296,11 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 	// record.
 	switch mode {
 	case pb.ExpansionMode_INCLUDE:
-		p.Children = append(p.Children, fmt.Sprintf("%s:%s", mode, c.GetName()))
+		p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
 	case pb.ExpansionMode_EXCLUDE:
-		p.Children = append(p.Children, fmt.Sprintf("%s:%s", mode, c.GetName()))
+		p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
 	case pb.ExpansionMode_DROP:
-		old := p.GetChildren()
+		old := p.GetExpansions()
 		new := []string{}
 		for _, oldMembership := range old {
 			if strings.Contains(oldMembership, child) {
@@ -257,7 +308,7 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 			}
 			new = append(new, oldMembership)
 		}
-		p.Children = new
+		p.Expansions = new
 	}
 
 	return m.db.SaveGroup(p)
