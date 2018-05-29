@@ -107,8 +107,10 @@ func (m Manager) MakeBootstrap(ID string, secret string) {
 
 // DisableBootstrap disables the ability to bootstrap after the
 // opportunity to do so has passed.
-func (m Manager) DisableBootstrap() {
+func (m *Manager) DisableBootstrap() {
+	log.Println("Disabling bootstrap")
 	m.bootstrap_done = true
+	log.Println("Bootstrap disabled")
 }
 
 // DeleteEntityByID deletes the named entity.  This function will
@@ -130,7 +132,7 @@ func (m Manager) DeleteEntityByID(ID string) error {
 func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return nil
+		return errors.E_NO_CAPABILITY
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -157,7 +159,7 @@ func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return nil
+		return errors.E_NO_CAPABILITY
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])

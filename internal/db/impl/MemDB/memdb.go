@@ -66,6 +66,10 @@ func (m *MemDB) SaveEntity(e *pb.Entity) error {
 }
 
 func (m *MemDB) DeleteEntity(ID string) error {
+	if _, ok := m.eMap[ID]; !ok {
+		return errors.E_NO_ENTITY
+	}
+
 	delete(m.eMap, ID)
 	return nil
 }
