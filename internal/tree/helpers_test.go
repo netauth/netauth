@@ -3,9 +3,11 @@ package tree
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
 	"github.com/golang/protobuf/proto"
+
+	pb "github.com/NetAuth/Protocol"
 )
 
 func TestNextUIDNumber(t *testing.T) {
@@ -13,7 +15,7 @@ func TestNextUIDNumber(t *testing.T) {
 
 	s := []struct {
 		ID            string
-		number     int32
+		number        int32
 		secret        string
 		nextUIDNumber int32
 	}{
@@ -46,9 +48,9 @@ func TestGetEntityByID(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	s := []struct {
-		ID        string
+		ID     string
 		number int32
-		secret    string
+		secret string
 	}{
 		{"foo", 1, ""},
 		{"bar", 2, ""},
@@ -98,5 +100,97 @@ func TestSafeCopyEntity(t *testing.T) {
 
 	if !proto.Equal(e, ne) {
 		t.Error("Entity values not otherwise equal!")
+	}
+}
+
+func TestDedupEntityList(t *testing.T) {
+	em := New(MemDB.New(), nocrypto.New())
+
+	s := []struct {
+		ID     string
+		number int32
+		secret string
+	}{
+		{"aaa", -1, ""},
+		{"aab", -1, ""},
+		{"aac", -1, ""},
+		{"aad", -1, ""},
+		{"aae", -1, ""},
+		{"aaf", -1, ""},
+	}
+
+	for _, c := range s {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	allEntities, err := em.allEntities()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make a list with duplicates in it
+	list := allEntities
+	list = append(list, allEntities...)
+	if len(list) == len(allEntities) {
+		t.Fatal("Lists unexpectedly equal")
+	}
+
+	// Dedup it
+	list = dedupEntityList(list)
+
+	// Make sure its got no dups
+	if len(list) != len(allEntities) {
+		t.Fatal("Lists not equal in length")
+	}
+}
+
+func TestEntityListDifference(t *testing.T) {
+	em := New(MemDB.New(), nocrypto.New())
+
+	s := []struct {
+		ID     string
+		number int32
+		secret string
+	}{
+		{"aaa", -1, ""},
+		{"aab", -1, ""},
+		{"aac", -1, ""},
+		{"aad", -1, ""},
+		{"aae", -1, ""},
+		{"aaf", -1, ""},
+	}
+
+	for _, c := range s {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Get a list of everyone
+	allEntities, err := em.allEntities()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var allButAAA []*pb.Entity
+	for _, e := range allEntities {
+		if e.GetID() == "aaa" {
+			continue
+		}
+		allButAAA = append(allButAAA, e)
+	}
+
+	if len(allButAAA) == len(allEntities) {
+		t.Fatal("Lists are not different!")
+	}
+
+	shouldJustBeAAA := entityListDifference(allEntities, allButAAA)
+	if len(shouldJustBeAAA) != 1 {
+		t.Fatalf("Length of shouldJustBeAAA is wrong: %d", len(shouldJustBeAAA))
+	}
+	if shouldJustBeAAA[0].GetID() != "aaa" {
+		t.Fatal("Difference contains wrong result!")
 	}
 }

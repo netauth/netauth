@@ -2,7 +2,6 @@ package tree
 
 import (
 	"log"
-	"sort"
 
 	"github.com/golang/protobuf/proto"
 
@@ -97,29 +96,19 @@ func dedupEntityList(entList []*pb.Entity) []*pb.Entity {
 // entityListDifference computes the set of entities that are in list
 // a and not in list b.
 func entityListDifference(a, b []*pb.Entity) []*pb.Entity {
-	// Sort the slices, this makes the end check a bit faster
-	sort.Slice(a, func(i, j int) bool {
-		return a[i].GetNumber() < a[j].GetNumber()
-	})
-	sort.Slice(b, func(i, j int) bool {
-		return b[i].GetNumber() < b[j].GetNumber()
-	})
+	diffMap := make(map[string]*pb.Entity)
+	// Get a map of the possible options
+	for _, e := range a {
+		diffMap[e.GetID()] = e
+	}
+	// Remove the ones that are in the exclude map
+	for _, e := range b {
+		delete(diffMap, e.GetID())
+	}
 
-	// Iterate over both lists and pick the ones that are in A and
-	// not in B.
 	var entList []*pb.Entity
-	for i, j := 0, 0; i < len(a); i++ {
-		if a[i].GetNumber() != b[j].GetNumber() && j+1 < len(b) && a[i].GetNumber() < b[j+1].GetNumber() {
-			entList = append(entList, a[i])
-		}
-		if j+1 < len(b) {
-			j++
-		}
-		if j == len(b)-1 && i < len(a)-1 {
-			// we're at the end of list B, so if i is less
-			// than len(a) we take from there to the end
-			entList = append(entList, a[i:len(a)-1]...)
-		}
+	for _, ent := range diffMap {
+		entList = append(entList, ent)
 	}
 
 	return entList
