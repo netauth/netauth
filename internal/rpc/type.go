@@ -29,6 +29,11 @@ type EntityTree interface {
 	ListMembers(string) ([]*pb.Entity, error)
 
 	ModifyGroupExpansions(string, string, pb.ExpansionMode) error
+
+	SetEntityCapabilityByID(string, string) error
+	RemoveEntityCapabilityByID(string, string) error
+	SetGroupCapabilityByName(string, string) error
+	RemoveGroupCapabilityByName(string, string) error
 }
 
 type NetAuthServer struct {

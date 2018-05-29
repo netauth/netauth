@@ -8,6 +8,7 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
+	"github.com/NetAuth/NetAuth/pkg/errors"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
@@ -193,9 +194,9 @@ func (n *netAuthClient) ChangeSecret(e, s, me, ms, t string) (string, error) {
 func (n *netAuthClient) NewEntity(id string, uidn int32, secret, t string) (string, error) {
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
-			ID:        &id,
+			ID:     &id,
 			Number: &uidn,
-			Secret:    &secret,
+			Secret: &secret,
 		},
 		AuthToken: &t,
 		Info: &pb.ClientInfo{
@@ -278,7 +279,7 @@ func (n *netAuthClient) NewGroup(name, displayname, managedby, t string, number 
 		Group: &pb.Group{
 			Name:        &name,
 			DisplayName: &displayname,
-			Number:   &gid,
+			Number:      &gid,
 			ManagedBy:   &managedby,
 		},
 		AuthToken: &t,
@@ -464,6 +465,38 @@ func (n *netAuthClient) ModifyGroupExpansions(t, p, c, m string) (string, error)
 
 	result, err := n.c.ModifyGroupNesting(context.Background(), &request)
 	return result.GetMsg(), err
+}
+
+// ManageCapabilities modifies the capabilities present on an entity
+// or group.  This action must be authorized.
+func (n *netAuthClient) ManageCapabilities(t, e, g, c, m string) (string, error) {
+	capID, ok := pb.Capability_value[c]
+	if !ok {
+		return "", errors.E_NO_CAPABILITY
+	}
+	cap := pb.Capability(capID)
+
+	request := pb.ModCapabilityRequest{
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+		AuthToken:  &t,
+		Mode:       &m,
+		Capability: &cap,
+	}
+
+	if e != "" {
+		request.Entity = &pb.Entity{ID: &e}
+	} else if g != "" {
+		request.Group = &pb.Group{Name: &g}
+	}
+
+	result, err := n.c.ManageCapabilities(context.Background(), &request)
+	if err != nil {
+		return result.GetMsg(), err
+	}
+	return result.GetMsg(), nil
 }
 
 func ensureClientID(clientID string) *string {

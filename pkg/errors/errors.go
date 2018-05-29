@@ -17,4 +17,5 @@ var (
 	E_CRYPTO_FAULT           = errors.New("Unrecoverable crypto fault!  Check log for more details.")
 	E_CRYPTO_BADAUTH         = errors.New("Bad authentication information!")
 	E_EXISTING_EXPANSION     = errors.New("An expansion already exists for that group")
+	E_BAD_REQUEST            = errors.New("This request is malformed")
 )

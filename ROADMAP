@@ -46,9 +46,8 @@ v0.0.4:
 v0.0.5:
   * Entity capabilities
     * capabilities can be used to denote additional access
-    * capabilities grant the ability to modify a named group
-      * "mini-administrators" that permit modifying everything under that tree
-      * Change-Password capability
+  * Group capabilities
+    * all entities in the group can act with the permissions of that group
 
 At this point a viable release candidate should exist.
 

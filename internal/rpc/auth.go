@@ -8,6 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/NetAuth/NetAuth/pkg/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -53,12 +54,34 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 		log.Println("Entity Vanished!")
 	}
 
-	// Get the capabilities list for the token
-	capabilities := []string{}
+	// First get the capabilities that are provided by the entity
+	// itself.
+	caps := make(map[string]int)
 	if e.GetMeta() != nil {
 		for _, c := range e.GetMeta().GetCapabilities() {
-			capabilities = append(capabilities, pb.Capability_name[int32(c)])
+			caps[pb.Capability_name[int32(c)]]++
 		}
+	}
+
+	// Next get the capabilities that are provided by any groups
+	// the entity may be in; include indirects for authentication
+	// queries.
+	groupNames := s.Tree.GetMemberships(e, true)
+	for _, name := range groupNames {
+		g, err := s.Tree.GetGroupByName(name)
+		if err != nil {
+			log.Printf("Error loading group: %s", err)
+			continue
+		}
+		for _, c := range g.GetCapabilities() {
+			caps[pb.Capability_name[int32(c)]]++
+		}
+	}
+
+	// Flatten the capabilities out into a list
+	var capabilities []string
+	for c, _ := range caps {
+		capabilities = append(capabilities, c)
 	}
 
 	// Successfully authenticated, now to construct a token
@@ -180,5 +203,84 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
 		Msg:     proto.String("Secret Changed"),
+	}, nil
+}
+
+func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabilityRequest) (*pb.SimpleResult, error) {
+	entity := r.GetEntity()
+	group := r.GetGroup()
+	t := r.GetAuthToken()
+	mode := r.GetMode()
+	cap := r.GetCapability().String()
+
+	// Validate the token and confirm the holder posses
+	// GLOBAL_ROOT.  You might wonder why there isn't a capability
+	// to assign other capabilities, but then you start going down
+	// the rabbit hole and its much more straightforward to just
+	// say that you need to be a global superuser to be able to
+	// add more capabilities.
+	c, err := s.Token.Validate(t)
+	if err != nil || !c.HasCapability("GLOBAL_ROOT") {
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg:     proto.String("Error Authenticating"),
+		}, nil
+	}
+
+	if entity != nil {
+		switch mode {
+		case "ADD":
+			if err := s.Tree.SetEntityCapabilityByID(entity.GetID(), cap); err != nil {
+				return &pb.SimpleResult{
+					Success: proto.Bool(false),
+					Msg:     proto.String("Error while adding capability"),
+				}, err
+			}
+		case "REMOVE":
+			if err := s.Tree.RemoveEntityCapabilityByID(entity.GetID(), cap); err != nil {
+				return &pb.SimpleResult{
+					Success: proto.Bool(false),
+					Msg:     proto.String("Error while removing capability"),
+				}, err
+			}
+		default:
+			return &pb.SimpleResult{
+				Success: proto.Bool(false),
+				Msg:     proto.String("Mode must be either ADD or REMOVE"),
+			}, errors.E_BAD_REQUEST
+		}
+	} else if group != nil {
+		switch mode {
+		case "ADD":
+			if err := s.Tree.SetGroupCapabilityByName(group.GetName(), cap); err != nil {
+				return &pb.SimpleResult{
+					Success: proto.Bool(false),
+					Msg:     proto.String("Error while adding capability"),
+				}, err
+			}
+		case "REMOVE":
+			if err := s.Tree.RemoveGroupCapabilityByName(group.GetName(), cap); err != nil {
+				return &pb.SimpleResult{
+					Success: proto.Bool(false),
+					Msg:     proto.String("Error while removing capability"),
+				}, err
+			}
+		default:
+			return &pb.SimpleResult{
+				Success: proto.Bool(false),
+				Msg:     proto.String("Mode must be either ADD or REMOVE"),
+			}, errors.E_BAD_REQUEST
+		}
+
+	} else {
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg:     proto.String("Either entity or group must be provided!"),
+		}, errors.E_BAD_REQUEST
+	}
+
+	return &pb.SimpleResult{
+		Success: proto.Bool(true),
+		Msg:     proto.String("Capability Modified"),
 	}, nil
 }

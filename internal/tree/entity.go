@@ -153,6 +153,33 @@ func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 	return nil
 }
 
+// removeCapability removes a capability on an entity
+func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
+	// If no capability was supplied, bail out.
+	if len(c) == 0 {
+		return nil
+	}
+
+	cap := pb.Capability(pb.Capability_value[c])
+	var ncaps []pb.Capability
+
+	for _, a := range e.Meta.Capabilities {
+		if a == cap {
+			continue
+		}
+		ncaps = append(ncaps, a)
+	}
+
+	e.Meta.Capabilities = ncaps
+
+	if err := m.db.SaveEntity(e); err != nil {
+		return err
+	}
+
+	log.Printf("Removed capability %s on entity '%s'", c, e.GetID())
+	return nil
+}
+
 // SetEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual setEntityCapability function
 func (m Manager) SetEntityCapabilityByID(ID string, c string) error {
@@ -162,6 +189,17 @@ func (m Manager) SetEntityCapabilityByID(ID string, c string) error {
 	}
 
 	return m.setEntityCapability(e, c)
+}
+
+// RemoveEntityCapabilityByID is a convenience function to get the entity
+// and hand it off to the actual removeEntityCapability function
+func (m Manager) RemoveEntityCapabilityByID(ID string, c string) error {
+	e, err := m.db.LoadEntity(ID)
+	if err != nil {
+		return err
+	}
+
+	return m.removeEntityCapability(e, c)
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the

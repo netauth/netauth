@@ -113,6 +113,83 @@ func (m Manager) ListGroups() ([]*pb.Group, error) {
 	return groups, nil
 }
 
+// SetCapability sets a capability on an group.  The set operation is
+// idempotent.
+func (m Manager) setGroupCapability(g *pb.Group, c string) error {
+	// If no capability was supplied, bail out.
+	if len(c) == 0 {
+		return nil
+	}
+
+	cap := pb.Capability(pb.Capability_value[c])
+
+	for _, a := range g.Capabilities {
+		if a == cap {
+			// The group already has this capability
+			// directly, don't add it again.
+			return nil
+		}
+	}
+
+	g.Capabilities = append(g.Capabilities, cap)
+
+	if err := m.db.SaveGroup(g); err != nil {
+		return err
+	}
+
+	log.Printf("Set capability %s on group '%s'", c, g.GetName())
+	return nil
+}
+
+// removeCapability removes a capability on an group
+func (m Manager) removeGroupCapability(g *pb.Group, c string) error {
+	// If no capability was supplied, bail out.
+	if len(c) == 0 {
+		return nil
+	}
+
+	cap := pb.Capability(pb.Capability_value[c])
+	var ncaps []pb.Capability
+
+	for _, a := range g.Capabilities {
+		if a == cap {
+			continue
+		}
+		ncaps = append(ncaps, a)
+	}
+
+	g.Capabilities = ncaps
+
+	if err := m.db.SaveGroup(g); err != nil {
+		return err
+	}
+
+	log.Printf("Removed capability %s on group '%s'", c, g.GetName())
+	return nil
+}
+
+// SetGroupCapabilityByNAME is a convenience function to get the group
+// and hand it off to the actual setGroupCapability function
+func (m Manager) SetGroupCapabilityByName(name string, c string) error {
+	g, err := m.db.LoadGroup(name)
+	if err != nil {
+		return err
+	}
+
+	return m.setGroupCapability(g, c)
+}
+
+// RemoveGroupCapabilityByName is a convenience function to get the group
+// and hand it off to the actual removeGroupCapability function
+func (m Manager) RemoveGroupCapabilityByName(name string, c string) error {
+	g, err := m.db.LoadGroup(name)
+	if err != nil {
+		return err
+	}
+
+	return m.removeGroupCapability(g, c)
+}
+
 // Convenience function to get the nextGIDNumber.  This is very
 // inefficient but it only is called when a new group is being
 // created, which is hopefully infrequent.
