@@ -79,7 +79,9 @@ func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
 
 	// If we're including indirects, then we can return allGroups
 	// here
-	if includeIndirects { return allGroups }
+	if includeIndirects {
+		return allGroups
+	}
 
 	// This far?  Only returning directs as filtered by allGroups.
 	// This is because there could be things that filter entities
@@ -129,9 +131,9 @@ func (m Manager) RemoveEntityFromGroup(entityID, groupName string) error {
 // removeEntityFromGroup removes an entity from the named group.  If
 // the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) {
+func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
 	if e.GetMeta() == nil {
-		return
+		return nil
 	}
 
 	newGroups := []string{}
@@ -144,9 +146,9 @@ func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) {
 	e.Meta.Groups = newGroups
 
 	if err := m.db.SaveEntity(e); err != nil {
-		return
+		return err
 	}
-	return
+	return nil
 }
 
 // allEntities is a convenient way to return all the entities
@@ -267,12 +269,16 @@ func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) err
 }
 
 // checkGroupCycles recurses down the group tree and tries to find the
-// candidate group below the entry point.  If it does, it returns
-// true, if not, it returns false.
+// candidate group somewhere on the tree below the entry point.  The
+// general usage would be to push in the target of the expansion as
+// the group and then hunt for the parent group as the candidate.
 func (m Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
 	for _, exp := range g.GetExpansions() {
 		parts := strings.Split(exp, ":")
-		if parts[1] == candidate { return true }
+		log.Println(parts[1], candidate)
+		if parts[1] == candidate {
+			return true
+		}
 		g, err := m.GetGroupByName(parts[1])
 		if err != nil {
 			// Play it safe, if we can't get the group
@@ -303,14 +309,14 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 		return err
 	}
 
-	if m.checkGroupCycles(p, child) {
-		return errors.E_EXISTING_EXPANSION
-	}
-
 	// Make sure the child exists...
 	c, err := m.GetGroupByName(child)
 	if err != nil {
 		return err
+	}
+
+	if m.checkGroupCycles(c, p.GetName()) && mode != pb.ExpansionMode_DROP {
+		return errors.E_EXISTING_EXPANSION
 	}
 
 	// Either add the include, add the exclude, or drop the old
