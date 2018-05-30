@@ -118,7 +118,7 @@ func (m Manager) ListGroups() ([]*pb.Group, error) {
 func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return nil
+		return errors.E_NO_CAPABILITY
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -145,7 +145,7 @@ func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 func (m Manager) removeGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return nil
+		return errors.E_NO_CAPABILITY
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -168,7 +168,7 @@ func (m Manager) removeGroupCapability(g *pb.Group, c string) error {
 	return nil
 }
 
-// SetGroupCapabilityByNAME is a convenience function to get the group
+// SetGroupCapabilityByName is a convenience function to get the group
 // and hand it off to the actual setGroupCapability function
 func (m Manager) SetGroupCapabilityByName(name string, c string) error {
 	g, err := m.db.LoadGroup(name)
