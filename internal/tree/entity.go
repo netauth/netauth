@@ -282,7 +282,6 @@ func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 		return err
 	}
 
-	log.Printf("Updated metadata for '%s'", e.GetID())
 	return nil
 }
 
@@ -338,7 +337,6 @@ func (m Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]st
 	if err := m.db.SaveEntity(e); err != nil {
 		return nil, err
 	}
-	log.Printf("Updated keys for '%s'", e.GetID())
 	return nil, nil
 }
 
