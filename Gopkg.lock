@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
-  revision = "91cf479507f5c0efdd4d790417441cbc900b26a6"
+  revision = "60d326afe3b614a53a591e059cb41a72ff49de86"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"

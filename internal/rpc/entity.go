@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 
+	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -111,4 +113,38 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 		client.GetID())
 
 	return &pb.SimpleResult{Success: proto.Bool(true), Msg: proto.String("Metadata Updated")}, nil
+}
+
+func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKeyRequest) (*pb.KeyList, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	t := r.GetAuthToken()
+
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return nil, err
+	}
+
+	// Verify the correct capability is present in the token.
+	if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+		return nil, errors.E_NO_CAPABILITY
+	}
+
+	// Get run the transaction on the key database.
+	keys, err := s.Tree.UpdateEntityKeys(e.GetID(), r.GetMode(), r.GetType(), r.GetKey())
+	if err != nil {
+		return nil, err
+	}
+
+	verb := "updated"
+	if strings.ToUpper(r.GetMode()) == "LIST" {
+		verb = "requested"
+	}
+	log.Printf("Keys for '%s' %s by '%s' (%s@%s)",
+		e.GetID(),
+		verb,
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+	return &pb.KeyList{Keys: keys}, nil
 }

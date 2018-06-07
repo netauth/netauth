@@ -271,6 +271,29 @@ func (n *netAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (str
 	return result.GetMsg(), nil
 }
 
+// ModifyEntityKeys modifies the keys on an entity, this action must
+// be authorized.
+func (n *netAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, error) {
+	request := pb.ModEntityKeyRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		AuthToken: &t,
+		Mode: &m,
+		Type: &kt,
+		Key: &kv,
+		Info: &pb.ClientInfo{
+			ID:      n.clientID,
+			Service: n.serviceID,
+		},
+	}
+	result, err := n.c.ModifyEntityKeys(context.Background(), &request)
+	if err != nil {
+		return nil, err
+	}
+	return result.GetKeys(), nil
+}
+
 // NewGroup creates a new group with the given name, display name, and
 // group number.  This action must be authorized.
 func (n *netAuthClient) NewGroup(name, displayname, managedby, t string, number int) (string, error) {

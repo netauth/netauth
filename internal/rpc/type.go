@@ -16,6 +16,7 @@ type EntityTree interface {
 	NewEntity(string, int32, string) error
 	DeleteEntityByID(string) error
 	UpdateEntityMeta(string, *pb.EntityMeta) error
+	UpdateEntityKeys(string, string, string, string) ([]string, error)
 
 	NewGroup(string, string, string, int32) error
 	DeleteGroup(string) error

@@ -2,6 +2,8 @@ package tree
 
 import (
 	"log"
+	"strings"
+	"fmt"
 
 	"github.com/golang/protobuf/proto"
 
@@ -268,11 +270,11 @@ func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// they're nulled out here
 	newMeta.Capabilities = nil
 	newMeta.Groups = nil
+	newMeta.Keys = nil
 
-	// now we can merge the changes, this happens on the live tree
-	// and doesn't require recomputing anything since its a change
-	// at the leaves since the groups are not permitted to change
-	// by this API.
+	// Merge all changes, and then overwrite the original keys
+	// with the ones from newMeta since that is a rewrite style
+	// update.
 	proto.Merge(meta, newMeta)
 
 	// Save changes
@@ -294,3 +296,59 @@ func (m Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error
 
 	return m.updateEntityMeta(e, newMeta)
 }
+
+// updateEntityKeys performs an update on keys to allow the client to
+// be simpler, and to account for proto.Merge() merging list contents
+// rather than overwriting.
+func (m Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]string, error) {
+	// Account for this being the first bit of metadata
+	if e.GetMeta() == nil {
+		e.Meta = &pb.EntityMeta{}
+	}
+
+	// Normalize the type and the mode
+	mode = strings.ToUpper(mode)
+	keyType = strings.ToUpper(keyType)
+
+	switch mode {
+	case "LIST":
+		return e.GetMeta().GetKeys(), nil
+	case "ADD":
+		for _, key := range e.GetMeta().GetKeys() {
+			if strings.Contains(key, key) {
+				return nil, nil
+			}
+		}
+		// Add the key to the metadata
+		e.Meta.Keys = append(e.Meta.Keys, fmt.Sprintf("%s:%s", keyType, key))
+
+	case "DEL":
+		newKeys := []string{}
+		for _, key := range e.GetMeta().GetKeys() {
+			if strings.Contains(key, key) {
+				continue
+			}
+		// Add the key to the metadata
+		newKeys = append(newKeys, key)			
+		}
+		e.Meta.Keys = newKeys
+	}
+
+	// Save changes
+	if err := m.db.SaveEntity(e); err != nil {
+		return nil, err
+	}
+	log.Printf("Updated keys for '%s'", e.GetID())
+	return nil, nil
+}
+
+// UpdateEntityKeys is the exported version of updateEntityKeys
+func (m *Manager) UpdateEntityKeys(entityID, mode, keytype, key string) ([]string, error) {
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return nil, err
+	}
+
+	return m.updateEntityKeys(e, mode, keytype, key)
+}
+
