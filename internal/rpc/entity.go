@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/token"
 	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
@@ -120,14 +121,22 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 	e := r.GetEntity()
 	t := r.GetAuthToken()
 
-	c, err := s.Token.Validate(t)
-	if err != nil {
-		return nil, err
-	}
+	mode := strings.ToUpper(r.GetMode())
 
-	// Verify the correct capability is present in the token.
-	if !c.HasCapability("MODIFY_ENTITY_KEYS") {
-		return nil, errors.E_NO_CAPABILITY
+	// If we aren't doing a read only operation then we need a
+	// token for this
+	var c token.Claims
+	if mode != "LIST" {
+		c, err := s.Token.Validate(t)
+		if err != nil {
+			return nil, err
+		}
+
+		// Verify the correct capability is present in the token or
+		// that this is not a read only query.
+		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+			return nil, errors.E_NO_CAPABILITY
+		}
 	}
 
 	// Get run the transaction on the key database.
@@ -137,7 +146,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 	}
 
 	verb := "updated"
-	if strings.ToUpper(r.GetMode()) == "LIST" {
+	if mode == "LIST" {
 		verb = "requested"
 	}
 	log.Printf("Keys for '%s' %s by '%s' (%s@%s)",
