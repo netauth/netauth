@@ -313,8 +313,8 @@ func (m Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]st
 	case "LIST":
 		return e.GetMeta().GetKeys(), nil
 	case "ADD":
-		for _, key := range e.GetMeta().GetKeys() {
-			if strings.Contains(key, key) {
+		for _, k := range e.GetMeta().GetKeys() {
+			if strings.Contains(k, key) {
 				return nil, nil
 			}
 		}
