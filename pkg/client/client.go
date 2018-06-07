@@ -38,13 +38,16 @@ func New(server string, port int, serviceID string, clientID string) (*netAuthCl
 	// Get a tokenstore
 	t, err := getTokenStore()
 	if err != nil {
-		log.Fatal(err)
+		// Log the error, but as there are many queries done
+		// in read only mode, don't fail on it.
+		log.Println(err)
 	}
 
-	// Get a token service
+	// Get a token service, don't be a fatal error as most queries
+	// don't require authentication anyway.
 	ts, err := token.New()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	// Create a client to use later on.
