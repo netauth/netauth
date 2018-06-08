@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -135,7 +135,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
 		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
-			return nil, errors.E_NO_CAPABILITY
+			return nil, tree.UnknownCapability
 		}
 	}
 

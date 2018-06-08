@@ -8,7 +8,7 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/NetAuth/NetAuth/internal/tree"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
@@ -498,7 +498,7 @@ func (n *netAuthClient) ModifyGroupExpansions(t, p, c, m string) (string, error)
 func (n *netAuthClient) ManageCapabilities(t, e, g, c, m string) (string, error) {
 	capID, ok := pb.Capability_value[c]
 	if !ok {
-		return "", errors.E_NO_CAPABILITY
+		return "", tree.UnknownCapability
 	}
 	cap := pb.Capability(capID)
 

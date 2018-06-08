@@ -21,7 +21,7 @@ func TestAddDuplicateID(t *testing.T) {
 		err    error
 	}{
 		{"foo", 1, "", nil},
-		{"foo", 2, "", errors.E_DUPLICATE_ID},
+		{"foo", 2, "", DuplicateEntityID},
 	}
 
 	for _, c := range s {
@@ -41,7 +41,7 @@ func TestAddDuplicateUIDNumber(t *testing.T) {
 		err    error
 	}{
 		{"foo", 1, "", nil},
-		{"bar", 1, "", errors.E_DUPLICATE_UIDNUMBER},
+		{"bar", 1, "", DuplicateNumber},
 	}
 
 	for _, c := range s {
@@ -213,7 +213,7 @@ func TestSetCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetEntityCapabilityByID("foo", ""); err != errors.E_NO_CAPABILITY {
+	if err := em.SetEntityCapabilityByID("foo", ""); err != UnknownCapability {
 		t.Error(err)
 	}
 }
@@ -264,7 +264,7 @@ func TestRemoveCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveEntityCapabilityByID("foo", ""); err != errors.E_NO_CAPABILITY {
+	if err := em.RemoveEntityCapabilityByID("foo", ""); err != UnknownCapability {
 		t.Error(err)
 	}
 }
@@ -323,7 +323,7 @@ func TestValidateSecretWrongSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ValidateSecret("foo", "bar"); err != errors.E_ENTITY_BADAUTH {
+	if err := em.ValidateSecret("foo", "bar"); err != AuthorizationFailure {
 		t.Fatal(err)
 	}
 }

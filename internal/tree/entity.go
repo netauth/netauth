@@ -1,13 +1,12 @@
 package tree
 
 import (
+	"fmt"
 	"log"
 	"strings"
-	"fmt"
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -21,11 +20,11 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 	// Does this entity exist already?
 	if _, err := m.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
-		return errors.E_DUPLICATE_ID
+		return DuplicateEntityID
 	}
 	if _, err := m.db.LoadEntityNumber(number); err == nil {
 		log.Printf("Entity with number '%d' already exists!", number)
-		return errors.E_DUPLICATE_UIDNUMBER
+		return DuplicateNumber
 	}
 
 	// Were we given a specific number?
@@ -41,10 +40,10 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 
 	// Ok, they don't exist so we'll make them exist now
 	newEntity := &pb.Entity{
-		ID:        &ID,
+		ID:     &ID,
 		Number: &number,
-		Secret:    &secret,
-		Meta:      &pb.EntityMeta{},
+		Secret: &secret,
+		Meta:   &pb.EntityMeta{},
 	}
 
 	// Save the entity
@@ -134,7 +133,7 @@ func (m Manager) DeleteEntityByID(ID string) error {
 func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return errors.E_NO_CAPABILITY
+		return UnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -161,7 +160,7 @@ func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return errors.E_NO_CAPABILITY
+		return UnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -239,7 +238,7 @@ func (m Manager) ValidateSecret(ID string, secret string) error {
 	err = m.crypto.VerifySecret(secret, *e.Secret)
 	if err != nil {
 		log.Printf("Failed to authenticate '%s'", e.GetID())
-		return errors.E_ENTITY_BADAUTH
+		return AuthorizationFailure
 	}
 	log.Printf("Successfully authenticated '%s'", e.GetID())
 
@@ -327,8 +326,8 @@ func (m Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]st
 			if strings.Contains(key, key) {
 				continue
 			}
-		// Add the key to the metadata
-		newKeys = append(newKeys, key)			
+			// Add the key to the metadata
+			newKeys = append(newKeys, key)
 		}
 		e.Meta.Keys = newKeys
 	}
@@ -349,4 +348,3 @@ func (m *Manager) UpdateEntityKeys(entityID, mode, keytype, key string) ([]strin
 
 	return m.updateEntityKeys(e, mode, keytype, key)
 }
-

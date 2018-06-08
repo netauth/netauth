@@ -5,7 +5,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -15,7 +14,7 @@ import (
 func (m Manager) NewGroup(name, displayName, managedBy string, number int32) error {
 	if _, err := m.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
-		return errors.E_DUPLICATE_GROUP_ID
+		return DuplicateGroupName
 	}
 
 	// Verify that the managing group exists.
@@ -25,7 +24,7 @@ func (m Manager) NewGroup(name, displayName, managedBy string, number int32) err
 
 	if _, err := m.db.LoadGroupNumber(number); err == nil || number == 0 {
 		log.Printf("Group number %d is already assigned!", number)
-		return errors.E_DUPLICATE_GROUP_NUMBER
+		return DuplicateNumber
 	}
 
 	if number == -1 {
@@ -118,7 +117,7 @@ func (m Manager) ListGroups() ([]*pb.Group, error) {
 func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return errors.E_NO_CAPABILITY
+		return UnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -145,7 +144,7 @@ func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 func (m Manager) removeGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return errors.E_NO_CAPABILITY
+		return UnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])

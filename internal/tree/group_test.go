@@ -21,9 +21,9 @@ func TestNewGroup(t *testing.T) {
 		wantErr     error
 	}{
 		{"fooGroup", "", 1, nil},
-		{"fooGroup", "", 1, errors.E_DUPLICATE_GROUP_ID},
-		{"barGroup", "", 0, errors.E_DUPLICATE_GROUP_NUMBER},
-		{"barGroup", "", 1, errors.E_DUPLICATE_GROUP_NUMBER},
+		{"fooGroup", "", 1, DuplicateGroupName},
+		{"barGroup", "", 0, DuplicateNumber},
+		{"barGroup", "", 1, DuplicateNumber},
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
@@ -136,7 +136,7 @@ func TestSetGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetGroupCapabilityByName("foo", ""); err != errors.E_NO_CAPABILITY {
+	if err := em.SetGroupCapabilityByName("foo", ""); err != UnknownCapability {
 		t.Error(err)
 	}
 }
@@ -187,7 +187,7 @@ func TestRemoveGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveGroupCapabilityByName("foo", ""); err != errors.E_NO_CAPABILITY {
+	if err := em.RemoveGroupCapabilityByName("foo", ""); err != UnknownCapability {
 		t.Error(err)
 	}
 }
