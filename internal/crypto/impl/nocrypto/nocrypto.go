@@ -5,7 +5,6 @@ package nocrypto
 
 import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
-	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 
 type NoCrypto struct{}
@@ -24,7 +23,7 @@ func (n *NoCrypto) SecureSecret(s string) (string, error) {
 
 func (n *NoCrypto) VerifySecret(s, h string) error {
 	if s != h {
-		return errors.E_CRYPTO_BADAUTH
+		return crypto.AuthorizationFailure
 	}
 	return nil
 }

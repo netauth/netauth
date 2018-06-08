@@ -238,7 +238,7 @@ func (m Manager) ValidateSecret(ID string, secret string) error {
 	err = m.crypto.VerifySecret(secret, *e.Secret)
 	if err != nil {
 		log.Printf("Failed to authenticate '%s'", e.GetID())
-		return AuthorizationFailure
+		return err
 	}
 	log.Printf("Successfully authenticated '%s'", e.GetID())
 

@@ -7,7 +7,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
-	"github.com/NetAuth/NetAuth/pkg/errors"
 )
 
 var (
@@ -32,7 +31,7 @@ func (b *BCryptEngine) SecureSecret(secret string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(secret), b.cost)
 	if err != nil {
 		log.Printf("Crypto Fault: %s", err)
-		return "", errors.E_CRYPTO_FAULT
+		return "", crypto.InternalError
 	}
 	return string(hash[:]), nil
 }
@@ -41,7 +40,7 @@ func (b *BCryptEngine) VerifySecret(secret, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(secret))
 	if err != nil {
 		log.Printf("Crypto Error: %s", err)
-		return errors.E_CRYPTO_BADAUTH
+		return crypto.AuthorizationFailure
 	}
 	return nil
 }

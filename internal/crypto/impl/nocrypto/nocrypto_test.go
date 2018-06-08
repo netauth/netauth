@@ -3,7 +3,7 @@ package nocrypto
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
 func TestSecureSecret(t *testing.T) {
@@ -20,7 +20,7 @@ func TestSecureSecretBadAuth(t *testing.T) {
 	s := "foo"
 	h := "bar"
 
-	if err := e.VerifySecret(s, h); err != errors.E_CRYPTO_BADAUTH {
+	if err := e.VerifySecret(s, h); err != crypto.AuthorizationFailure {
 		t.Error(err)
 	}
 }

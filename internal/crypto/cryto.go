@@ -1,7 +1,7 @@
 package crypto
 
 import (
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"errors"
 )
 
 type EMCrypto interface {
@@ -13,6 +13,10 @@ type CryptoFactory func() EMCrypto
 
 var (
 	backends = make(map[string]CryptoFactory)
+
+	UnknownCrypto        = errors.New("The specified crypto engine does not exist")
+	InternalError        = errors.New("The crypto system has encountered an internal error")
+	AuthorizationFailure = errors.New("Authorization failed - bad credentials")
 )
 
 // New returns an initialized Crypto instance which can create and
@@ -20,7 +24,7 @@ var (
 func New(name string) (EMCrypto, error) {
 	b, ok := backends[name]
 	if !ok {
-		return nil, errors.E_NO_SUCH_CRYPTO
+		return nil, UnknownCrypto
 	}
 	return b(), nil
 }

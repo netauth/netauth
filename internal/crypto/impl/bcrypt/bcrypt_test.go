@@ -3,7 +3,7 @@ package bcrypt
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
@@ -28,7 +28,7 @@ func TestBadDecode(t *testing.T) {
 	*cost = 0
 	e:=New()
 
-	if err := e.VerifySecret("", ""); err != errors.E_CRYPTO_BADAUTH {
+	if err := e.VerifySecret("", ""); err != crypto.AuthorizationFailure {
 		t.Errorf("Bad crypto error: %s", err)
 	}
 }

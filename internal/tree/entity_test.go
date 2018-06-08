@@ -3,6 +3,7 @@ package tree
 import (
 	"testing"
 
+	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
@@ -323,7 +324,7 @@ func TestValidateSecretWrongSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ValidateSecret("foo", "bar"); err != AuthorizationFailure {
+	if err := em.ValidateSecret("foo", "bar"); err != crypto.AuthorizationFailure {
 		t.Fatal(err)
 	}
 }
