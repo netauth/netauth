@@ -2,7 +2,7 @@ package MemDB
 
 import (
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/pkg/errors"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -37,7 +37,7 @@ func (m *MemDB) DiscoverEntityIDs() ([]string, error) {
 func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
 	e, ok := m.eMap[ID]
 	if !ok {
-		return nil, errors.E_NO_ENTITY
+		return nil, db.UnknownEntity
 	}
 	return e, nil
 }
@@ -57,7 +57,7 @@ func (m *MemDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 			return e, nil
 		}
 	}
-	return nil, errors.E_NO_ENTITY
+	return nil, db.UnknownEntity
 }
 
 func (m *MemDB) SaveEntity(e *pb.Entity) error {
@@ -67,7 +67,7 @@ func (m *MemDB) SaveEntity(e *pb.Entity) error {
 
 func (m *MemDB) DeleteEntity(ID string) error {
 	if _, ok := m.eMap[ID]; !ok {
-		return errors.E_NO_ENTITY
+		return db.UnknownEntity
 	}
 
 	delete(m.eMap, ID)
@@ -85,7 +85,7 @@ func (m *MemDB) DiscoverGroupNames() ([]string, error) {
 func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
 	g, ok := m.gMap[name]
 	if !ok {
-		return nil, errors.E_NO_GROUP
+		return nil, db.UnknownGroup
 	}
 	return g, nil
 }
@@ -105,7 +105,7 @@ func (m *MemDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 			return g, nil
 		}
 	}
-	return nil, errors.E_NO_GROUP
+	return nil, db.UnknownGroup
 }
 
 func (m *MemDB) SaveGroup(g *pb.Group) error {
@@ -115,7 +115,7 @@ func (m *MemDB) SaveGroup(g *pb.Group) error {
 
 func (m *MemDB) DeleteGroup(name string) error {
 	if _, ok := m.gMap[name]; !ok {
-		return errors.E_NO_GROUP
+		return db.UnknownGroup
 	}
 
 	delete(m.gMap, name)

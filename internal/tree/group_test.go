@@ -6,8 +6,9 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
-	"github.com/NetAuth/NetAuth/pkg/errors"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -67,7 +68,7 @@ func TestDeleteGroup(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := em.GetGroupByName("foo"); err != errors.E_NO_GROUP {
+	if _, err := em.GetGroupByName("foo"); err != db.UnknownGroup {
 		t.Error(err)
 	}
 }
@@ -124,7 +125,7 @@ func TestSetSameGroupCapabilityTwice(t *testing.T) {
 func TestSetGroupCapabilityBogusGroup(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.SetGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != errors.E_NO_GROUP {
+	if err := em.SetGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.UnknownGroup {
 		t.Error(err)
 	}
 }
@@ -175,7 +176,7 @@ func TestRemoveGroupCapability(t *testing.T) {
 func TestRemoveGroupCapabilityBogusGroup(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.RemoveGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != errors.E_NO_GROUP {
+	if err := em.RemoveGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.UnknownGroup {
 		t.Error(err)
 	}
 }

@@ -4,7 +4,7 @@ package db
 // various database options.
 
 import (
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -29,13 +29,17 @@ type DBFactory func() EMDiskInterface
 
 var (
 	backends = make(map[string]DBFactory)
+
+	UnknownEntity   = errors.New("The specified entity does not exist")
+	UnknownGroup    = errors.New("The specified group does not exist")
+	UnknownDatabase = errors.New("The specified database does not exist")
 )
 
 // NewDB returns a db struct.
 func New(name string) (EMDiskInterface, error) {
 	b, ok := backends[name]
 	if !ok {
-		return nil, errors.E_NO_SUCH_DATABASE
+		return nil, UnknownDatabase
 	}
 	return b(), nil
 }

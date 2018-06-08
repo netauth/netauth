@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
-	"github.com/NetAuth/NetAuth/pkg/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -43,8 +43,8 @@ func TestAddEntityToGroupExternal(t *testing.T) {
 		group   string
 		wantErr error
 	}{
-		{"foo", "", errors.E_NO_GROUP},
-		{"", "", errors.E_NO_ENTITY},
+		{"foo", "", db.UnknownGroup},
+		{"", "", db.UnknownEntity},
 		{"foo", "bar", nil},
 	}
 
@@ -89,7 +89,7 @@ func TestAddEntityToGroupTwice(t *testing.T) {
 func TestRemoveEntityFromGroupExternalNoEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.RemoveEntityFromGroup("", ""); err != errors.E_NO_ENTITY {
+	if err := em.RemoveEntityFromGroup("", ""); err != db.UnknownEntity {
 		t.Fatal(err)
 	}
 }
@@ -207,7 +207,6 @@ func TestGetMemberships(t *testing.T) {
 		t.Fatal("Wrong group expansions")
 	}
 
-
 	// Now we check the same thing but without running the
 	// expansions
 	memberships = em.GetMemberships(e, false)
@@ -248,7 +247,7 @@ func TestListMembersALLInternal(t *testing.T) {
 func TestListMembersNoMatchInternal(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 	list, err := em.listMembers("")
-	if list != nil && err != errors.E_NO_GROUP {
+	if list != nil && err != db.UnknownGroup {
 		t.Error(err)
 	}
 }
@@ -256,7 +255,7 @@ func TestListMembersNoMatchInternal(t *testing.T) {
 func TestListMembersNoMatchExternal(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 	list, err := em.ListMembers("")
-	if list != nil && err != errors.E_NO_GROUP {
+	if list != nil && err != db.UnknownGroup {
 		t.Error(err)
 	}
 }
@@ -432,7 +431,7 @@ func TestDropExpansion(t *testing.T) {
 func TestModifyExpansionBadParent(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.ModifyGroupExpansions("Bogus-Parent", "", pb.ExpansionMode_INCLUDE); err != errors.E_NO_GROUP {
+	if err := em.ModifyGroupExpansions("Bogus-Parent", "", pb.ExpansionMode_INCLUDE); err != db.UnknownGroup {
 		t.Fatal(err)
 	}
 }
@@ -444,7 +443,7 @@ func TestModifyExpansionBadChild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ModifyGroupExpansions("grp1", "bogus-child", pb.ExpansionMode_INCLUDE); err != errors.E_NO_GROUP {
+	if err := em.ModifyGroupExpansions("grp1", "bogus-child", pb.ExpansionMode_INCLUDE); err != db.UnknownGroup {
 		t.Fatal(err)
 	}
 }

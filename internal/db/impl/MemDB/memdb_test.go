@@ -5,7 +5,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
+	"github.com/NetAuth/NetAuth/internal/db"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -70,7 +71,7 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 	if err := x.DeleteEntity("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadEntity("foo"); err != errors.E_NO_ENTITY {
+	if _, err := x.LoadEntity("foo"); err != db.UnknownEntity {
 		t.Error(err)
 	}
 }
@@ -174,7 +175,7 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	if err := x.DeleteGroup("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadGroup("foo"); err != errors.E_NO_GROUP {
+	if _, err := x.LoadGroup("foo"); err != db.UnknownGroup {
 		t.Error(err)
 	}
 }

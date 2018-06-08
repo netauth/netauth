@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
-	"github.com/NetAuth/NetAuth/pkg/errors"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -155,8 +155,8 @@ func TestDeleteEntityByID(t *testing.T) {
 			t.Error(err)
 		}
 
-		// Make sure checking for that entity returns errors.E_NO_ENTITY
-		if _, err := em.db.LoadEntity(c.ID); err != errors.E_NO_ENTITY {
+		// Make sure checking for that entity returns db.UnknownEntity
+		if _, err := em.db.LoadEntity(c.ID); err != db.UnknownEntity {
 			t.Error(err)
 		}
 	}
@@ -164,7 +164,7 @@ func TestDeleteEntityByID(t *testing.T) {
 
 func TestDeleteEntityAgain(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
-	if err := em.DeleteEntityByID("foo"); err != errors.E_NO_ENTITY {
+	if err := em.DeleteEntityByID("foo"); err != db.UnknownEntity {
 		t.Fatalf("Wrong error: %s", err)
 	}
 }
@@ -201,7 +201,7 @@ func TestSetCapabilityBogusEntity(t *testing.T) {
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
 	// should be returned.
-	if err := em.SetEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != errors.E_NO_ENTITY {
+	if err := em.SetEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.UnknownEntity {
 		t.Error(err)
 	}
 }
@@ -252,7 +252,7 @@ func TestRemoveCapability(t *testing.T) {
 func TestRemoveCapabilityBogusEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.RemoveEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != errors.E_NO_ENTITY {
+	if err := em.RemoveEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.UnknownEntity {
 		t.Error(err)
 	}
 }
@@ -301,7 +301,7 @@ func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
 	// Attempt to set the secret on an entity that doesn't exist.
-	if err := em.SetEntitySecretByID("a", "a"); err != errors.E_NO_ENTITY {
+	if err := em.SetEntitySecretByID("a", "a"); err != db.UnknownEntity {
 		t.Error(err)
 	}
 }
@@ -311,7 +311,7 @@ func TestValidateSecretBogusEntity(t *testing.T) {
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
-	if err := em.ValidateSecret("a", "a"); err != errors.E_NO_ENTITY {
+	if err := em.ValidateSecret("a", "a"); err != db.UnknownEntity {
 		t.Error(err)
 	}
 }
@@ -338,7 +338,7 @@ func TestGetEntity(t *testing.T) {
 
 	// First validate that this works with no entity
 	entity, err := em.GetEntity("")
-	if err != errors.E_NO_ENTITY {
+	if err != db.UnknownEntity {
 		t.Error(err)
 	}
 
@@ -407,7 +407,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 func TestUpdateEntityMetaExternalNoEntity(t *testing.T) {
 	em := New(MemDB.New(), nocrypto.New())
 
-	if err := em.UpdateEntityMeta("non-existant", nil); err != errors.E_NO_ENTITY {
+	if err := em.UpdateEntityMeta("non-existant", nil); err != db.UnknownEntity {
 		t.Fatal(err)
 	}
 }

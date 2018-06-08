@@ -16,7 +16,6 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/pkg/errors"
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -78,8 +77,8 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 	if err != nil {
 		if os.IsNotExist(err) {
 			// In the specific case of a non-existance,
-			// that is a NO_ENTITY condition.
-			return nil, errors.E_NO_ENTITY
+			// that is a UnknownEntity condition.
+			return nil, db.UnknownEntity
 		}
 		log.Println("Error reading file:", err)
 		return nil, err
@@ -109,7 +108,7 @@ func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 			return e, nil
 		}
 	}
-	return nil, errors.E_NO_ENTITY
+	return nil, db.UnknownEntity
 }
 
 // SaveEntity writes  an entity to  disk.  Errors may be  returned for
@@ -166,7 +165,7 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 		if os.IsNotExist(err) {
 			// This case is the group just flat not
 			// existing and is returned as such.
-			return nil, errors.E_NO_GROUP
+			return nil, db.UnknownGroup
 		}
 		log.Println("Error reading file:", err)
 		return nil, err
@@ -195,7 +194,7 @@ func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 			return g, nil
 		}
 	}
-	return nil, errors.E_NO_GROUP
+	return nil, db.UnknownGroup
 }
 
 // SaveGroup writes  an entity to  disk.  Errors may be  returned for
@@ -224,7 +223,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	err := os.Remove(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
 
 	if os.IsNotExist(err) {
-		return errors.E_NO_GROUP
+		return db.UnknownGroup
 	}
 	return err
 }
