@@ -58,7 +58,7 @@ func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 	// Locate all known entities.
 	globs, err := filepath.Glob(filepath.Join(pdb.data_root, entity_subdir, "*.dat"))
 	if err != nil {
-		return nil, err
+		return nil, db.InternalError
 	}
 
 	// Strip the extensions off the files.
@@ -81,12 +81,12 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 			return nil, db.UnknownEntity
 		}
 		log.Println("Error reading file:", err)
-		return nil, err
+		return nil, db.InternalError
 	}
 	e := &pb.Entity{}
 	if err := proto.Unmarshal(in, e); err != nil {
 		log.Printf("Failed to parse Entity from disk: (%s):", err)
-		return nil, err
+		return nil, db.InternalError
 	}
 	return e, nil
 }
@@ -96,13 +96,13 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 	l, err := pdb.DiscoverEntityIDs()
 	if err != nil {
-		return nil, err
+		return nil, db.InternalError
 	}
 
 	for _, en := range l {
 		e, err := pdb.LoadEntity(en)
 		if err != nil {
-			return nil, err
+			return nil, db.InternalError
 		}
 		if e.GetNumber() == number {
 			return e, nil
@@ -124,7 +124,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
 		log.Printf("Failed to aquire write handle for '%s'", e.GetID())
-		return err
+		return db.InternalError
 	}
 
 	return nil
@@ -145,7 +145,7 @@ func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
 	// Locate all known entities.
 	globs, err := filepath.Glob(filepath.Join(pdb.data_root, group_subdir, "*.dat"))
 	if err != nil {
-		return nil, err
+		return nil, db.InternalError
 	}
 
 	// Strip the extensions off the files.
@@ -168,12 +168,12 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 			return nil, db.UnknownGroup
 		}
 		log.Println("Error reading file:", err)
-		return nil, err
+		return nil, db.InternalError
 	}
 	e := &pb.Group{}
 	if err := proto.Unmarshal(in, e); err != nil {
 		log.Printf("Failed to parse Group from disk: (%s):", err)
-		return nil, err
+		return nil, db.InternalError
 	}
 	return e, nil
 }
@@ -182,13 +182,13 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 	l, err := pdb.DiscoverGroupNames()
 	if err != nil {
-		return nil, err
+		return nil, db.InternalError
 	}
 
 	for _, gn := range l {
 		g, err := pdb.LoadGroup(gn)
 		if err != nil {
-			return nil, err
+			return nil, db.InternalError
 		}
 		if g.GetNumber() == number {
 			return g, nil
@@ -210,7 +210,7 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
 		log.Printf("Failed to aquire write handle for '%s'", g.GetName())
-		return err
+		return db.InternalError
 	}
 
 	return nil
@@ -225,7 +225,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	if os.IsNotExist(err) {
 		return db.UnknownGroup
 	}
-	return err
+	return nil
 }
 
 // ensureDataDirectory is called during initialization of this backend
@@ -233,19 +233,19 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 func (pdb *ProtoDB) ensureDataDirectory() error {
 	if _, err := os.Stat(pdb.data_root); os.IsNotExist(err) {
 		if err := os.Mkdir(pdb.data_root, 0755); err != nil {
-			return err
+			return db.InternalError
 		}
 	}
 
 	if _, err := os.Stat(filepath.Join(pdb.data_root, entity_subdir)); os.IsNotExist(err) {
 		if err := os.Mkdir(filepath.Join(pdb.data_root, entity_subdir), 0755); err != nil {
-			return err
+			return db.InternalError
 		}
 	}
 
 	if _, err := os.Stat(filepath.Join(pdb.data_root, group_subdir)); os.IsNotExist(err) {
 		if err := os.Mkdir(filepath.Join(pdb.data_root, group_subdir), 0755); err != nil {
-			return err
+			return db.InternalError
 		}
 	}
 	return nil

@@ -33,6 +33,7 @@ var (
 	UnknownEntity   = errors.New("The specified entity does not exist")
 	UnknownGroup    = errors.New("The specified group does not exist")
 	UnknownDatabase = errors.New("The specified database does not exist")
+	InternalError   = errors.New("The database has encountered an internal error")
 )
 
 // NewDB returns a db struct.
