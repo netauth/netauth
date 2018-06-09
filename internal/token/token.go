@@ -35,9 +35,11 @@ var (
 	lifetime = flag.Duration("token_lifetime", time.Hour*10, "Token lifetime")
 	renewals = flag.Int("token_renewals", 5, "Maximum number of times the token may be renewed")
 
-	NO_SUCH_TOKENSERVICE = errors.New("No token service with that name exists")
-	KEY_UNAVAILABLE      = errors.New("Keys are not available")
-	NO_GENERATE_KEYS     = errors.New("Key generation is disabled!")
+	UnknownTokenService   = errors.New("No token service with that name exists")
+	KeyUnavailable        = errors.New("A required key is not available")
+	KeyGenerationDisabled = errors.New("Key generation is disabled!")
+	InternalError         = errors.New("An unrecoverable internal error has occured")
+	TokenInvalid          = errors.New("The provided token is invalid")
 )
 
 func init() {
@@ -52,7 +54,7 @@ func New() (TokenService, error) {
 
 	t, ok := services[*impl]
 	if !ok {
-		return nil, NO_SUCH_TOKENSERVICE
+		return nil, UnknownTokenService
 	}
 	return t()
 }

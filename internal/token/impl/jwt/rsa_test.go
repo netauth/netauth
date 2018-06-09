@@ -108,7 +108,7 @@ func TestNewMissingKeys(t *testing.T) {
 	*generate = false
 
 	_, err := NewRSA()
-	if err != token.NO_GENERATE_KEYS {
+	if err != token.KeyGenerationDisabled {
 		t.Fatal(err)
 	}
 }

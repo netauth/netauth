@@ -48,7 +48,7 @@ func NewRSA() (token.TokenService, error) {
 func (s *RSATokenService) Generate(claims token.Claims, config token.TokenConfig) (string, error) {
 	if s.privateKey == nil {
 		// Private key is unavailable, signing is not possible
-		return "", token.KEY_UNAVAILABLE
+		return "", token.KeyUnavailable
 	}
 
 	claims.RenewalsLeft = config.Renewals
@@ -68,14 +68,14 @@ func (s *RSATokenService) Generate(claims token.Claims, config token.TokenConfig
 	tkn := jwt.NewWithClaims(jwt.SigningMethodRS512, c)
 	ss, err := tkn.SignedString(s.privateKey)
 	if err != nil {
-		return "", err
+		return "", token.InternalError
 	}
 	return ss, nil
 }
 
 func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 	if s.publicKey == nil {
-		return token.Claims{}, token.KEY_UNAVAILABLE
+		return token.Claims{}, token.KeyUnavailable
 	}
 
 	t, err := jwt.ParseWithClaims(tkn, &RSAToken{}, func(t *jwt.Token) (interface{}, error) {
@@ -85,13 +85,19 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 		return s.publicKey, nil
 	})
 	if err != nil {
-		return token.Claims{}, err
+		// This case gets raised if the token wasn't parsable
+		// for some reason, or the signing key was wrong, or
+		// it was corrupt in some way.
+		return token.Claims{}, token.InternalError
 	}
 
 	if claims, ok := t.Claims.(*RSAToken); ok && t.Valid {
-		return claims.Claims, err
+		return claims.Claims, nil
 	} else {
-		return token.Claims{}, err
+		// This case is raised when the token was parseable,
+		// but wasn't validated due to key errors, expiration
+		// or other similar problems.
+		return token.Claims{}, token.TokenInvalid
 	}
 }
 
@@ -103,7 +109,7 @@ func (s *RSATokenService) GetKeys() error {
 
 		if !*generate {
 			log.Println("Generating keys is disabled!")
-			return token.NO_GENERATE_KEYS
+			return token.KeyGenerationDisabled
 		}
 
 		log.Println("Generating keys")
@@ -112,7 +118,7 @@ func (s *RSATokenService) GetKeys() error {
 		s.privateKey, err = rsa.GenerateKey(rand.Reader, *rsa_bits)
 		if err != nil {
 			log.Println(err)
-			return token.KEY_UNAVAILABLE
+			return token.InternalError
 		}
 		s.publicKey = &s.privateKey.PublicKey
 
@@ -125,14 +131,14 @@ func (s *RSATokenService) GetKeys() error {
 		)
 		if err := ioutil.WriteFile(*privateKeyFile, pridata, 0400); err != nil {
 			log.Println(err)
-			return token.KEY_UNAVAILABLE
+			return token.InternalError
 		}
 
 		// Marshal the public key
 		pubASN1, err := x509.MarshalPKIXPublicKey(s.publicKey)
 		if err != nil {
 			log.Println(err)
-			return token.KEY_UNAVAILABLE
+			return token.InternalError
 		}
 		pubdata := pem.EncodeToMemory(
 			&pem.Block{
@@ -142,7 +148,7 @@ func (s *RSATokenService) GetKeys() error {
 		)
 		if err := ioutil.WriteFile(*publicKeyFile, pubdata, 0644); err != nil {
 			log.Println(err)
-			return token.KEY_UNAVAILABLE
+			return token.InternalError
 		}
 		// At this point the key is saved to disk and
 		// initialized
@@ -150,24 +156,24 @@ func (s *RSATokenService) GetKeys() error {
 	}
 	if err != nil {
 		log.Println("No key available and generate disabled!")
-		return token.KEY_UNAVAILABLE
+		return token.KeyUnavailable
 	}
 
 	block, _ := pem.Decode([]byte(f))
 	if block == nil {
 		log.Println("Error decoding PEM block")
-		return token.KEY_UNAVAILABLE
+		return token.KeyUnavailable
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return token.KEY_UNAVAILABLE
+		return token.KeyUnavailable
 	}
 
 	p, ok := pub.(*rsa.PublicKey)
 	if !ok {
 		log.Printf("%s does not contain a public key", *publicKeyFile)
-		return token.KEY_UNAVAILABLE
+		return token.KeyUnavailable
 	}
 	s.publicKey = p
 
@@ -181,7 +187,11 @@ func (s *RSATokenService) GetKeys() error {
 		log.Printf("File load error: %s", err)
 	}
 	if os.IsNotExist(err) {
-		// No private key, so we bail out early
+		// No private key, so we bail out early.  This doesn't
+		// return an error because the general case is
+		// verifying an existing token, which only needs the
+		// public key.  In this case unavailability of the
+		// private key will trigger an error on signing.
 		log.Println("Token: No private key available, signing will be unavailable")
 		return nil
 	}
