@@ -9,7 +9,9 @@ import (
 )
 
 var (
-	MalformedRequest = errors.New("The request is malformed and cannot be processed")
+	RequestorUnqualified = errors.New("The requestor is not qualified to perform that action")
+	MalformedRequest     = errors.New("The request is malformed and cannot be processed")
+	InternalError        = errors.New("An internal error has occured")
 )
 
 type EntityTree interface {

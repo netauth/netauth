@@ -17,19 +17,19 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Either the entity must posses the right capability, or they
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	// Add to the group
 	if err := s.Tree.AddEntityToGroup(e.GetID(), g.GetName()); err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Entity '%s' added to '%s' by '%s' (%s@%s)",
@@ -42,7 +42,7 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 	return &pb.SimpleResult{
 		Msg:     proto.String("Membership updated successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEntityMembershipRequest) (*pb.SimpleResult, error) {
@@ -53,19 +53,19 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Either the entity must posses the right capability, or they
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	// Remove from the group
 	if err := s.Tree.RemoveEntityFromGroup(e.GetID(), g.GetName()); err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Entity '%s' removed from '%s' by '%s' (%s@%s)",
@@ -78,7 +78,7 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	return &pb.SimpleResult{
 		Msg:     proto.String("Membership updated successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
@@ -93,13 +93,13 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 		// specific entity
 		entity, err := s.Tree.GetEntity(e.GetID())
 		if err != nil {
-			return nil, err
+			return nil, toWireError(err)
 		}
 		groupNames := s.Tree.GetMemberships(entity, inclindr)
 		for _, name := range groupNames {
 			g, err := s.Tree.GetGroupByName(name)
 			if err != nil {
-				return nil, err
+				return nil, toWireError(err)
 			}
 			list = append(list, g)
 		}
@@ -108,7 +108,7 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 		var err error
 		list, err = s.Tree.ListGroups()
 		if err != nil {
-			return nil, err
+			return nil, toWireError(err)
 		}
 	}
 
@@ -116,7 +116,9 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 		client.GetService(),
 		client.GetID())
 
-	return &pb.GroupList{Groups: list}, nil
+	return &pb.GroupList{
+		Groups: list,
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberRequest) (*pb.EntityList, error) {
@@ -125,7 +127,7 @@ func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberR
 
 	memberlist, err := s.Tree.ListMembers(g.GetName())
 	if err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Membership of '%s' requested (%s@%s)",
@@ -135,7 +137,7 @@ func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberR
 
 	return &pb.EntityList{
 		Members: memberlist,
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNestingRequest) (*pb.SimpleResult, error) {
@@ -147,18 +149,18 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Either the entity must posses the right capability, or they
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, child.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.ModifyGroupExpansions(parent.GetName(), child.GetName(), mode); err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Membership could not be updated"), Success: proto.Bool(false)}, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Group '%s'->'%s' expansion to '%s' by '%s' (%s@%s)",
@@ -169,5 +171,8 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 		client.GetService(),
 		client.GetID())
 
-	return &pb.SimpleResult{Msg: proto.String("Nesting updated successfully"), Success: proto.Bool(true)}, nil
+	return &pb.SimpleResult{
+		Msg:     proto.String("Nesting updated successfully"),
+		Success: proto.Bool(true),
+	}, toWireError(nil)
 }

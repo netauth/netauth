@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/golang/protobuf/proto"
@@ -25,12 +24,12 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	result := new(pb.SimpleResult)
 
 	if err := s.Tree.ValidateSecret(entity.GetID(), entity.GetSecret()); err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	result.Success = proto.Bool(true)
 	result.Msg = proto.String("Entity authentication succeeded")
-	return result, nil
+	return result, toWireError(nil)
 }
 
 func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb.TokenResult, error) {
@@ -44,13 +43,14 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 
 	// Run the normal authentication flow
 	if err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret()); err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	// Get the full fledged entity
 	e, err := s.Tree.GetEntity(e.GetID())
 	if err != nil {
 		log.Println("Entity Vanished!")
+		return nil, toWireError(InternalError)
 	}
 
 	// First get the capabilities that are provided by the entity
@@ -92,7 +92,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	// Generate the token with the specified claims
 	tkn, err := s.Token.Generate(claims, token.GetConfig())
 	if err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	// Construct the reply containing the token
@@ -102,7 +102,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 		Token:   &tkn,
 	}
 
-	return &reply, nil
+	return &reply, toWireError(nil)
 }
 
 func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
@@ -115,24 +115,17 @@ func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest)
 		client.GetService(),
 		client.GetID())
 
-	// These will get cleared to error values if there's a fault
-	msg := "Token validation successful"
-	success := true
-
 	// Validate the token and if it validates, return that the
 	// token is valid.
 	_, err := s.Token.Validate(t)
 	if err != nil {
-		msg = fmt.Sprintf("%s", err)
-		success = false
+		return nil, toWireError(err)
 	}
 
-	// Compose and return the reply
-	reply := pb.SimpleResult{
-		Success: &success,
-		Msg:     &msg,
-	}
-	return &reply, nil
+	return &pb.SimpleResult{
+		Msg:     proto.String("Token verified"),
+		Success: proto.Bool(true),
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
@@ -154,43 +147,34 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	if modself && err == nil {
 		err := s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret())
 		if err != nil {
-			return &pb.SimpleResult{
-				Success: proto.Bool(false),
-				Msg:     proto.String("Error Authenticating"),
-			}, nil
+			return nil, toWireError(err)
 		}
 		log.Printf("Secret for %s changed (%s@%s)",
 			me.GetID(),
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Success: proto.Bool(true),
 			Msg:     proto.String("Secret Changed"),
-		}, nil
+			Success: proto.Bool(true),
+		}, toWireError(nil)
 	}
 	if err != nil {
 		// Problem with the password in the self modifying
 		// request, bail out!
-		return &pb.SimpleResult{
-			Success: proto.Bool(false),
-			Msg:     proto.String("Error Authenticating"),
-		}, nil
+		return nil, toWireError(err)
 	}
 
 	// This change is being done administratively since modself
 	// was false, so this needs a valid token to proceed.
 	c, err := s.Token.Validate(t)
 	if err != nil || !c.HasCapability("CHANGE_ENTITY_SECRET") {
-		return &pb.SimpleResult{
-			Success: proto.Bool(false),
-			Msg:     proto.String("Error Authenticating"),
-		}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	// Change the secret per what was specified in the
 	// modification entity struct.
 	if err = s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret()); err != nil {
-		return &pb.SimpleResult{}, err
+		return nil, toWireError(err)
 	}
 
 	// Log this as an administrative change.
@@ -202,7 +186,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
 		Msg:     proto.String("Secret Changed"),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabilityRequest) (*pb.SimpleResult, error) {
@@ -220,10 +204,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	// add more capabilities.
 	c, err := s.Token.Validate(t)
 	if err != nil || !c.HasCapability("GLOBAL_ROOT") {
-		return &pb.SimpleResult{
-			Success: proto.Bool(false),
-			Msg:     proto.String("Error Authenticating"),
-		}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if entity != nil {
@@ -233,20 +214,20 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while adding capability"),
-				}, err
+				}, toWireError(err)
 			}
 		case "REMOVE":
 			if err := s.Tree.RemoveEntityCapabilityByID(entity.GetID(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while removing capability"),
-				}, err
+				}, toWireError(err)
 			}
 		default:
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, MalformedRequest
+			}, toWireError(MalformedRequest)
 		}
 	} else if group != nil {
 		switch mode {
@@ -255,31 +236,31 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while adding capability"),
-				}, err
+				}, toWireError(err)
 			}
 		case "REMOVE":
 			if err := s.Tree.RemoveGroupCapabilityByName(group.GetName(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while removing capability"),
-				}, err
+				}, toWireError(err)
 			}
 		default:
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, MalformedRequest
+			}, toWireError(MalformedRequest)
 		}
 
 	} else {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
 			Msg:     proto.String("Either entity or group must be provided!"),
-		}, MalformedRequest
+		}, toWireError(MalformedRequest)
 	}
 
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
 		Msg:     proto.String("Capability Modified"),
-	}, nil
+	}, toWireError(nil)
 }

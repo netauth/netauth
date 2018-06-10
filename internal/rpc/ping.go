@@ -33,5 +33,5 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 	} else {
 		reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is not ready to serve at this time!", hostname))
 	}
-	return reply, nil
+	return reply, toWireError(nil)
 }

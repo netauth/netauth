@@ -16,19 +16,16 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("CREATE_GROUP") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.NewGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err != nil {
-		return &pb.SimpleResult{
-			Msg:     proto.String("Group could not be created"),
-			Success: proto.Bool(false),
-		}, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("New Group '%s' created by '%s' (%s@%s)",
@@ -40,7 +37,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 	return &pb.SimpleResult{
 		Msg:     proto.String("New group created successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
@@ -50,19 +47,16 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("DESTROY_GROUP") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.DeleteGroup(g.GetName()); err != nil {
-		return &pb.SimpleResult{
-			Msg:     proto.String("Group could not be removed"),
-			Success: proto.Bool(false),
-		}, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Group '%s' removed by '%s' (%s@%s)",
@@ -74,7 +68,7 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Group removed successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*pb.GroupInfoResult, error) {
@@ -83,7 +77,7 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 
 	grp, err := s.Tree.GetGroupByName(g.GetName())
 	if err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Information on %s requested (%s@%s)",
@@ -112,21 +106,18 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Either the entity must posses the right capability, or they
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_META") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.UpdateGroupMeta(g.GetName(), g); err != nil {
-		return &pb.SimpleResult{
-			Msg:     proto.String("Group could not be modified"),
-			Success: proto.Bool(false),
-		}, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Group '%s' modified by '%s' (%s@%s)",
@@ -138,5 +129,5 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 	return &pb.SimpleResult{
 		Msg:     proto.String("Group modified successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(err)
 }

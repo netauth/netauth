@@ -2,12 +2,10 @@ package rpc
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -20,16 +18,16 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("CREATE_ENTITY") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.NewEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err != nil {
-		return &pb.SimpleResult{Success: proto.Bool(false), Msg: proto.String(fmt.Sprintf("%s", err))}, nil
+		return nil, toWireError(err)
 	}
 
 	log.Printf("New entity '%s' created by '%s' (%s@%s)",
@@ -41,7 +39,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 	return &pb.SimpleResult{
 		Msg:     proto.String("New entity created successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
@@ -51,16 +49,16 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("DESTROY_ENTITY") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.DeleteEntityByID(e.GetID()); err != nil {
-		return &pb.SimpleResult{Success: proto.Bool(false), Msg: proto.String(fmt.Sprintf("%s", err))}, nil
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Entity '%s' removed by '%s' (%s@%s)",
@@ -72,7 +70,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 	return &pb.SimpleResult{
 		Msg:     proto.String("Entity removed successfully"),
 		Success: proto.Bool(true),
-	}, nil
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*pb.Entity, error) {
@@ -84,7 +82,8 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 		client.GetService(),
 		client.GetID())
 
-	return s.Tree.GetEntity(e.GetID())
+	e, err := s.Tree.GetEntity(e.GetID())
+	return e, toWireError(err)
 }
 
 func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
@@ -94,17 +93,17 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
-		return &pb.SimpleResult{Msg: proto.String("Authentication Failure")}, nil
+		return nil, toWireError(err)
 	}
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("MODIFY_ENTITY_META") {
-		return &pb.SimpleResult{Msg: proto.String("Requestor not qualified"), Success: proto.Bool(false)}, nil
+		return nil, toWireError(RequestorUnqualified)
 	}
 
 	if err := s.Tree.UpdateEntityMeta(e.GetID(), e.GetMeta()); err != nil {
 		log.Printf("Metadata update error: %s", err)
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	log.Printf("Metadata for '%s' by '%s' completed (%s@%s)",
@@ -113,7 +112,10 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 		client.GetService(),
 		client.GetID())
 
-	return &pb.SimpleResult{Success: proto.Bool(true), Msg: proto.String("Metadata Updated")}, nil
+	return &pb.SimpleResult{
+		Msg:     proto.String("Metadata Updated"),
+		Success: proto.Bool(true),
+	}, toWireError(nil)
 }
 
 func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKeyRequest) (*pb.KeyList, error) {
@@ -129,20 +131,20 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 	if mode != "LIST" {
 		c, err := s.Token.Validate(t)
 		if err != nil {
-			return nil, err
+			return nil, toWireError(err)
 		}
 
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
 		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
-			return nil, tree.UnknownCapability
+			return nil, toWireError(RequestorUnqualified)
 		}
 	}
 
 	// Get run the transaction on the key database.
 	keys, err := s.Tree.UpdateEntityKeys(e.GetID(), r.GetMode(), r.GetType(), r.GetKey())
 	if err != nil {
-		return nil, err
+		return nil, toWireError(err)
 	}
 
 	verb := "updated"
@@ -155,5 +157,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 		c.EntityID,
 		client.GetService(),
 		client.GetID())
-	return &pb.KeyList{Keys: keys}, nil
+	return &pb.KeyList{
+		Keys: keys,
+	}, toWireError(nil)
 }
