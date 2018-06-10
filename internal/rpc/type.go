@@ -1,9 +1,15 @@
 package rpc
 
 import (
+	"errors"
+
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
+)
+
+var (
+	MalformedRequest = errors.New("The request is malformed and cannot be processed")
 )
 
 type EntityTree interface {

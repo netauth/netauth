@@ -8,7 +8,6 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/pkg/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -247,7 +246,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, errors.E_BAD_REQUEST
+			}, MalformedRequest
 		}
 	} else if group != nil {
 		switch mode {
@@ -269,14 +268,14 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, errors.E_BAD_REQUEST
+			}, MalformedRequest
 		}
 
 	} else {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
 			Msg:     proto.String("Either entity or group must be provided!"),
-		}, errors.E_BAD_REQUEST
+		}, MalformedRequest
 	}
 
 	return &pb.SimpleResult{
