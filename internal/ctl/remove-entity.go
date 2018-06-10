@@ -41,12 +41,12 @@ func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Remove the entity
-	msg, err := c.RemoveEntity(p.ID, t)
+	result, err := c.RemoveEntity(p.ID, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

@@ -31,11 +31,11 @@ func (*ValidateTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 	}
 
 	// Attempt to validate the token
-	msg, err := c.ValidateToken(entity)
+	result, err := c.ValidateToken(entity)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

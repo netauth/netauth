@@ -43,12 +43,12 @@ func (p *DeleteGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.DeleteGroup(p.name, t)
+	result, err := c.DeleteGroup(p.name, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

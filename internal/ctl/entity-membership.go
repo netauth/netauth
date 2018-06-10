@@ -8,6 +8,8 @@ import (
 	"github.com/NetAuth/NetAuth/pkg/client"
 
 	"github.com/google/subcommands"
+
+	pb "github.com/NetAuth/Protocol"
 )
 
 type EntityMembershipCmd struct {
@@ -51,12 +53,12 @@ func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ..
 		return subcommands.ExitFailure
 	}
 
-	msg := ""
+	result := &pb.SimpleResult{}
 	switch cmd.action {
 	case "add":
-		msg, err = c.AddEntityToGroup(t, cmd.groupName, cmd.entityID)
+		result, err = c.AddEntityToGroup(t, cmd.groupName, cmd.entityID)
 	case "remove":
-		msg, err = c.RemoveEntityFromGroup(t, cmd.groupName, cmd.entityID)
+		result, err = c.RemoveEntityFromGroup(t, cmd.groupName, cmd.entityID)
 	default:
 		fmt.Println("You must specify either --action add or --action remove!")
 		return subcommands.ExitFailure
@@ -65,6 +67,6 @@ func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ..
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

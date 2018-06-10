@@ -31,10 +31,10 @@ func (*AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) su
 	}
 
 	// Attempt authentication
-	msg, err := c.Authenticate(entity, secret)
+	result, err := c.Authenticate(entity, secret)
 	if err != nil {
 		return subcommands.ExitFailure
 	}
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

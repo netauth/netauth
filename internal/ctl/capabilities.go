@@ -59,8 +59,10 @@ func (p *CapabilitiesCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.ManageCapabilities(t, p.entity, p.group, p.capability, p.mode)
-	fmt.Println(msg)
+	result, err := c.ManageCapabilities(t, p.entity, p.group, p.capability, p.mode)
+	if result.GetMsg() != "" {
+		fmt.Println(result.GetMsg())
+	}
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

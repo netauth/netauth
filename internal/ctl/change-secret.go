@@ -50,12 +50,12 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Change the secret
-	msg, err := c.ChangeSecret(entity, secret, p.ID, p.secret, t)
+	result, err := c.ChangeSecret(entity, secret, p.ID, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }

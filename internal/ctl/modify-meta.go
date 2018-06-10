@@ -19,7 +19,7 @@ type ModifyMetaCmd struct {
 	homedir        string
 	shell          string
 	graphicalShell string
-	badgeNumber string
+	badgeNumber    string
 }
 
 func (*ModifyMetaCmd) Name() string     { return "modify-meta" }
@@ -93,10 +93,12 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 		meta.BadgeNumber = &p.badgeNumber
 	}
 
-	msg, err := c.ModifyEntityMeta(p.ID, t, meta)
-	fmt.Println(msg)
+	result, err := c.ModifyEntityMeta(p.ID, t, meta)
 	if err != nil {
 		return subcommands.ExitFailure
+	}
+	if result.GetMsg() != "" {
+		fmt.Println(result.GetMsg())
 	}
 
 	return subcommands.ExitSuccess

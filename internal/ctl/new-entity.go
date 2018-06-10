@@ -49,12 +49,12 @@ func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfac
 	// The number has to be an int32 to be accepted into the
 	// system.  This is for reasons related to protobuf.
 	number := int32(p.number)
-	msg, err := c.NewEntity(p.ID, number, p.secret, t)
+	result, err := c.NewEntity(p.ID, number, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
+	fmt.Println(result.GetMsg())
 
-	fmt.Println(msg)
 	return subcommands.ExitSuccess
 }

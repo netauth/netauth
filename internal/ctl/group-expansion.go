@@ -53,8 +53,10 @@ func (p *GroupExpansionsCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...in
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.ModifyGroupExpansions(t, p.parent, p.child, p.mode)
-	fmt.Println(msg)
+	result, err := c.ModifyGroupExpansions(t, p.parent, p.child, p.mode)
+	if result.GetMsg() != "" {
+		fmt.Println(result.GetMsg())
+	}
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

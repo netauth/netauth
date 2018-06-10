@@ -39,18 +39,18 @@ func (p *GroupInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfac
 	}
 
 	// Obtain group info
-	group, managed, err := c.GroupInfo(p.name)
+	result, err := c.GroupInfo(p.name)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	printGroup(group, p.fields)
+	printGroup(result.GetGroup(), p.fields)
 
-	if len(managed) > 0 {
+	if len(result.GetManaged()) > 0 {
 		fmt.Printf("The following group(s) are managed by %s\n", p.name)
 	}
-	for _, gn := range managed {
+	for _, gn := range result.GetManaged() {
 		fmt.Printf("  - %s\n", gn)
 	}
 	return subcommands.ExitSuccess

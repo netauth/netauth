@@ -30,11 +30,15 @@ func (*PingCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) su
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.Ping()
+	result, err := c.Ping()
 	if err != nil {
 		return subcommands.ExitFailure
 	}
 
-	fmt.Println(msg)
-	return subcommands.ExitSuccess
+	fmt.Println(result.GetMsg())
+	if result.GetHealthy() {
+		return subcommands.ExitSuccess
+	} else {
+		return subcommands.ExitFailure
+	}
 }

@@ -63,8 +63,10 @@ func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 		group.ManagedBy = &p.managedby
 	}
 
-	msg, err := c.ModifyGroupMeta(group, t)
-	fmt.Println(msg)
+	result, err := c.ModifyGroupMeta(group, t)
+	if result.GetMsg() != "" {
+		fmt.Println(result.GetMsg())
+	}
 	if err != nil {
 		return subcommands.ExitFailure
 	}

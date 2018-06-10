@@ -50,12 +50,12 @@ func (p *NewGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface
 		return subcommands.ExitFailure
 	}
 
-	msg, err := c.NewGroup(p.name, p.displayName, p.managedBy, t, p.gid)
+	result, err := c.NewGroup(p.name, p.displayName, p.managedBy, t, p.gid)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
-	fmt.Println(msg)
+	fmt.Println(result.GetMsg())
 	return subcommands.ExitSuccess
 }
