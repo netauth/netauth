@@ -5,15 +5,13 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
-
 	"github.com/google/subcommands"
 )
 
 type NewEntityCmd struct {
-	ID        string
+	ID     string
 	number int
-	secret    string
+	secret string
 }
 
 func (*NewEntityCmd) Name() string     { return "new-entity" }
@@ -33,7 +31,7 @@ func (p *NewEntityCmd) SetFlags(f *flag.FlagSet) {
 
 func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
-	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	c, err := getClient()
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  name = "github.com/BurntSushi/toml"
+  packages = ["."]
+  revision = "b26d9c308763d68093482582cea63d69be07a0f0"
+  version = "v0.3.0"
+
+[[projects]]
   branch = "master"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
@@ -30,6 +36,12 @@
   name = "github.com/google/subcommands"
   packages = ["."]
   revision = "ce3d4cfc062faac7115d44e5befec8b5a08c3faa"
+
+[[projects]]
+  name = "github.com/imdario/mergo"
+  packages = ["."]
+  revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
+  version = "v0.3.5"
 
 [[projects]]
   branch = "master"
@@ -113,6 +125,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "9fa63cb1edab56b4f7a04aceee1a108767324a5e02cd29e9789aae34f0f8ae39"
+  inputs-digest = "d585b0fbb86c3437b9e9a0503be291cded3f5a9253326e69617d0d4e677cbc33"
   solver-name = "gps-cdcl"
   solver-version = 1

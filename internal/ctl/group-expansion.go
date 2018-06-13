@@ -6,8 +6,6 @@ import (
 	"fmt"
 
 	"github.com/google/subcommands"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 type GroupExpansionsCmd struct {
@@ -40,7 +38,7 @@ func (p *GroupExpansionsCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...in
 	}
 
 	// Grab a client
-	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	c, err := getClient()
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

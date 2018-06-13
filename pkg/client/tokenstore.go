@@ -62,11 +62,11 @@ func getTokenStore() (TokenStore, error) {
 }
 
 // Exposed functions to store and retrieve the tokens
-func (n *netAuthClient) storeToken(name, token string) error {
+func (n *NetAuthClient) storeToken(name, token string) error {
 	return n.tokenStore.StoreToken(name, token)
 }
 
-func (n *netAuthClient) getTokenFromStore(name string) (string, error) {
+func (n *NetAuthClient) getTokenFromStore(name string) (string, error) {
 	t, err := n.tokenStore.GetToken(name)
 	if err != nil {
 		return "", err
@@ -77,11 +77,11 @@ func (n *netAuthClient) getTokenFromStore(name string) (string, error) {
 	return n.tokenStore.GetToken(name)
 }
 
-func (n *netAuthClient) putTokenInStore(name, token string) error {
+func (n *NetAuthClient) putTokenInStore(name, token string) error {
 	return n.tokenStore.StoreToken(name, token)
 }
 
-func (n *netAuthClient) DestroyToken(name string) error {
+func (n *NetAuthClient) DestroyToken(name string) error {
 	return n.tokenStore.DestroyToken(name)
 }
 

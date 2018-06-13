@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/google/subcommands"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 type ModifyKeysCmd struct {
@@ -38,7 +36,7 @@ func (p *ModifyKeysCmd) SetFlags(f *flag.FlagSet) {
 
 func (p *ModifyKeysCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
-	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	c, err := getClient()
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

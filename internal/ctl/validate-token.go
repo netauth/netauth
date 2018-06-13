@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
-
 	"github.com/google/subcommands"
 )
 
@@ -24,7 +22,7 @@ func (*ValidateTokenCmd) SetFlags(f *flag.FlagSet) {}
 
 func (*ValidateTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
-	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	c, err := getClient()
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

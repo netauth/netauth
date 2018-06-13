@@ -5,8 +5,6 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
-
 	"github.com/google/subcommands"
 )
 
@@ -37,7 +35,7 @@ func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	// Grab a client
-	c, err := client.New(serverAddr, serverPort, serviceID, clientID)
+	c, err := getClient()
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

@@ -17,6 +17,7 @@ var (
 	serviceID  = flag.String("service", "netauthctl", "Service ID to send")
 	entity     = flag.String("entity", "", "Entity to send in the request")
 	secret     = flag.String("secret", "", "Secret to send in the request")
+	configpath = flag.String("config", "", "Alternate config file to use")
 )
 
 func main() {
@@ -34,6 +35,7 @@ func main() {
 	ctl.SetServiceID(*serviceID)
 	ctl.SetEntity(*entity)
 	ctl.SetSecret(*secret)
+	ctl.SetConfigPath(*configpath)
 
 	// Register all the subcommands, each subcommand must be
 	// registered after the builtins to be resolved in the right
@@ -75,6 +77,7 @@ func main() {
 	subcommands.ImportantFlag("service")
 	subcommands.ImportantFlag("entity")
 	subcommands.ImportantFlag("secret")
+	subcommands.ImportantFlag("config")
 
 	// By default we will run the functions at background context.
 	// Below  this call  level it  may be  necessary to  reset the
