@@ -1,16 +1,21 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
 
-	"google.golang.org/grpc"
 	"github.com/BurntSushi/toml"
+	"google.golang.org/grpc"
 
 	pb "github.com/NetAuth/Protocol"
+)
+
+var (
+	ConfigError = errors.New("Required configuration values are missing")
 )
 
 // New takes in a NACLConfig pointer and uses this to bootstrap a
@@ -27,6 +32,14 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 	}
 	cfg.ServiceID = ensureServiceID(cfg.ServiceID)
 	cfg.ClientID = ensureClientID(cfg.ClientID)
+
+	// Make sure the server/port tuple is defined.
+	if cfg.Server == "" {
+		return nil, ConfigError
+	}
+	if cfg.Port == 0 {
+		cfg.Port = 8080
+	}
 
 	// Setup the connection.
 	conn, err := grpc.Dial(
