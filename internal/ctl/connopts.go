@@ -16,7 +16,7 @@ var (
 	serviceID  = flag.String("service", getServiceID(), "Service ID to send")
 	entity     = flag.String("entity", "", "Entity to send in the request")
 	secret     = flag.String("secret", "", "Secret to send in the request")
-	configpath = flag.String("config", "", "Alternate config file to use")
+	configpath = flag.String("config", "/etc/netauth.toml", "Alternate config file to use")
 )
 
 // loadConfig loads the config in.  It would have been nice to do this
@@ -25,8 +25,9 @@ func loadConfig() {
 	if cfg != nil {
 		return
 	}
+	flag.Parse()
 	var err error
-	cfg, err = client.LoadConfig("netauth.toml")
+	cfg, err = client.LoadConfig(*configpath)
 	if err != nil && !os.IsNotExist(err) {
 		fmt.Println("Config loading error: ", err)
 		return
