@@ -16,6 +16,7 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/rpc"
+	"github.com/NetAuth/NetAuth/internal/health"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -130,5 +131,9 @@ func main() {
 	log.Println("Ready to Serve...")
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
+
+	// Flip the status okay and launch into the RPC handling
+	// phase.
+	health.SetGood()
 	grpcServer.Serve(sock)
 }
