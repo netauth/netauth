@@ -32,7 +32,7 @@ func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(entity, secret)
+	t, err := c.GetToken(getEntity(), getSecret())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

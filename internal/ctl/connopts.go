@@ -1,63 +1,88 @@
 package ctl
 
 import (
+	"flag"
+	"fmt"
 	"os"
 
 	"github.com/NetAuth/NetAuth/pkg/client"
-	"github.com/imdario/mergo"
 )
 
 var (
-	serverAddr string
-	serverPort int
-	clientID   string
-	serviceID  string
-	entity     string
-	secret     string
-	configpath string
+	cfg        *client.NACLConfig
+	serverAddr = flag.String("server", getServer(), "Server Address")
+	serverPort = flag.Int("port", getPort(), "Server port")
+	clientID   = flag.String("client", getClientID(), "Client ID to send")
+	serviceID  = flag.String("service", getServiceID(), "Service ID to send")
+	entity     = flag.String("entity", "", "Entity to send in the request")
+	secret     = flag.String("secret", "", "Secret to send in the request")
+	configpath = flag.String("config", "", "Alternate config file to use")
 )
 
-// SetServerAddr sets the server address varaiable for the rpc options
-func SetServerAddr(s string) { serverAddr = s }
+// loadConfig loads the config in.  It would have been nice to do this
+// in init(), but that gets called too late
+func loadConfig() {
+	if cfg != nil {
+		return
+	}
+	var err error
+	cfg, err = client.LoadConfig("netauth.toml")
+	if err != nil && !os.IsNotExist(err) {
+		fmt.Println("Config loading error: ", err)
+		return
+	}
+}
 
-// SetServerPort sets the server port variable for the rpc options
-func SetServerPort(p int) { serverPort = p }
+// Hide the entity and secret behind functions so its easier to swap
+// them out later for more complex ways to get the values.
+func getEntity() string { return *entity }
+func getSecret() string { return *secret }
 
-// SetClientID sets the client ID for the rpc options.  This is set by
-// the client and is not to be used for security purposes.
-func SetClientID(s string) { clientID = s }
+// Hide the other defaults as well
+func getServer() string {
+	loadConfig()
+	if cfg == nil || cfg.Server == "" {
+		return "localhost"
+	}
+	return cfg.Server
+}
 
-// SetServiceID sets the service ID for the rpc options.  This is set
-// by the client and is not to be used for security purposes.
-func SetServiceID(s string) { serviceID = s }
+func getPort() int {
+	loadConfig()
+	if cfg == nil || cfg.Port == 0 {
+		return 8080
+	}
+	return cfg.Port
+}
 
-// SetEntity sets the entity for all subcommands.
-func SetEntity(s string) { entity = s }
+func getServiceID() string {
+	loadConfig()
+	if cfg == nil || cfg.ServiceID == "" {
+		return "netauthctl"
+	}
+	return cfg.ServiceID
+}
 
-// SetSecret sets the secret for all subcommands.
-func SetSecret(s string) { secret = s }
-
-// SetConfigPath sets the path to the library configuration file
-func SetConfigPath(s string) { configpath = s }
+func getClientID() string {
+	loadConfig()
+	if cfg == nil || cfg.ClientID == "" {
+		hostname, err := os.Hostname()
+		if err != nil {
+			return ""
+		}
+		return hostname
+	}
+	return cfg.ClientID
+}
 
 // getClient attempts to return a client to the caller that is
 // configured and ready to use.
 func getClient() (*client.NetAuthClient, error) {
-	override := client.NACLConfig{
-		Server:    serverAddr,
-		Port:      serverPort,
-		ClientID:  clientID,
-		ServiceID: serviceID,
+	cconf := client.NACLConfig{
+		Server:    *serverAddr,
+		Port:      *serverPort,
+		ClientID:  *clientID,
+		ServiceID: *serviceID,
 	}
-
-	cfg, err := client.LoadConfig(configpath)
-	if err != nil && !os.IsNotExist(err) {
-		return nil, err
-	}
-
-	if err := mergo.Merge(cfg, override, mergo.WithOverride); err != nil {
-		return nil, err
-	}
-
-	return client.New(cfg)
+	return client.New(&cconf)
 }

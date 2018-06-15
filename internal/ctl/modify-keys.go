@@ -28,7 +28,7 @@ key type like 'SSH' or 'GPG'.
 }
 
 func (p *ModifyKeysCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", entity, "Entity to act on")
+	f.StringVar(&p.ID, "ID", getEntity(), "Entity to act on")
 	f.StringVar(&p.keyType, "type", "SSH", "Type of the key")
 	f.StringVar(&p.key, "key", "", "Key contents")
 	f.StringVar(&p.mode, "mode", "LIST", "Action to perform on keys")
@@ -43,7 +43,7 @@ func (p *ModifyKeysCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(entity, secret)
+	t, err := c.GetToken(getEntity(), getSecret())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

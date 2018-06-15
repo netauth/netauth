@@ -31,7 +31,7 @@ func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	// If the entity wasn't provided, use the one that was set
 	// earlier.
 	if p.ID == "" {
-		p.ID = entity
+		p.ID = getEntity()
 	}
 
 	// Grab a client

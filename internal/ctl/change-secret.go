@@ -30,7 +30,7 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	// If the entity wasn't provided, use the one that was set
 	// earlier.
 	if p.ID == "" {
-		p.ID = entity
+		p.ID = getEntity()
 	}
 
 	// Grab a client
@@ -41,14 +41,14 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(entity, secret)
+	t, err := c.GetToken(getEntity(), getSecret())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 
 	// Change the secret
-	result, err := c.ChangeSecret(entity, secret, p.ID, p.secret, t)
+	result, err := c.ChangeSecret(getEntity(), getSecret(), p.ID, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

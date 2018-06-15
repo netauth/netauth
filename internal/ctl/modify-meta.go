@@ -30,7 +30,7 @@ Modify an entity by updating the named fields to the provided values.
 }
 
 func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", entity, "ID for the entity to modify")
+	f.StringVar(&p.ID, "ID", getEntity(), "ID for the entity to modify")
 	f.StringVar(&p.GECOS, "GECOS", "NO_CHANGE", "Entity GECOS field")
 	f.StringVar(&p.legalName, "legalName", "NO_CHANGE", "Legal name associated with the entity")
 	f.StringVar(&p.displayName, "displayName", "NO_CHANGE", "Display name associated with the entity")
@@ -41,12 +41,6 @@ func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
 }
 
 func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// If the entity wasn't provided, use the one that was set
-	// earlier.
-	if p.ID == "" {
-		p.ID = entity
-	}
-
 	// Grab a client
 	c, err := getClient()
 	if err != nil {
@@ -55,7 +49,7 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(entity, secret)
+	t, err := c.GetToken(getEntity(), getSecret())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

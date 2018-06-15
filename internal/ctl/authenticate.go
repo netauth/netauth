@@ -29,7 +29,7 @@ func (*AuthCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) su
 	}
 
 	// Attempt authentication
-	result, err := c.Authenticate(entity, secret)
+	result, err := c.Authenticate(getEntity(), getSecret())
 	if err != nil {
 		return subcommands.ExitFailure
 	}

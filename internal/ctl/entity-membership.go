@@ -31,7 +31,7 @@ and the group must exist already.
 }
 
 func (c *EntityMembershipCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.entityID, "ID", entity, "ID of the entity to add to the group")
+	f.StringVar(&c.entityID, "ID", getEntity(), "ID of the entity to add to the group")
 	f.StringVar(&c.groupName, "group", "", "Name of the group to add to")
 	f.StringVar(&c.action, "action", "", "Action to perform, must be 'add' or 'remove'")
 }
@@ -45,7 +45,7 @@ func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ..
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(entity, secret)
+	t, err := c.GetToken(getEntity(), getSecret())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

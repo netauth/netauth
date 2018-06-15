@@ -7,18 +7,6 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// ensureSecret prompts for the secret if it was not provided already.
-// This gets around the secret being visible on the command line.
-func ensureSecret() {
-	if secret == "" {
-		fmt.Print("Secret: ")
-		_, err := fmt.Scanln(&secret)
-		if err != nil {
-			fmt.Printf("Error: %s", err)
-		}
-	}
-}
-
 func printEntity(entity *pb.Entity, fields string) {
 	fieldList := []string{}
 	if fields != "" {

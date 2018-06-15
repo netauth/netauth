@@ -29,7 +29,7 @@ func (*ValidateTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 	}
 
 	// Attempt to validate the token
-	result, err := c.ValidateToken(entity)
+	result, err := c.ValidateToken(getEntity())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

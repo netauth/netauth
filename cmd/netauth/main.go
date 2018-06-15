@@ -10,32 +10,8 @@ import (
 	"github.com/google/subcommands"
 )
 
-var (
-	serverAddr = flag.String("server", "localhost", "Server Address")
-	serverPort = flag.Int("port", 8080, "Server port")
-	clientID   = flag.String("client", "", "Client ID to send")
-	serviceID  = flag.String("service", "netauthctl", "Service ID to send")
-	entity     = flag.String("entity", "", "Entity to send in the request")
-	secret     = flag.String("secret", "", "Secret to send in the request")
-	configpath = flag.String("config", "", "Alternate config file to use")
-)
-
 func main() {
 	flag.Parse()
-
-	// These are global options, they get passed inwards to
-	// package level variables to the internal/ctl package so that
-	// subcommands can access these without needing to redefine
-	// them.  Any new variable here must get a package level
-	// variable in internal/ctl/connopts.go and an associated
-	// setter method in the same file.
-	ctl.SetServerAddr(*serverAddr)
-	ctl.SetServerPort(*serverPort)
-	ctl.SetClientID(*clientID)
-	ctl.SetServiceID(*serviceID)
-	ctl.SetEntity(*entity)
-	ctl.SetSecret(*secret)
-	ctl.SetConfigPath(*configpath)
 
 	// Register all the subcommands, each subcommand must be
 	// registered after the builtins to be resolved in the right

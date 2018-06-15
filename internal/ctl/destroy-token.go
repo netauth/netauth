@@ -30,7 +30,7 @@ func (*DestroyTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	// Destroy the token
-	if err := c.DestroyToken(entity); err != nil {
+	if err := c.DestroyToken(getEntity()); err != nil {
 		fmt.Printf("Error during token destruction: %s\n", err)
 		return subcommands.ExitFailure
 	}
