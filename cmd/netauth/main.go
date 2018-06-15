@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"flag"
+	"io/ioutil"
+	"log"
 	"os"
 
 	"github.com/NetAuth/NetAuth/internal/ctl"
@@ -12,6 +14,12 @@ import (
 
 func main() {
 	flag.Parse()
+
+	// Turn off the logging since the client should not be
+	// spitting out any content unless its explicitly printed out
+	// from internal/ctl.
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
 
 	// Register all the subcommands, each subcommand must be
 	// registered after the builtins to be resolved in the right
