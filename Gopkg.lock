@@ -38,12 +38,6 @@
   revision = "ce3d4cfc062faac7115d44e5befec8b5a08c3faa"
 
 [[projects]]
-  name = "github.com/imdario/mergo"
-  packages = ["."]
-  revision = "9316a62528ac99aaecb4e47eadd6dc8aa6533d58"
-  version = "v0.3.5"
-
-[[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
   packages = [
@@ -125,6 +119,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d585b0fbb86c3437b9e9a0503be291cded3f5a9253326e69617d0d4e677cbc33"
+  inputs-digest = "9a9906de8eeea33a1fa82998e9e5040c13501e9494e91b6be8fa1e86025a9dbf"
   solver-name = "gps-cdcl"
   solver-version = 1
