@@ -24,13 +24,8 @@ func loadConfig() {
 	if cfg != nil {
 		return
 	}
-	config := os.Getenv("NACLCONFIG")
-	if config == "" {
-		config = "/etc/netauth.toml"
-	}
-
 	var err error
-	cfg, err = client.LoadConfig(config)
+	cfg, err = client.LoadConfig("")
 	if err != nil && !os.IsNotExist(err) {
 		fmt.Println("Config loading error: ", err)
 		return

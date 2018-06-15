@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
@@ -80,11 +81,14 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 // location, or the provided path if specified.
 func LoadConfig(cfgpath string) (*NACLConfig, error) {
 	if cfgpath == "" {
-		// If it wasn't set, this is the location to load
-		// from.  At some point this path should come about
-		// via an OS agnostic way since Windows doesn't have
-		// an /etc to load from.
-		cfgpath = "/etc/netauth.conf"
+		cfgpath = os.Getenv("NACLCONFIG")
+		if cfgpath == "" {
+			// If it wasn't set, this is the location to
+			// load from.  At some point this path should
+			// come about via an OS agnostic way since
+			// Windows doesn't have an /etc to load from.
+			cfgpath = "/etc/netauth.conf"
+		}
 	}
 
 	// Actually load the config
