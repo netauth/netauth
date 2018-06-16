@@ -29,6 +29,14 @@ type NACLConfig struct {
 	ClientID  string
 }
 
+// SetServiceID allows the service ID to be changed on an initialized
+// client.  This allows the general case to source everything from the
+// config file and then set the service ID after the client is
+// initialized.
+func (n *NetAuthClient) SetServiceID(id string) {
+	n.cfg.ServiceID = ensureServiceID(id)
+}
+
 // Ping very simply pings the server.  The reply will contain the
 // health status of the server as a server that replies and a server
 // that can serve are two very different things (data might be
