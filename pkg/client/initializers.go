@@ -87,7 +87,7 @@ func LoadConfig(cfgpath string) (*NACLConfig, error) {
 			// load from.  At some point this path should
 			// come about via an OS agnostic way since
 			// Windows doesn't have an /etc to load from.
-			cfgpath = "/etc/netauth.conf"
+			cfgpath = "/etc/netauth.toml"
 		}
 	}
 
