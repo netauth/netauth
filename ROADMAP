@@ -51,6 +51,11 @@ v0.0.5:
 
 At this point a viable release candidate should exist.
 
+v0.0.6:
+  * Client and API cleanup
+  * Correct codes returned for all errors
+  * Errors are constrained to a limited error space
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
