@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
-  revision = "60d326afe3b614a53a591e059cb41a72ff49de86"
+  revision = "1368832640a52ddc2b216056ccc7c12195a2a325"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -29,13 +29,13 @@
     "ptypes/duration",
     "ptypes/timestamp"
   ]
-  revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
+  revision = "9f81198da99b79e14d70ca2c3cc1bbe44c6e69b6"
 
 [[projects]]
   branch = "master"
   name = "github.com/google/subcommands"
   packages = ["."]
-  revision = "ce3d4cfc062faac7115d44e5befec8b5a08c3faa"
+  revision = "5bae204cdfb2d92dcc333d56014bae6a2f6c58b1"
 
 [[projects]]
   branch = "master"
@@ -44,24 +44,23 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "13931e22f9e72ea58bb73048bc752b48c6d4d4ac"
+  revision = "7f39a6fea4fe9364fb61e1def6a268a51b4f3a06"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "http/httpguts",
     "http2",
     "http2/hpack",
     "idna",
     "internal/timeseries",
-    "lex/httplex",
     "trace"
   ]
-  revision = "5ccada7d0a7ba9aeb5d3aca8d3501b4c2a509fec"
+  revision = "db08ff08e8622530d9ed3a0e8ac279f6d4c02196"
 
 [[projects]]
-  branch = "master"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -79,13 +78,14 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "a8101f21cf983e773d0c1133ebc5424792003214"
+  revision = "32ee49c4dd805befd833990acba36cb75042378c"
 
 [[projects]]
   name = "google.golang.org/grpc"
@@ -98,9 +98,12 @@
     "connectivity",
     "credentials",
     "encoding",
-    "grpclb/grpc_lb_v1/messages",
+    "encoding/proto",
     "grpclog",
     "internal",
+    "internal/backoff",
+    "internal/channelz",
+    "internal/grpcrand",
     "keepalive",
     "metadata",
     "naming",
@@ -113,8 +116,8 @@
     "tap",
     "transport"
   ]
-  revision = "7cea4cc846bcf00cbb27595b07da5de875ef7de9"
-  version = "v1.9.1"
+  revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
+  version = "v1.13.0"
 
 [solve-meta]
   analyzer-name = "dep"
