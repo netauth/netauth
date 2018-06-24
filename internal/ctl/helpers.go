@@ -15,6 +15,7 @@ func printEntity(entity *pb.Entity, fields string) {
 		fieldList = []string{
 			"ID",
 			"number",
+			"PrimaryGroup",
 			"GECOS",
 			"legalName",
 			"displayName",
@@ -31,6 +32,10 @@ func printEntity(entity *pb.Entity, fields string) {
 			fmt.Printf("ID: %s\n", entity.GetID())
 		case "number":
 			fmt.Printf("Number: %d\n", entity.GetNumber())
+		case "PrimaryGroup":
+			if entity.Meta != nil && entity.GetMeta().GetPrimaryGroup() != "" {
+				fmt.Printf("Primary Group: %s\n", entity.GetMeta().GetPrimaryGroup())
+			}
 		case "GECOS":
 			if entity.Meta != nil && entity.GetMeta().GetGECOS() != "" {
 				fmt.Printf("GECOS: %s\n", entity.GetMeta().GetGECOS())

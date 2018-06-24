@@ -13,6 +13,7 @@ import (
 type ModifyMetaCmd struct {
 	ID             string
 	GECOS          string
+	PrimaryGroup   string
 	legalName      string
 	displayName    string
 	homedir        string
@@ -31,6 +32,7 @@ Modify an entity by updating the named fields to the provided values.
 
 func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.ID, "ID", getEntity(), "ID for the entity to modify")
+	f.StringVar(&p.PrimaryGroup, "primary-group", "NO_CHANGE", "Primary Group")
 	f.StringVar(&p.GECOS, "GECOS", "NO_CHANGE", "Entity GECOS field")
 	f.StringVar(&p.legalName, "legalName", "NO_CHANGE", "Legal name associated with the entity")
 	f.StringVar(&p.displayName, "displayName", "NO_CHANGE", "Display name associated with the entity")
@@ -64,6 +66,9 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	// means that the server only remembers the last thing to
 	// change.  If of course you want to literally set a field to
 	// "NO_CHANGE" this is somewhat impossible to do with the CLI.
+	if p.PrimaryGroup != "NO_CHANGE" {
+		meta.PrimaryGroup = &p.PrimaryGroup
+	}
 	if p.GECOS != "NO_CHANGE" {
 		meta.GECOS = &p.GECOS
 	}
@@ -88,6 +93,7 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 
 	result, err := c.ModifyEntityMeta(p.ID, t, meta)
 	if err != nil {
+		fmt.Println(err)
 		return subcommands.ExitFailure
 	}
 	if result.GetMsg() != "" {

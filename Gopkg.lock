@@ -11,7 +11,7 @@
   branch = "master"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
-  revision = "1368832640a52ddc2b216056ccc7c12195a2a325"
+  revision = "9b14c08335b3b6f2248b5578bd1e6344212e8bda"
 
 [[projects]]
   name = "github.com/dgrijalva/jwt-go"
@@ -29,7 +29,7 @@
     "ptypes/duration",
     "ptypes/timestamp"
   ]
-  revision = "9f81198da99b79e14d70ca2c3cc1bbe44c6e69b6"
+  revision = "9eb2c01ac278a5d89ce4b2be68fe4500955d8179"
 
 [[projects]]
   branch = "master"
@@ -44,7 +44,7 @@
     "bcrypt",
     "blowfish"
   ]
-  revision = "7f39a6fea4fe9364fb61e1def6a268a51b4f3a06"
+  revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
@@ -58,7 +58,7 @@
     "internal/timeseries",
     "trace"
   ]
-  revision = "db08ff08e8622530d9ed3a0e8ac279f6d4c02196"
+  revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -85,7 +85,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "32ee49c4dd805befd833990acba36cb75042378c"
+  revision = "80063a038e333bbe006c878e4c5ce4c74d055498"
 
 [[projects]]
   name = "google.golang.org/grpc"
