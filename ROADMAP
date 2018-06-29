@@ -56,6 +56,10 @@ v0.0.6:
   * Correct codes returned for all errors
   * Errors are constrained to a limited error space
 
+v0.0.7:
+  * TLS by default
+  * Primary Group for UNIX accounts
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
