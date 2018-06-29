@@ -14,9 +14,9 @@ import (
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/impl"
 
-	"github.com/NetAuth/NetAuth/internal/tree"
-	"github.com/NetAuth/NetAuth/internal/rpc"
 	"github.com/NetAuth/NetAuth/internal/health"
+	"github.com/NetAuth/NetAuth/internal/rpc"
+	"github.com/NetAuth/NetAuth/internal/tree"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -27,9 +27,9 @@ import (
 var (
 	bindPort    = flag.Int("port", 8080, "Serving port, defaults to 8080")
 	bindAddr    = flag.String("bind", "localhost", "Bind address, defaults to localhost")
-	useTLS      = flag.Bool("tls", false, "Enable TLS, off by default")
-	certFile    = flag.String("cert_file", "", "Path to certificate file")
-	keyFile     = flag.String("key_file", "", "Path to key file")
+	insecure    = flag.Bool("PWN_ME", false, "Disable TLS; Don't set on a production server!")
+	certFile    = flag.String("cert_file", "netauth.cert", "Path to certificate file")
+	keyFile     = flag.String("key_file", "netauth.certkey", "Path to key file")
 	bootstrap   = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
 	db_impl     = flag.String("db", "MemDB", "Database implementation to use.")
 	crypto_impl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
@@ -59,7 +59,7 @@ func newServer() *rpc.NetAuthServer {
 	}
 
 	return &rpc.NetAuthServer{
-		Tree: tree,
+		Tree:  tree,
 		Token: tokenService,
 	}
 }
@@ -78,16 +78,14 @@ func main() {
 
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
-	if *useTLS {
+	if !*insecure {
 		log.Printf("TLS with the certificate %s and key %s", *certFile, *keyFile)
 		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
 		if err != nil {
-			log.Fatalf("TLS credentials could not be generated! %v", err)
+			log.Fatalf("TLS credentials could not be loaded! %v", err)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
-	}
-
-	if !*useTLS {
+	} else {
 		// Not using TLS in an auth server?  For shame...
 		log.Println("Launching without TLS! Your passwords will be shipped in the clear!")
 		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")

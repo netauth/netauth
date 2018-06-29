@@ -11,6 +11,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -43,9 +44,25 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 	}
 
 	// Setup the connection.
+	var opts []grpc.DialOption
+	if cfg.PWN_ME {
+		opts = []grpc.DialOption{grpc.WithInsecure()}
+	} else {
+		// If it wasn't set then pull it from the default
+		// location and hope its there.
+		if cfg.ServerCert == "" {
+			cfg.ServerCert = "/etc/netauth.cert"
+		}
+
+		creds, err := credentials.NewClientTLSFromFile(cfg.ServerCert, "")
+		if err != nil {
+			log.Fatalf("Could not load certificate: %s", err)
+		}
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	}
 	conn, err := grpc.Dial(
 		fmt.Sprintf("%s:%d", cfg.Server, cfg.Port),
-		grpc.WithInsecure(),
+		opts...,
 	)
 	if err != nil {
 		return nil, err

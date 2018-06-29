@@ -27,4 +27,5 @@ vendor/
 data/
 *.key
 *.pem
+*.cert*
 netauth.toml

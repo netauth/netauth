@@ -27,6 +27,12 @@ type NACLConfig struct {
 	Port      int
 	ServiceID string
 	ClientID  string
+
+	// This could just be "Insecure", but this makes it a bit more
+	// clear that you're a fool to be running with this set.
+	PWN_ME bool
+
+	ServerCert string
 }
 
 // SetServiceID allows the service ID to be changed on an initialized

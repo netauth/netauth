@@ -16,6 +16,8 @@ var (
 	serviceID  = flag.String("service", getServiceID(), "Service ID to send")
 	entity     = flag.String("entity", "", "Entity to send in the request")
 	secret     = flag.String("secret", "", "Secret to send in the request")
+	insecure   = flag.Bool("PWN_ME", false, "Run without server verification")
+	serverCert = flag.String("certificate", getServerCert(), "Certificate of the NetAuth server")
 )
 
 // loadConfig loads the config in.  It would have been nice to do this
@@ -74,14 +76,24 @@ func getClientID() string {
 	return cfg.ClientID
 }
 
+func getServerCert() string {
+	loadConfig()
+	if cfg == nil || cfg.ServerCert == "" {
+		return "/etc/netauth.cert"
+	}
+	return cfg.ServerCert
+}
+
 // getClient attempts to return a client to the caller that is
 // configured and ready to use.
 func getClient() (*client.NetAuthClient, error) {
 	cconf := client.NACLConfig{
-		Server:    *serverAddr,
-		Port:      *serverPort,
-		ClientID:  *clientID,
-		ServiceID: *serviceID,
+		Server:     *serverAddr,
+		Port:       *serverPort,
+		ClientID:   *clientID,
+		ServiceID:  *serviceID,
+		ServerCert: *serverCert,
+		PWN_ME:     *insecure,
 	}
 	return client.New(&cconf)
 }
