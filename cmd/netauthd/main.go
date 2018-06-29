@@ -31,7 +31,7 @@ var (
 	certFile    = flag.String("cert_file", "netauth.cert", "Path to certificate file")
 	keyFile     = flag.String("key_file", "netauth.certkey", "Path to key file")
 	bootstrap   = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	db_impl     = flag.String("db", "MemDB", "Database implementation to use.")
+	db_impl     = flag.String("db", "ProtoDB", "Database implementation to use.")
 	crypto_impl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
 )
 

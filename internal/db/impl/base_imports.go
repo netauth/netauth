@@ -1,6 +1,5 @@
-package db_impl
+package impl
 
 import (
-	_ "github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
 	_ "github.com/NetAuth/NetAuth/internal/db/impl/ProtoDB"
 )
