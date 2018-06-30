@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"os"
+	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	"github.com/NetAuth/NetAuth/internal/tree"
@@ -278,7 +279,15 @@ func (n *NetAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, erro
 	if status.Code(err) != codes.OK {
 		return nil, err
 	}
-	return result.GetKeys(), nil
+
+	keys := []string{}
+	for _, k := range result.GetKeys() {
+		parts := strings.Split(k, ":")
+		if parts[0] == kt {
+			keys = append(keys, parts[1])
+		}
+	}
+	return keys, nil
 }
 
 // NewGroup creates a new group with the given name, display name, and
