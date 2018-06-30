@@ -87,8 +87,20 @@ func main() {
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	} else {
 		// Not using TLS in an auth server?  For shame...
+		log.Println("===================================================================")
+		log.Println("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
+		log.Println("===================================================================")
+		log.Println("")
 		log.Println("Launching without TLS! Your passwords will be shipped in the clear!")
-		log.Println("You should really start the server with -tls -key_file <keyfile> -cert_file <certfile>")
+		log.Println("Seriously, the option is --PWN_ME for a reason, you're trusting the")
+		log.Println("network fabric with your authentication information, and this is a ")
+		log.Println("bad idea.  Anyone on your local network can get passwords, tokens, ")
+		log.Println("and other secure information.  You should instead obtain a ")
+		log.Println("certificate and key and start the server with those.")
+		log.Println("")
+		log.Println("===================================================================")
+		log.Println("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
+		log.Println("===================================================================")
 	}
 
 	// Spit out what backends we know about
