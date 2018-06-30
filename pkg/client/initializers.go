@@ -56,7 +56,8 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 
 		creds, err := credentials.NewClientTLSFromFile(cfg.ServerCert, "")
 		if err != nil {
-			log.Fatalf("Could not load certificate: %s", err)
+			log.Printf("Could not load certificate: %s", err)
+			return nil, err
 		}
 		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	}
