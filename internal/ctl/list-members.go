@@ -30,7 +30,7 @@ func (p *ListMembersCmd) SetFlags(f *flag.FlagSet) {
 
 func (p *ListMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	if p.ID == "" {
-		fmt.Println("--ID must be specified for group-members")
+		fmt.Println("--group must be specified for group-members")
 		return subcommands.ExitFailure
 	}
 
