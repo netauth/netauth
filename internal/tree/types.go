@@ -1,8 +1,8 @@
 package tree
 
 import (
-	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/NetAuth/NetAuth/internal/db"
 )
 
 type Manager struct {

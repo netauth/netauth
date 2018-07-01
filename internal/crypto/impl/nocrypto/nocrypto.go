@@ -14,7 +14,7 @@ func init() {
 }
 
 func New() crypto.EMCrypto {
-	return & NoCrypto{}
+	return &NoCrypto{}
 }
 
 func (n *NoCrypto) SecureSecret(s string) (string, error) {

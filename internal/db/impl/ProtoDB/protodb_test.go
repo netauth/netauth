@@ -8,7 +8,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/db"
-	
+
 	pb "github.com/NetAuth/Protocol"
 )
 

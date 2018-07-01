@@ -3,8 +3,8 @@ package health
 import "testing"
 
 func TestHealth(t *testing.T) {
-	s := []struct{
-		set bool
+	s := []struct {
+		set  bool
 		want bool
 	}{
 		{false, false},

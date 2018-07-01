@@ -38,7 +38,7 @@ func (m Manager) NewGroup(name, displayName, managedBy string, number int32) err
 	newGroup := &pb.Group{
 		Name:        &name,
 		DisplayName: &displayName,
-		Number:   &number,
+		Number:      &number,
 		ManagedBy:   &managedBy,
 	}
 
