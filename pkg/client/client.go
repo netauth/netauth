@@ -497,7 +497,7 @@ func (n *NetAuthClient) ModifyGroupExpansions(t, p, c, m string) (*pb.SimpleResu
 func (n *NetAuthClient) ManageCapabilities(t, e, g, c, m string) (*pb.SimpleResult, error) {
 	capID, ok := pb.Capability_value[c]
 	if !ok {
-		return nil, tree.UnknownCapability
+		return nil, tree.ErrUnknownCapability
 	}
 	cap := pb.Capability(capID)
 

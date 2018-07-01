@@ -245,10 +245,7 @@ func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 
 	var safeMembers []*pb.Entity
 	for _, e := range members {
-		ne, err := safeCopyEntity(e)
-		if err != nil {
-			return nil, err
-		}
+		ne := safeCopyEntity(e)
 		safeMembers = append(safeMembers, ne)
 	}
 
@@ -261,7 +258,7 @@ func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
 	for _, exp := range g.GetExpansions() {
 		if strings.Contains(exp, candidate) {
-			return ExistingExpansion
+			return ErrExistingExpansion
 		}
 	}
 	return nil
@@ -315,7 +312,7 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 	}
 
 	if m.checkGroupCycles(c, p.GetName()) && mode != pb.ExpansionMode_DROP {
-		return ExistingExpansion
+		return ErrExistingExpansion
 	}
 
 	// Either add the include, add the exclude, or drop the old
@@ -338,4 +335,41 @@ func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMo
 	}
 
 	return m.db.SaveGroup(p)
+}
+
+// dedupEntityList takes in a list of entities and deduplicates them
+// using a map.
+func dedupEntityList(entList []*pb.Entity) []*pb.Entity {
+	eMap := make(map[string]*pb.Entity)
+	for _, e := range entList {
+		eMap[e.GetID()] = e
+	}
+
+	// Back to a list...
+	var eList []*pb.Entity
+	for _, e := range eMap {
+		eList = append(eList, e)
+	}
+	return eList
+}
+
+// entityListDifference computes the set of entities that are in list
+// a and not in list b.
+func entityListDifference(a, b []*pb.Entity) []*pb.Entity {
+	diffMap := make(map[string]*pb.Entity)
+	// Get a map of the possible options
+	for _, e := range a {
+		diffMap[e.GetID()] = e
+	}
+	// Remove the ones that are in the exclude map
+	for _, e := range b {
+		delete(diffMap, e.GetID())
+	}
+
+	var entList []*pb.Entity
+	for _, ent := range diffMap {
+		entList = append(entList, ent)
+	}
+
+	return entList
 }

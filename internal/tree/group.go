@@ -14,7 +14,7 @@ import (
 func (m Manager) NewGroup(name, displayName, managedBy string, number int32) error {
 	if _, err := m.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
-		return DuplicateGroupName
+		return ErrDuplicateGroupName
 	}
 
 	// Verify that the managing group exists.
@@ -46,7 +46,7 @@ func (m Manager) NewGroup(name, displayName, managedBy string, number int32) err
 	return nil
 }
 
-// getGroupByName fetches a group by name and returns a pointer to the
+// GetGroupByName fetches a group by name and returns a pointer to the
 // group and a nil error.  If the group cannot be loaded the error
 // will explain why.  This is very thin since it just obtains a value
 // from the storage layer.
@@ -54,13 +54,13 @@ func (m Manager) GetGroupByName(name string) (*pb.Group, error) {
 	return m.db.LoadGroup(name)
 }
 
-// deleteGroup unsurprisingly deletes a group.  There's no real logic
+// DeleteGroup unsurprisingly deletes a group.  There's no real logic
 // here, it just passes the delete call through to the storage layer.
 func (m Manager) DeleteGroup(name string) error {
 	return m.db.DeleteGroup(name)
 }
 
-// updateGroupMeta updates metadata within the group.  Certain
+// UpdateGroupMeta updates metadata within the group.  Certain
 // information is not mutable and so that information is not merged
 // in.
 func (m Manager) UpdateGroupMeta(name string, update *pb.Group) error {
@@ -112,7 +112,7 @@ func (m Manager) ListGroups() ([]*pb.Group, error) {
 func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return UnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -139,7 +139,7 @@ func (m Manager) setGroupCapability(g *pb.Group, c string) error {
 func (m Manager) removeGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return UnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -188,7 +188,7 @@ func (m Manager) RemoveGroupCapabilityByName(name string, c string) error {
 // inefficient but it only is called when a new group is being
 // created, which is hopefully infrequent.
 func (m Manager) nextGIDNumber() (int32, error) {
-	var largest int32 = 0
+	var largest int32
 
 	l, err := m.db.DiscoverGroupNames()
 	if err != nil {

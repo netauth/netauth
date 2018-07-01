@@ -75,15 +75,15 @@ func toWireError(err error) error {
 		return status.Errorf(codes.FailedPrecondition, err.Error())
 	case token.TokenInvalid:
 		return status.Errorf(codes.Unauthenticated, err.Error())
-	case tree.DuplicateEntityID:
+	case tree.ErrDuplicateEntityID:
 		return status.Errorf(codes.AlreadyExists, err.Error())
-	case tree.DuplicateGroupName:
+	case tree.ErrDuplicateGroupName:
 		return status.Errorf(codes.AlreadyExists, err.Error())
-	case tree.DuplicateNumber:
+	case tree.ErrDuplicateNumber:
 		return status.Errorf(codes.AlreadyExists, err.Error())
-	case tree.UnknownCapability:
+	case tree.ErrUnknownCapability:
 		return status.Errorf(codes.NotFound, err.Error())
-	case tree.ExistingExpansion:
+	case tree.ErrExistingExpansion:
 		return status.Errorf(codes.AlreadyExists, err.Error())
 	case MalformedRequest:
 		return status.Errorf(codes.InvalidArgument, err.Error())

@@ -20,7 +20,7 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 	// Does this entity exist already?
 	if _, err := m.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
-		return DuplicateEntityID
+		return ErrDuplicateEntityID
 	}
 
 	// Were we given a specific number?
@@ -60,14 +60,43 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 	return nil
 }
 
-// NewBootstrapEntity is a function that can be called during the
-// startup of the srever to create an entity that has the appropriate
+// nextUIDNumber computes the next available number to be assigned.
+// This allows a NewEntity request to be made with the number field
+// unset.
+func (m Manager) nextUIDNumber() (int32, error) {
+	var largest int32
+
+	// Iterate over the entities and return the largest ID found
+	// +1.  This allows them to be in any order or have IDs
+	// missing in the middle and still work.  Though an
+	// inefficient search this is worst case O(N) and happends
+	// only on provisioning a new entry in the database.
+	el, err := m.db.DiscoverEntityIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	for _, en := range el {
+		e, err := m.db.LoadEntity(en)
+		if err != nil {
+			return 0, err
+		}
+		if e.GetNumber() > largest {
+			largest = e.GetNumber()
+		}
+	}
+
+	return largest + 1, nil
+}
+
+// MakeBootstrap is a function that can be called during the startup
+// of the srever to create an entity that has the appropriate
 // authority to create more entities and otherwise manage the server.
 // This can only be called once during startup, attepts to call it
 // again will result in no change.  The bootstrap user will always get
 // the next available number which in most cases will be 1.
 func (m Manager) MakeBootstrap(ID string, secret string) {
-	if m.bootstrap_done {
+	if m.bootstrapDone {
 		return
 	}
 
@@ -86,7 +115,7 @@ func (m Manager) MakeBootstrap(ID string, secret string) {
 	// root powers.
 	if e != nil {
 		m.setEntityCapability(e, "GLOBAL_ROOT")
-		m.bootstrap_done = true
+		m.bootstrapDone = true
 		return
 	}
 
@@ -99,14 +128,14 @@ func (m Manager) MakeBootstrap(ID string, secret string) {
 		log.Printf("Couldn't provide root authority! (%s)", err)
 	}
 
-	m.bootstrap_done = true
+	m.bootstrapDone = true
 }
 
 // DisableBootstrap disables the ability to bootstrap after the
 // opportunity to do so has passed.
 func (m *Manager) DisableBootstrap() {
 	log.Println("Disabling bootstrap")
-	m.bootstrap_done = true
+	m.bootstrapDone = true
 	log.Println("Bootstrap disabled")
 }
 
@@ -129,7 +158,7 @@ func (m Manager) DeleteEntityByID(ID string) error {
 func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return UnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -156,7 +185,7 @@ func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return UnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -254,7 +283,7 @@ func (m Manager) GetEntity(ID string) (*pb.Entity, error) {
 	// The safeCopyEntity will return the entity without secrets
 	// in it, as well as an error if there were problems
 	// marshaling the proto back and forth.
-	return safeCopyEntity(e)
+	return safeCopyEntity(e), nil
 }
 
 func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
@@ -343,4 +372,17 @@ func (m *Manager) UpdateEntityKeys(entityID, mode, keytype, key string) ([]strin
 	}
 
 	return m.updateEntityKeys(e, mode, keytype, key)
+}
+
+// safeCopyEntity makes a copy of the entity provided but removes
+// fields that are related to security.  This permits the entity that
+// is returned to be handed off outside the server.
+func safeCopyEntity(e *pb.Entity) *pb.Entity {
+	dup := &pb.Entity{}
+	proto.Merge(dup, e)
+
+	// Fields for security are nulled out before returning.
+	dup.Secret = proto.String("<REDACTED>")
+
+	return dup
 }

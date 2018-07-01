@@ -464,7 +464,7 @@ func TestModifyExpansionDuplicate(t *testing.T) {
 	}
 
 	// This shouldn't
-	if err := em.ModifyGroupExpansions("grp1", "grp2", pb.ExpansionMode_INCLUDE); err != ExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp1", "grp2", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
 	}
 }
@@ -490,7 +490,7 @@ func TestModifyExpansionCycle(t *testing.T) {
 	}
 
 	// This one creates the cycle and should fail
-	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
 	}
 }
@@ -520,7 +520,99 @@ func TestCheckGroupCyclesCorruptDB(t *testing.T) {
 
 	// This should bomb out now because there's a cycle check
 	// problem loading the group that was deleted.
-	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
+	}
+}
+
+func TestDedupEntityList(t *testing.T) {
+	em := New(memdb.New(), nocrypto.New())
+
+	s := []struct {
+		ID     string
+		number int32
+		secret string
+	}{
+		{"aaa", -1, ""},
+		{"aab", -1, ""},
+		{"aac", -1, ""},
+		{"aad", -1, ""},
+		{"aae", -1, ""},
+		{"aaf", -1, ""},
+	}
+
+	for _, c := range s {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	allEntities, err := em.allEntities()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make a list with duplicates in it
+	list := allEntities
+	list = append(list, allEntities...)
+	if len(list) == len(allEntities) {
+		t.Fatal("Lists unexpectedly equal")
+	}
+
+	// Dedup it
+	list = dedupEntityList(list)
+
+	// Make sure its got no dups
+	if len(list) != len(allEntities) {
+		t.Fatal("Lists not equal in length")
+	}
+}
+
+func TestEntityListDifference(t *testing.T) {
+	em := New(memdb.New(), nocrypto.New())
+
+	s := []struct {
+		ID     string
+		number int32
+		secret string
+	}{
+		{"aaa", -1, ""},
+		{"aab", -1, ""},
+		{"aac", -1, ""},
+		{"aad", -1, ""},
+		{"aae", -1, ""},
+		{"aaf", -1, ""},
+	}
+
+	for _, c := range s {
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	// Get a list of everyone
+	allEntities, err := em.allEntities()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var allButAAA []*pb.Entity
+	for _, e := range allEntities {
+		if e.GetID() == "aaa" {
+			continue
+		}
+		allButAAA = append(allButAAA, e)
+	}
+
+	if len(allButAAA) == len(allEntities) {
+		t.Fatal("Lists are not different!")
+	}
+
+	shouldJustBeAAA := entityListDifference(allEntities, allButAAA)
+	if len(shouldJustBeAAA) != 1 {
+		t.Fatalf("Length of shouldJustBeAAA is wrong: %d", len(shouldJustBeAAA))
+	}
+	if shouldJustBeAAA[0].GetID() != "aaa" {
+		t.Fatal("Difference contains wrong result!")
 	}
 }

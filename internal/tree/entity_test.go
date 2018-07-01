@@ -12,6 +12,40 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+func TestNextUIDNumber(t *testing.T) {
+	em := New(memdb.New(), nocrypto.New())
+
+	s := []struct {
+		ID            string
+		number        int32
+		secret        string
+		nextUIDNumber int32
+	}{
+		{"foo", 1, "", 2},
+		{"bar", 2, "", 3},
+		{"baz", 65, "", 66}, // Numbers may be missing in the middle
+		{"fuu", 23, "", 66}, // Later additions shouldn't alter max
+	}
+
+	for _, c := range s {
+		//  Make sure the entity actually gets added
+		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
+			t.Error(err)
+		}
+
+		// Validate that after a given mutation the number is
+		// still what we expect it to be.
+		next, err := em.nextUIDNumber()
+		if err != nil {
+			t.Error(err)
+		}
+		if next != c.nextUIDNumber {
+			t.Errorf("Wrong next number; got: %v want %v", next, c.nextUIDNumber)
+		}
+	}
+
+}
+
 func TestAddDuplicateID(t *testing.T) {
 	em := New(memdb.New(), nocrypto.New())
 
@@ -22,7 +56,7 @@ func TestAddDuplicateID(t *testing.T) {
 		err    error
 	}{
 		{"foo", 1, "", nil},
-		{"foo", 2, "", DuplicateEntityID},
+		{"foo", 2, "", ErrDuplicateEntityID},
 	}
 
 	for _, c := range s {
@@ -56,7 +90,7 @@ func TestMakeBootstrapDoubleBootstrap(t *testing.T) {
 	em := New(memdb.New(), nocrypto.New())
 
 	// Claim the bootstrap is already done
-	em.bootstrap_done = true
+	em.bootstrapDone = true
 	em.MakeBootstrap("", "")
 }
 
@@ -101,11 +135,11 @@ func TestMakeBootstrapCreateEntity(t *testing.T) {
 func TestDisableBootstrap(t *testing.T) {
 	em := New(memdb.New(), nocrypto.New())
 
-	if em.bootstrap_done == true {
+	if em.bootstrapDone == true {
 		t.Fatal("Bootstrap is somehow already done")
 	}
 	em.DisableBootstrap()
-	if em.bootstrap_done == false {
+	if em.bootstrapDone == false {
 		t.Fatal("Bootstrap somehow not done")
 	}
 }
@@ -194,7 +228,7 @@ func TestSetCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetEntityCapabilityByID("foo", ""); err != UnknownCapability {
+	if err := em.SetEntityCapabilityByID("foo", ""); err != ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -245,7 +279,7 @@ func TestRemoveCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveEntityCapabilityByID("foo", ""); err != UnknownCapability {
+	if err := em.RemoveEntityCapabilityByID("foo", ""); err != ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -390,5 +424,34 @@ func TestUpdateEntityMetaExternalNoEntity(t *testing.T) {
 
 	if err := em.UpdateEntityMeta("non-existant", nil); err != db.ErrUnknownEntity {
 		t.Fatal(err)
+	}
+}
+
+func TestSafeCopyEntity(t *testing.T) {
+	em := New(memdb.New(), nocrypto.New())
+
+	if err := em.NewEntity("foo", -1, "bar"); err != nil {
+		t.Error(err)
+	}
+
+	e, err := em.db.LoadEntity("foo")
+	if err != nil {
+		t.Error(err)
+	}
+
+	ne := safeCopyEntity(e)
+
+	// The normal way to do this would be to check if the proto is
+	// the same, but here we need to check if two fields are
+	// different, then make sure that everything else is the same.
+	if e.GetSecret() == ne.GetSecret() {
+		t.Error("Secret field not obscured!")
+	}
+
+	e.Secret = proto.String("")
+	ne.Secret = proto.String("")
+
+	if !proto.Equal(e, ne) {
+		t.Error("Entity values not otherwise equal!")
 	}
 }
