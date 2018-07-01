@@ -5,13 +5,13 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 func TestMembershipEdit(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	e := &pb.Entity{}
 
@@ -36,15 +36,15 @@ func TestMembershipEdit(t *testing.T) {
 }
 
 func TestAddEntityToGroupExternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		entity  string
 		group   string
 		wantErr error
 	}{
-		{"foo", "", db.UnknownGroup},
-		{"", "", db.UnknownEntity},
+		{"foo", "", db.ErrUnknownGroup},
+		{"", "", db.ErrUnknownEntity},
 		{"foo", "bar", nil},
 	}
 
@@ -63,7 +63,7 @@ func TestAddEntityToGroupExternal(t *testing.T) {
 }
 
 func TestAddEntityToGroupTwice(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Fatal(err)
@@ -87,15 +87,15 @@ func TestAddEntityToGroupTwice(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroupExternalNoEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.RemoveEntityFromGroup("", ""); err != db.UnknownEntity {
+	if err := em.RemoveEntityFromGroup("", ""); err != db.ErrUnknownEntity {
 		t.Fatal(err)
 	}
 }
 
 func TestRemoveEntityFromGroupExternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Fatal(err)
@@ -107,7 +107,7 @@ func TestRemoveEntityFromGroupExternal(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroup(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Get an entity and some groups
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -144,7 +144,7 @@ func TestRemoveEntityFromGroup(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	e := &pb.Entity{}
 
@@ -154,7 +154,7 @@ func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
 }
 
 func TestGetGroupsNoMeta(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	e := &pb.Entity{}
 
@@ -164,7 +164,7 @@ func TestGetGroupsNoMeta(t *testing.T) {
 }
 
 func TestGetMemberships(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Create some groups
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
@@ -216,7 +216,7 @@ func TestGetMemberships(t *testing.T) {
 }
 
 func TestListMembersALLInternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []string{
 		"foo",
@@ -245,23 +245,23 @@ func TestListMembersALLInternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchInternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 	list, err := em.listMembers("")
-	if list != nil && err != db.UnknownGroup {
+	if list != nil && err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }
 
 func TestListMembersNoMatchExternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 	list, err := em.ListMembers("")
-	if list != nil && err != db.UnknownGroup {
+	if list != nil && err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }
 
 func TestListMembersNoExpansions(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -285,7 +285,7 @@ func TestListMembersNoExpansions(t *testing.T) {
 }
 
 func TestListMembersWithExpansions(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Create some groups
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
@@ -349,7 +349,7 @@ func TestListMembersWithExpansions(t *testing.T) {
 }
 
 func TestAddExpansionInclude(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -373,7 +373,7 @@ func TestAddExpansionInclude(t *testing.T) {
 }
 
 func TestAddExpansionExclude(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -397,7 +397,7 @@ func TestAddExpansionExclude(t *testing.T) {
 }
 
 func TestDropExpansion(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {
@@ -429,27 +429,27 @@ func TestDropExpansion(t *testing.T) {
 }
 
 func TestModifyExpansionBadParent(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.ModifyGroupExpansions("Bogus-Parent", "", pb.ExpansionMode_INCLUDE); err != db.UnknownGroup {
+	if err := em.ModifyGroupExpansions("Bogus-Parent", "", pb.ExpansionMode_INCLUDE); err != db.ErrUnknownGroup {
 		t.Fatal(err)
 	}
 }
 
 func TestModifyExpansionBadChild(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := em.ModifyGroupExpansions("grp1", "bogus-child", pb.ExpansionMode_INCLUDE); err != db.UnknownGroup {
+	if err := em.ModifyGroupExpansions("grp1", "bogus-child", pb.ExpansionMode_INCLUDE); err != db.ErrUnknownGroup {
 		t.Fatal(err)
 	}
 }
 
 func TestModifyExpansionDuplicate(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2"} {
@@ -470,7 +470,7 @@ func TestModifyExpansionDuplicate(t *testing.T) {
 }
 
 func TestModifyExpansionCycle(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {
@@ -496,7 +496,7 @@ func TestModifyExpansionCycle(t *testing.T) {
 }
 
 func TestCheckGroupCyclesCorruptDB(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {

@@ -22,10 +22,6 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 		log.Printf("Entity with ID '%s' already exists!", ID)
 		return DuplicateEntityID
 	}
-	if _, err := m.db.LoadEntityNumber(number); err == nil {
-		log.Printf("Entity with number '%d' already exists!", number)
-		return DuplicateNumber
-	}
 
 	// Were we given a specific number?
 	if number == -1 {

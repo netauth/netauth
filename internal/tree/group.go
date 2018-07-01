@@ -22,11 +22,6 @@ func (m Manager) NewGroup(name, displayName, managedBy string, number int32) err
 		return err
 	}
 
-	if _, err := m.db.LoadGroupNumber(number); err == nil || number == 0 {
-		log.Printf("Group number %d is already assigned!", number)
-		return DuplicateNumber
-	}
-
 	if number == -1 {
 		var err error
 		number, err = m.nextGIDNumber()

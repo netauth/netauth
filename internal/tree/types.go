@@ -13,7 +13,7 @@ type Manager struct {
 
 	// The persistence layer contains the functions that actually
 	// deal with the disk and make this a useable server.
-	db db.EMDiskInterface
+	db db.DB
 
 	// The Crypto layer allows us to plug in different crypto
 	// engines

@@ -6,14 +6,14 @@ import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 func TestAddDuplicateID(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -32,28 +32,8 @@ func TestAddDuplicateID(t *testing.T) {
 	}
 }
 
-func TestAddDuplicateUIDNumber(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
-
-	s := []struct {
-		ID     string
-		number int32
-		secret string
-		err    error
-	}{
-		{"foo", 1, "", nil},
-		{"bar", 1, "", DuplicateNumber},
-	}
-
-	for _, c := range s {
-		if err := em.NewEntity(c.ID, c.number, c.secret); err != c.err {
-			t.Errorf("Got %v; Want: %v", err, c.err)
-		}
-	}
-}
-
 func TestNewEntityAutoNumber(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -73,7 +53,7 @@ func TestNewEntityAutoNumber(t *testing.T) {
 }
 
 func TestMakeBootstrapDoubleBootstrap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Claim the bootstrap is already done
 	em.bootstrap_done = true
@@ -81,7 +61,7 @@ func TestMakeBootstrapDoubleBootstrap(t *testing.T) {
 }
 
 func TestMakeBootstrapExtantEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, "foo"); err != nil {
 		t.Fatal(err)
@@ -102,7 +82,7 @@ func TestMakeBootstrapExtantEntity(t *testing.T) {
 }
 
 func TestMakeBootstrapCreateEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	em.MakeBootstrap("foo", "foo")
 
@@ -119,7 +99,7 @@ func TestMakeBootstrapCreateEntity(t *testing.T) {
 }
 
 func TestDisableBootstrap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if em.bootstrap_done == true {
 		t.Fatal("Bootstrap is somehow already done")
@@ -131,7 +111,7 @@ func TestDisableBootstrap(t *testing.T) {
 }
 
 func TestDeleteEntityByID(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -156,22 +136,22 @@ func TestDeleteEntityByID(t *testing.T) {
 			t.Error(err)
 		}
 
-		// Make sure checking for that entity returns db.UnknownEntity
-		if _, err := em.db.LoadEntity(c.ID); err != db.UnknownEntity {
+		// Make sure checking for that entity returns db.ErrUnknownEntity
+		if _, err := em.db.LoadEntity(c.ID); err != db.ErrUnknownEntity {
 			t.Error(err)
 		}
 	}
 }
 
 func TestDeleteEntityAgain(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
-	if err := em.DeleteEntityByID("foo"); err != db.UnknownEntity {
+	em := New(memdb.New(), nocrypto.New())
+	if err := em.DeleteEntityByID("foo"); err != db.ErrUnknownEntity {
 		t.Fatalf("Wrong error: %s", err)
 	}
 }
 
 func TestSetSameCapabilityTwice(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add an entity
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -197,18 +177,18 @@ func TestSetSameCapabilityTwice(t *testing.T) {
 }
 
 func TestSetCapabilityBogusEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// This test tries to set a capability on an entity that does
 	// not exist.  In this case the error from getEntityByID
 	// should be returned.
-	if err := em.SetEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.UnknownEntity {
+	if err := em.SetEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }
 
 func TestSetCapabilityNoCap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, "foo"); err != nil {
 		t.Fatal(err)
@@ -220,7 +200,7 @@ func TestSetCapabilityNoCap(t *testing.T) {
 }
 
 func TestRemoveCapability(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add an entity
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -251,15 +231,15 @@ func TestRemoveCapability(t *testing.T) {
 }
 
 func TestRemoveCapabilityBogusEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.RemoveEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.UnknownEntity {
+	if err := em.RemoveEntityCapabilityByID("foo", "GLOBAL_ROOT"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }
 
 func TestRemoveCapabilityNoCap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, "foo"); err != nil {
 		t.Fatal(err)
@@ -271,7 +251,7 @@ func TestRemoveCapabilityNoCap(t *testing.T) {
 }
 
 func TestSetEntitySecretByID(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -299,26 +279,26 @@ func TestSetEntitySecretByID(t *testing.T) {
 }
 
 func TestSetEntitySecretByIDBogusEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Attempt to set the secret on an entity that doesn't exist.
-	if err := em.SetEntitySecretByID("a", "a"); err != db.UnknownEntity {
+	if err := em.SetEntitySecretByID("a", "a"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }
 
 func TestValidateSecretBogusEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Attempt to validate the secret on an entity that doesn't
 	// exist, ensure that the right error is returned.
-	if err := em.ValidateSecret("a", "a"); err != db.UnknownEntity {
+	if err := em.ValidateSecret("a", "a"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }
 
 func TestValidateSecretWrongSecret(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, "foo"); err != nil {
 		t.Fatal(err)
@@ -330,7 +310,7 @@ func TestValidateSecretWrongSecret(t *testing.T) {
 }
 
 func TestGetEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add a new entity with known values.
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -339,7 +319,7 @@ func TestGetEntity(t *testing.T) {
 
 	// First validate that this works with no entity
 	entity, err := em.GetEntity("")
-	if err != db.UnknownEntity {
+	if err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 
@@ -363,7 +343,7 @@ func TestGetEntity(t *testing.T) {
 }
 
 func TestUpdateEntityMetaInternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add a new entity with known values
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -406,9 +386,9 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 }
 
 func TestUpdateEntityMetaExternalNoEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.UpdateEntityMeta("non-existant", nil); err != db.UnknownEntity {
+	if err := em.UpdateEntityMeta("non-existant", nil); err != db.ErrUnknownEntity {
 		t.Fatal(err)
 	}
 }

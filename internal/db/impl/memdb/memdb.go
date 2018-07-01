@@ -1,4 +1,4 @@
-package MemDB
+package memdb
 
 import (
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -10,21 +10,24 @@ func init() {
 	db.RegisterDB("MemDB", New)
 }
 
-// This backend is the bare minimum, it just mirrors the
-// entity_manager's memory.
-
+// The MemDB type binds the methods of this "database".  This DB is
+// designed really only for supporting the tests of other modules, so
+// keep in mind that it is not safe for concurrent execution.
 type MemDB struct {
 	eMap map[string]*pb.Entity
 	gMap map[string]*pb.Group
 }
 
-func New() db.EMDiskInterface {
+// New returns a usable memdb with internal structures initialized.
+func New() db.DB {
 	return &MemDB{
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
 	}
 }
 
+// DiscoverEntityIDs returns a list of entity IDs which can then be
+// used to load particular entities.
 func (m *MemDB) DiscoverEntityIDs() ([]string, error) {
 	var entities []string
 	for _, e := range m.eMap {
@@ -34,46 +37,33 @@ func (m *MemDB) DiscoverEntityIDs() ([]string, error) {
 	return entities, nil
 }
 
+// LoadEntity loads an entity from the "database".
 func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
 	e, ok := m.eMap[ID]
 	if !ok {
-		return nil, db.UnknownEntity
+		return nil, db.ErrUnknownEntity
 	}
 	return e, nil
 }
 
-func (m *MemDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
-	l, err := m.DiscoverEntityIDs()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, en := range l {
-		e, err := m.LoadEntity(en)
-		if err != nil {
-			return nil, err
-		}
-		if e.GetNumber() == number {
-			return e, nil
-		}
-	}
-	return nil, db.UnknownEntity
-}
-
+// SaveEntity saves an entity to the "database".
 func (m *MemDB) SaveEntity(e *pb.Entity) error {
 	m.eMap[e.GetID()] = e
 	return nil
 }
 
+// DeleteEntity deletes an entity from the "database".
 func (m *MemDB) DeleteEntity(ID string) error {
 	if _, ok := m.eMap[ID]; !ok {
-		return db.UnknownEntity
+		return db.ErrUnknownEntity
 	}
 
 	delete(m.eMap, ID)
 	return nil
 }
 
+// DiscoverGroupNames returns  a slice  of strings  that can  be later
+// used to load groups.
 func (m *MemDB) DiscoverGroupNames() ([]string, error) {
 	var groups []string
 	for _, g := range m.gMap {
@@ -82,40 +72,25 @@ func (m *MemDB) DiscoverGroupNames() ([]string, error) {
 	return groups, nil
 }
 
+// LoadGroup loads a group from the "database".
 func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
 	g, ok := m.gMap[name]
 	if !ok {
-		return nil, db.UnknownGroup
+		return nil, db.ErrUnknownGroup
 	}
 	return g, nil
 }
 
-func (m *MemDB) LoadGroupNumber(number int32) (*pb.Group, error) {
-	l, err := m.DiscoverGroupNames()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, gn := range l {
-		g, err := m.LoadGroup(gn)
-		if err != nil {
-			return nil, err
-		}
-		if g.GetNumber() == number {
-			return g, nil
-		}
-	}
-	return nil, db.UnknownGroup
-}
-
+// SaveGroup saves a group to the "database".
 func (m *MemDB) SaveGroup(g *pb.Group) error {
 	m.gMap[g.GetName()] = g
 	return nil
 }
 
+// DeleteGroup deletes a group from the "database".
 func (m *MemDB) DeleteGroup(name string) error {
 	if _, ok := m.gMap[name]; !ok {
-		return db.UnknownGroup
+		return db.ErrUnknownGroup
 	}
 
 	delete(m.gMap, name)

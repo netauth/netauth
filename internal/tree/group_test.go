@@ -7,13 +7,13 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 func TestNewGroup(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		name        string
@@ -23,8 +23,6 @@ func TestNewGroup(t *testing.T) {
 	}{
 		{"fooGroup", "", 1, nil},
 		{"fooGroup", "", 1, DuplicateGroupName},
-		{"barGroup", "", 0, DuplicateNumber},
-		{"barGroup", "", 1, DuplicateNumber},
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
@@ -35,7 +33,7 @@ func TestNewGroup(t *testing.T) {
 }
 
 func TestListGroups(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	names := []string{"aaa", "aab", "aac", "aad", "aae"}
 	for _, n := range names {
@@ -54,7 +52,7 @@ func TestListGroups(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("foo", "", "", -1); err != nil {
 		t.Error(err)
@@ -68,13 +66,13 @@ func TestDeleteGroup(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := em.GetGroupByName("foo"); err != db.UnknownGroup {
+	if _, err := em.GetGroupByName("foo"); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }
 
 func TestUpdateGroupMetaInternal(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("foo", "foo", "", -1); err != nil {
 		t.Error(err)
@@ -97,7 +95,7 @@ func TestUpdateGroupMetaInternal(t *testing.T) {
 }
 
 func TestSetSameGroupCapabilityTwice(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add an entity
 	if err := em.NewGroup("foo", "", "", -1); err != nil {
@@ -123,15 +121,15 @@ func TestSetSameGroupCapabilityTwice(t *testing.T) {
 }
 
 func TestSetGroupCapabilityBogusGroup(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.SetGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.UnknownGroup {
+	if err := em.SetGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }
 
 func TestSetGroupCapabilityNoCap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("foo", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -143,7 +141,7 @@ func TestSetGroupCapabilityNoCap(t *testing.T) {
 }
 
 func TestRemoveGroupCapability(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	// Add an entity
 	if err := em.NewGroup("foo", "", "", -1); err != nil {
@@ -174,15 +172,15 @@ func TestRemoveGroupCapability(t *testing.T) {
 }
 
 func TestRemoveGroupCapabilityBogusGroup(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
-	if err := em.RemoveGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.UnknownGroup {
+	if err := em.RemoveGroupCapabilityByName("foo", "GLOBAL_ROOT"); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }
 
 func TestRemoveGroupCapabilityNoCap(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewGroup("foo", "", "", -1); err != nil {
 		t.Fatal(err)

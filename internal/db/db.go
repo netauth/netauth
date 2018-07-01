@@ -9,45 +9,57 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-type EMDiskInterface interface {
+// DB specifies the methods that a DB engine must provide.
+type DB interface {
 	// Entity handling
 	DiscoverEntityIDs() ([]string, error)
 	LoadEntity(string) (*pb.Entity, error)
-	LoadEntityNumber(int32) (*pb.Entity, error)
 	SaveEntity(*pb.Entity) error
 	DeleteEntity(string) error
 
 	// Group handling
 	DiscoverGroupNames() ([]string, error)
 	LoadGroup(string) (*pb.Group, error)
-	LoadGroupNumber(int32) (*pb.Group, error)
 	SaveGroup(*pb.Group) error
 	DeleteGroup(string) error
 }
 
-type DBFactory func() EMDiskInterface
+// Factory defines the function which can be used to register new
+// implementations.
+type Factory func() DB
 
 var (
-	backends = make(map[string]DBFactory)
+	backends = make(map[string]Factory)
 
-	UnknownEntity   = errors.New("The specified entity does not exist")
-	UnknownGroup    = errors.New("The specified group does not exist")
-	UnknownDatabase = errors.New("The specified database does not exist")
-	InternalError   = errors.New("The database has encountered an internal error")
+	// ErrUnknownEntity is returned for requests to load an entity
+	// that does not exist.
+	ErrUnknownEntity = errors.New("The specified entity does not exist")
+
+	// ErrUnknownGroup is returned for requests to load a group
+	// that does not exist.
+	ErrUnknownGroup = errors.New("The specified group does not exist")
+
+	// ErrUnknownDatabase is returned for an attempt to create a
+	// new database that hasn't been registered.
+	ErrUnknownDatabase = errors.New("The specified database does not exist")
+
+	// ErrInternalError is used for all other errors that occur
+	// within a database implementation.
+	ErrInternalError = errors.New("The database has encountered an internal error")
 )
 
-// NewDB returns a db struct.
-func New(name string) (EMDiskInterface, error) {
+// New returns a db struct.
+func New(name string) (DB, error) {
 	b, ok := backends[name]
 	if !ok {
-		return nil, UnknownDatabase
+		return nil, ErrUnknownDatabase
 	}
 	return b(), nil
 }
 
 // RegisterDB takes in a name of the database to register and a
 // function signature to bind to that name.
-func RegisterDB(name string, newFunc DBFactory) {
+func RegisterDB(name string, newFunc Factory) {
 	if _, ok := backends[name]; ok {
 		// Return if the backend is already registered.
 		return
@@ -57,9 +69,9 @@ func RegisterDB(name string, newFunc DBFactory) {
 
 // GetBackendList returns a string list of the backends that are available
 func GetBackendList() []string {
-	l := []string{}
+	var l []string
 
-	for b, _ := range backends {
+	for b := range backends {
 		l = append(l, b)
 	}
 

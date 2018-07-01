@@ -4,14 +4,14 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
-	"github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 func TestNextUIDNumber(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID            string
@@ -45,7 +45,7 @@ func TestNextUIDNumber(t *testing.T) {
 }
 
 func TestGetEntityByID(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -72,7 +72,7 @@ func TestGetEntityByID(t *testing.T) {
 }
 
 func TestSafeCopyEntity(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	if err := em.NewEntity("foo", -1, "bar"); err != nil {
 		t.Error(err)
@@ -104,7 +104,7 @@ func TestSafeCopyEntity(t *testing.T) {
 }
 
 func TestDedupEntityList(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string
@@ -147,7 +147,7 @@ func TestDedupEntityList(t *testing.T) {
 }
 
 func TestEntityListDifference(t *testing.T) {
-	em := New(MemDB.New(), nocrypto.New())
+	em := New(memdb.New(), nocrypto.New())
 
 	s := []struct {
 		ID     string

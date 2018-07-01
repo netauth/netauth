@@ -1,4 +1,4 @@
-package ProtoDB
+package protodb
 
 // This is one of the simplest databases that just reads and writes
 // protos to the local disk.  It's probably quite usable in
@@ -19,15 +19,17 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-const entity_subdir = "entities"
-const group_subdir = "groups"
+const entitySubdir = "entities"
+const groupSubdir = "groups"
 
+// The ProtoDB type binds all methods that are a part of the protodb
+// package.
 type ProtoDB struct {
-	data_root string
+	dataRoot string
 }
 
 var (
-	data_root = flag.String("protodb_root", "./data", "Base directory for ProtoDB")
+	dataRoot = flag.String("protodb_root", "./data", "Base directory for ProtoDB")
 )
 
 func init() {
@@ -40,9 +42,9 @@ func init() {
 // directory and children.  This function will bail out the entire
 // program as without the backing store the functionality of the rest
 // of the server is undefined!
-func New() db.EMDiskInterface {
+func New() db.DB {
 	x := new(ProtoDB)
-	x.data_root = *data_root
+	x.dataRoot = *dataRoot
 	if err := x.ensureDataDirectory(); err != nil {
 		log.Fatalf("Could not establish data directory! (%s)", err)
 		return nil
@@ -56,9 +58,9 @@ func New() db.EMDiskInterface {
 // by hand it should be safe enough.
 func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 	// Locate all known entities.
-	globs, err := filepath.Glob(filepath.Join(pdb.data_root, entity_subdir, "*.dat"))
+	globs, err := filepath.Glob(filepath.Join(pdb.dataRoot, entitySubdir, "*.dat"))
 	if err != nil {
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 
 	// Strip the extensions off the files.
@@ -73,20 +75,20 @@ func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
 // LoadEntity loads a single entity from the data_root given the ID
 // associated with the entity.
 func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
-	in, err := ioutil.ReadFile(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
+	in, err := ioutil.ReadFile(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
 	if err != nil {
 		if os.IsNotExist(err) {
 			// In the specific case of a non-existance,
 			// that is a UnknownEntity condition.
-			return nil, db.UnknownEntity
+			return nil, db.ErrUnknownEntity
 		}
 		log.Println("Error reading file:", err)
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 	e := &pb.Entity{}
 	if err := proto.Unmarshal(in, e); err != nil {
 		log.Printf("Failed to parse Entity from disk: (%s):", err)
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 	return e, nil
 }
@@ -96,19 +98,19 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
 	l, err := pdb.DiscoverEntityIDs()
 	if err != nil {
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 
 	for _, en := range l {
 		e, err := pdb.LoadEntity(en)
 		if err != nil {
-			return nil, db.InternalError
+			return nil, db.ErrInternalError
 		}
 		if e.GetNumber() == number {
 			return e, nil
 		}
 	}
-	return nil, db.UnknownEntity
+	return nil, db.ErrUnknownEntity
 }
 
 // SaveEntity writes  an entity to  disk.  Errors may be  returned for
@@ -122,9 +124,10 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 		log.Printf("Failed to marshal entity '%s' (%s)", e.GetID(), err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
+		fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
 		log.Printf("Failed to aquire write handle for '%s'", e.GetID())
-		return db.InternalError
+		return db.ErrInternalError
 	}
 
 	return nil
@@ -134,7 +137,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 // do given that each entity is owned by exactly one file on disk.
 // Simply removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteEntity(ID string) error {
-	return os.Remove(filepath.Join(pdb.data_root, entity_subdir, fmt.Sprintf("%s.dat", ID)))
+	return os.Remove(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
 }
 
 // DiscoverGroupNames returns a list of entity IDs that this loader
@@ -143,9 +146,9 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 // modified by hand it should be safe enough.
 func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
 	// Locate all known entities.
-	globs, err := filepath.Glob(filepath.Join(pdb.data_root, group_subdir, "*.dat"))
+	globs, err := filepath.Glob(filepath.Join(pdb.dataRoot, groupSubdir, "*.dat"))
 	if err != nil {
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 
 	// Strip the extensions off the files.
@@ -160,20 +163,20 @@ func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
 // LoadGroup attempts to load a group by name from the disk.  It can
 // fail on proto errors or bogus file permissions reading the file.
 func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
-	in, err := ioutil.ReadFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
+	in, err := ioutil.ReadFile(filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", name)))
 	if err != nil {
 		if os.IsNotExist(err) {
 			// This case is the group just flat not
 			// existing and is returned as such.
-			return nil, db.UnknownGroup
+			return nil, db.ErrUnknownGroup
 		}
 		log.Println("Error reading file:", err)
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 	e := &pb.Group{}
 	if err := proto.Unmarshal(in, e); err != nil {
 		log.Printf("Failed to parse Group from disk: (%s):", err)
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 	return e, nil
 }
@@ -182,19 +185,19 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
 	l, err := pdb.DiscoverGroupNames()
 	if err != nil {
-		return nil, db.InternalError
+		return nil, db.ErrInternalError
 	}
 
 	for _, gn := range l {
 		g, err := pdb.LoadGroup(gn)
 		if err != nil {
-			return nil, db.InternalError
+			return nil, db.ErrInternalError
 		}
 		if g.GetNumber() == number {
 			return g, nil
 		}
 	}
-	return nil, db.UnknownGroup
+	return nil, db.ErrUnknownGroup
 }
 
 // SaveGroup writes  an entity to  disk.  Errors may be  returned for
@@ -208,9 +211,10 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 		log.Printf("Failed to marshal entity '%s' (%s)", g.GetName(), err)
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
+		fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
 		log.Printf("Failed to aquire write handle for '%s'", g.GetName())
-		return db.InternalError
+		return db.ErrInternalError
 	}
 
 	return nil
@@ -220,10 +224,10 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 // do given that each group is owned by exactly one file on disk.
 // Simply removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteGroup(name string) error {
-	err := os.Remove(filepath.Join(pdb.data_root, group_subdir, fmt.Sprintf("%s.dat", name)))
+	err := os.Remove(filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", name)))
 
 	if os.IsNotExist(err) {
-		return db.UnknownGroup
+		return db.ErrUnknownGroup
 	}
 	return nil
 }
@@ -231,21 +235,21 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 // ensureDataDirectory is called during initialization of this backend
 // to ensure that the data directories are available.
 func (pdb *ProtoDB) ensureDataDirectory() error {
-	if _, err := os.Stat(pdb.data_root); os.IsNotExist(err) {
-		if err := os.Mkdir(pdb.data_root, 0755); err != nil {
-			return db.InternalError
+	if _, err := os.Stat(pdb.dataRoot); os.IsNotExist(err) {
+		if err := os.Mkdir(pdb.dataRoot, 0755); err != nil {
+			return db.ErrInternalError
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(pdb.data_root, entity_subdir)); os.IsNotExist(err) {
-		if err := os.Mkdir(filepath.Join(pdb.data_root, entity_subdir), 0755); err != nil {
-			return db.InternalError
+	if _, err := os.Stat(filepath.Join(pdb.dataRoot, entitySubdir)); os.IsNotExist(err) {
+		if err := os.Mkdir(filepath.Join(pdb.dataRoot, entitySubdir), 0755); err != nil {
+			return db.ErrInternalError
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(pdb.data_root, group_subdir)); os.IsNotExist(err) {
-		if err := os.Mkdir(filepath.Join(pdb.data_root, group_subdir), 0755); err != nil {
-			return db.InternalError
+	if _, err := os.Stat(filepath.Join(pdb.dataRoot, groupSubdir)); os.IsNotExist(err) {
+		if err := os.Mkdir(filepath.Join(pdb.dataRoot, groupSubdir), 0755); err != nil {
+			return db.ErrInternalError
 		}
 	}
 	return nil

@@ -1,4 +1,4 @@
-package ProtoDB
+package protodb
 
 import (
 	"io/ioutil"
@@ -30,8 +30,8 @@ func cleanTmpTestDir(dir string, t *testing.T) {
 func TestDiscoverEntities(t *testing.T) {
 	// This is a slight race condition since we're manipulating
 	// flags, but this shouldn't actually be flaky.
-	*data_root = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*data_root, t)
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
 	x := New()
 	l, err := x.DiscoverEntityIDs()
 	if err != nil {
@@ -70,8 +70,8 @@ func TestDiscoverEntities(t *testing.T) {
 func TestEntitySaveLoadDelete(t *testing.T) {
 	// This is a slight race condition since we're manipulating
 	// flags, but this shouldn't actually be flaky.
-	*data_root = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*data_root, t)
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
 	x := New()
 
 	e := &pb.Entity{ID: proto.String("foo")}
@@ -96,54 +96,16 @@ func TestEntitySaveLoadDelete(t *testing.T) {
 	if err := x.DeleteEntity("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadEntity("foo"); err != db.UnknownEntity {
+	if _, err := x.LoadEntity("foo"); err != db.ErrUnknownEntity {
 		t.Error(err)
-	}
-}
-
-func TestLoadEntityNumber(t *testing.T) {
-	x := New()
-
-	e := &pb.Entity{ID: proto.String("foo"), Number: proto.Int32(42), Secret: proto.String("")}
-
-	if err := x.SaveEntity(e); err != nil {
-		t.Error(err)
-	}
-
-	ne, err := x.LoadEntityNumber(42)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !proto.Equal(e, ne) {
-		t.Error("Entity Load Fault")
-	}
-}
-
-func TestLoadGroupNumber(t *testing.T) {
-	x := New()
-
-	g := &pb.Group{Name: proto.String("foo"), Number: proto.Int32(42)}
-
-	if err := x.SaveGroup(g); err != nil {
-		t.Error(err)
-	}
-
-	ng, err := x.LoadGroupNumber(42)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !proto.Equal(g, ng) {
-		t.Error("Group Load Fault")
 	}
 }
 
 func TestGroupSaveLoadDelete(t *testing.T) {
 	// This is a slight race condition since we're manipulating
 	// flags, but this shouldn't actually be flaky.
-	*data_root = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*data_root, t)
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
 	x := New()
 
 	g := &pb.Group{Name: proto.String("foo")}
@@ -168,7 +130,7 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	if err := x.DeleteGroup("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadGroup("foo"); err != db.UnknownGroup {
+	if _, err := x.LoadGroup("foo"); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }

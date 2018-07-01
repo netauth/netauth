@@ -1,4 +1,4 @@
-package MemDB
+package memdb
 
 import (
 	"testing"
@@ -71,27 +71,8 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 	if err := x.DeleteEntity("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadEntity("foo"); err != db.UnknownEntity {
+	if _, err := x.LoadEntity("foo"); err != db.ErrUnknownEntity {
 		t.Error(err)
-	}
-}
-
-func TestLoadEntityNumber(t *testing.T) {
-	x := New()
-
-	e := &pb.Entity{ID: proto.String("foo"), Number: proto.Int32(42), Secret: proto.String("")}
-
-	if err := x.SaveEntity(e); err != nil {
-		t.Error(err)
-	}
-
-	ne, err := x.LoadEntityNumber(42)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !proto.Equal(e, ne) {
-		t.Error("Entity Load Fault")
 	}
 }
 
@@ -131,25 +112,6 @@ func TestDiscoverGroups(t *testing.T) {
 	}
 }
 
-func TestLoadGroupNumber(t *testing.T) {
-	x := New()
-
-	g := &pb.Group{Name: proto.String("foo"), Number: proto.Int32(42)}
-
-	if err := x.SaveGroup(g); err != nil {
-		t.Error(err)
-	}
-
-	ng, err := x.LoadGroupNumber(42)
-	if err != nil {
-		t.Error(err)
-	}
-
-	if !proto.Equal(g, ng) {
-		t.Error("Group Load Fault")
-	}
-}
-
 func TestGroupSaveLoadDelete(t *testing.T) {
 	x := New()
 
@@ -175,7 +137,7 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	if err := x.DeleteGroup("foo"); err != nil {
 		t.Error(err)
 	}
-	if _, err := x.LoadGroup("foo"); err != db.UnknownGroup {
+	if _, err := x.LoadGroup("foo"); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 }

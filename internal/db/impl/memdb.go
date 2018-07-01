@@ -2,4 +2,7 @@
 
 package impl
 
-import _ "github.com/NetAuth/NetAuth/internal/db/impl/MemDB"
+import (
+	// Register the database from init()
+	_ "github.com/NetAuth/NetAuth/internal/db/impl/memdb"
+)

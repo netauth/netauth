@@ -11,9 +11,9 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// New returns an initialized EMDataStore on to which all other
-// functions are bound.
-func New(db db.EMDiskInterface, crypto crypto.EMCrypto) *Manager {
+// New returns an initialized DB on to which all other functions are
+// bound.
+func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x := Manager{}
 	x.bootstrap_done = false
 	x.db = db
