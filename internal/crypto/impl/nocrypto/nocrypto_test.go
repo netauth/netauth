@@ -20,7 +20,7 @@ func TestSecureSecretBadAuth(t *testing.T) {
 	s := "foo"
 	h := "bar"
 
-	if err := e.VerifySecret(s, h); err != crypto.AuthorizationFailure {
+	if err := e.VerifySecret(s, h); err != crypto.ErrAuthorizationFailure {
 		t.Error(err)
 	}
 }

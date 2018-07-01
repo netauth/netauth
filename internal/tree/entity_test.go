@@ -324,7 +324,7 @@ func TestValidateSecretWrongSecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ValidateSecret("foo", "bar"); err != crypto.AuthorizationFailure {
+	if err := em.ValidateSecret("foo", "bar"); err != crypto.ErrAuthorizationFailure {
 		t.Fatal(err)
 	}
 }

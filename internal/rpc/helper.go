@@ -63,9 +63,9 @@ func toWireError(err error) error {
 	switch err {
 	case nil:
 		return status.Errorf(codes.OK, "Completed sucessfully")
-	case crypto.InternalError:
+	case crypto.ErrInternalError:
 		return status.Errorf(codes.Internal, err.Error())
-	case crypto.AuthorizationFailure:
+	case crypto.ErrAuthorizationFailure:
 		return status.Errorf(codes.Unauthenticated, err.Error())
 	case db.UnknownEntity:
 		return status.Errorf(codes.NotFound, err.Error())

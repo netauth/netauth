@@ -28,7 +28,7 @@ func TestBadDecode(t *testing.T) {
 	*cost = 0
 	e := New()
 
-	if err := e.VerifySecret("", ""); err != crypto.AuthorizationFailure {
+	if err := e.VerifySecret("", ""); err != crypto.ErrAuthorizationFailure {
 		t.Errorf("Bad crypto error: %s", err)
 	}
 }
