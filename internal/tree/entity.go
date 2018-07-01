@@ -16,7 +16,7 @@ import (
 // number must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func (m Manager) NewEntity(ID string, number int32, secret string) error {
+func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 	// Does this entity exist already?
 	if _, err := m.db.LoadEntity(ID); err == nil {
 		log.Printf("Entity with ID '%s' already exists!", ID)
@@ -63,7 +63,7 @@ func (m Manager) NewEntity(ID string, number int32, secret string) error {
 // nextUIDNumber computes the next available number to be assigned.
 // This allows a NewEntity request to be made with the number field
 // unset.
-func (m Manager) nextUIDNumber() (int32, error) {
+func (m *Manager) nextUIDNumber() (int32, error) {
 	var largest int32
 
 	// Iterate over the entities and return the largest ID found
@@ -95,7 +95,7 @@ func (m Manager) nextUIDNumber() (int32, error) {
 // This can only be called once during startup, attepts to call it
 // again will result in no change.  The bootstrap user will always get
 // the next available number which in most cases will be 1.
-func (m Manager) MakeBootstrap(ID string, secret string) {
+func (m *Manager) MakeBootstrap(ID string, secret string) {
 	if m.bootstrapDone {
 		return
 	}
@@ -144,7 +144,7 @@ func (m *Manager) DisableBootstrap() {
 // entity cannot be authenticated with before returning.  If the named
 // ID does not exist the function will return errors.E_NO_ENTITY, in
 // all other cases nil is returned.
-func (m Manager) DeleteEntityByID(ID string) error {
+func (m *Manager) DeleteEntityByID(ID string) error {
 	if err := m.db.DeleteEntity(ID); err != nil {
 		return err
 	}
@@ -155,7 +155,7 @@ func (m Manager) DeleteEntityByID(ID string) error {
 
 // SetCapability sets a capability on an entity.  The set operation is
 // idempotent.
-func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
+func (m *Manager) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
 		return ErrUnknownCapability
@@ -182,7 +182,7 @@ func (m Manager) setEntityCapability(e *pb.Entity, c string) error {
 }
 
 // removeCapability removes a capability on an entity
-func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
+func (m *Manager) removeEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
 		return ErrUnknownCapability
@@ -210,7 +210,7 @@ func (m Manager) removeEntityCapability(e *pb.Entity, c string) error {
 
 // SetEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual setEntityCapability function
-func (m Manager) SetEntityCapabilityByID(ID string, c string) error {
+func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 	e, err := m.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -221,7 +221,7 @@ func (m Manager) SetEntityCapabilityByID(ID string, c string) error {
 
 // RemoveEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual removeEntityCapability function
-func (m Manager) RemoveEntityCapabilityByID(ID string, c string) error {
+func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 	e, err := m.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -232,7 +232,7 @@ func (m Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // crypto interface.
-func (m Manager) SetEntitySecretByID(ID string, secret string) error {
+func (m *Manager) SetEntitySecretByID(ID string, secret string) error {
 	e, err := m.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -254,7 +254,7 @@ func (m Manager) SetEntitySecretByID(ID string, secret string) error {
 
 // ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
-func (m Manager) ValidateSecret(ID string, secret string) error {
+func (m *Manager) ValidateSecret(ID string, secret string) error {
 	e, err := m.db.LoadEntity(ID)
 	if err != nil {
 		return err
@@ -272,7 +272,7 @@ func (m Manager) ValidateSecret(ID string, secret string) error {
 
 // GetEntity returns an entity to the caller after first making a safe
 // copy of it to remove secure fields.
-func (m Manager) GetEntity(ID string) (*pb.Entity, error) {
+func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
 	// e will be the direct internal copy, we can't give this back
 	// though since it has secrets embedded.
 	e, err := m.db.LoadEntity(ID)
@@ -286,7 +286,7 @@ func (m Manager) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e), nil
 }
 
-func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
+func (m *Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// get the existing metadata
 	meta := e.GetMeta()
 
@@ -311,7 +311,7 @@ func (m Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 
 // UpdateEntityMeta drives the internal version by obtaining the
 // entity from the database based on the ID.
-func (m Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error {
+func (m *Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error {
 	e, err := m.db.LoadEntity(entityID)
 	if err != nil {
 		return err
@@ -323,7 +323,7 @@ func (m Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error
 // updateEntityKeys performs an update on keys to allow the client to
 // be simpler, and to account for proto.Merge() merging list contents
 // rather than overwriting.
-func (m Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]string, error) {
+func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]string, error) {
 	// Account for this being the first bit of metadata
 	if e.GetMeta() == nil {
 		e.Meta = &pb.EntityMeta{}

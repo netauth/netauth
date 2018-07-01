@@ -10,7 +10,7 @@ import (
 
 // AddEntityToGroup is the same as the internal function, but takes an
 // entity ID rather than a pointer
-func (m Manager) AddEntityToGroup(entityID, groupName string) error {
+func (m *Manager) AddEntityToGroup(entityID, groupName string) error {
 	e, err := m.db.LoadEntity(entityID)
 	if err != nil {
 		return err
@@ -20,7 +20,7 @@ func (m Manager) AddEntityToGroup(entityID, groupName string) error {
 
 // addEntityToGroup adds an entity to a group by name, if the entity
 // was already in the group the function will return with a nil error.
-func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
+func (m *Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 	if _, err := m.db.LoadGroup(groupName); err != nil {
 		return err
 	}
@@ -50,7 +50,7 @@ func (m Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 
 // GetMemberships returns all groups the entity is a member of,
 // optionally including indirect memberships
-func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
+func (m *Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
 	directs := m.getDirectGroups(e)
 	var allGroups []string
 
@@ -108,7 +108,7 @@ func (m Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
 }
 
 // getDirectGroups gets the direct groups of an entity.
-func (m Manager) getDirectGroups(e *pb.Entity) []string {
+func (m *Manager) getDirectGroups(e *pb.Entity) []string {
 	if e.GetMeta() == nil {
 		return []string{}
 	}
@@ -118,7 +118,7 @@ func (m Manager) getDirectGroups(e *pb.Entity) []string {
 
 // RemoveEntityFromGroup performs the same function as the internal
 // variant, but does so by name rather than by entity pointer.
-func (m Manager) RemoveEntityFromGroup(entityID, groupName string) error {
+func (m *Manager) RemoveEntityFromGroup(entityID, groupName string) error {
 	e, err := m.db.LoadEntity(entityID)
 	if err != nil {
 		return err
@@ -130,7 +130,7 @@ func (m Manager) RemoveEntityFromGroup(entityID, groupName string) error {
 // removeEntityFromGroup removes an entity from the named group.  If
 // the entity was not in the group to begin with then nil will be
 // returned as the error.
-func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
+func (m *Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
 	if e.GetMeta() == nil {
 		return nil
 	}
@@ -151,7 +151,7 @@ func (m Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
 }
 
 // allEntities is a convenient way to return all the entities
-func (m Manager) allEntities() ([]*pb.Entity, error) {
+func (m *Manager) allEntities() ([]*pb.Entity, error) {
 	var entities []*pb.Entity
 	el, err := m.db.DiscoverEntityIDs()
 	if err != nil {
@@ -169,7 +169,7 @@ func (m Manager) allEntities() ([]*pb.Entity, error) {
 
 // listMembers takes a group ID in and returns a slice of entities
 // that are in that group.
-func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
+func (m *Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 	// 'ALL' is a special groupID which returns everything, this
 	// isn't a group that exists in a real sense, it just serves
 	// to return a global list as a convenience.
@@ -236,7 +236,7 @@ func (m Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 // ListMembers fulfills the same function as the private version of
 // this function, but with one crucial difference, it produces copies
 // of the entities that have the secret redacted.
-func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
+func (m *Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 	// This set of members has secrets and can't be returned.
 	members, err := m.listMembers(groupID)
 	if err != nil {
@@ -255,7 +255,7 @@ func (m Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 // checkExistingGroupExpansions verifies that there is no expansion
 // already directly on this group that conflicts with the proposed
 // group expansion.
-func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
+func (m *Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
 	for _, exp := range g.GetExpansions() {
 		if strings.Contains(exp, candidate) {
 			return ErrExistingExpansion
@@ -268,7 +268,7 @@ func (m Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) err
 // candidate group somewhere on the tree below the entry point.  The
 // general usage would be to push in the target of the expansion as
 // the group and then hunt for the parent group as the candidate.
-func (m Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
+func (m *Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
 	for _, exp := range g.GetExpansions() {
 		parts := strings.Split(exp, ":")
 		log.Println(parts[1], candidate)
@@ -291,7 +291,7 @@ func (m Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
 // ModifyGroupExpansions handles changing the expansions on a group.
 // This can include adding an INCLUDE or EXCLUDE type expansion, or
 // using the special expansion type DROP, removing an existing one.
-func (m Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMode) error {
+func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMode) error {
 	p, err := m.GetGroupByName(parent)
 	if err != nil {
 		return err
