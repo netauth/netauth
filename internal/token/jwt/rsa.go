@@ -19,25 +19,30 @@ import (
 var (
 	privateKeyFile = flag.String("jwt_rsa_privatekey", "netauth.key", "Path to private key")
 	publicKeyFile  = flag.String("jwt_rsa_publickey", "netauth.pem", "Path to public key")
-	rsa_bits       = flag.Int("jwt_rsa_bits", 2048, "Bit length of generated keys")
+	rsaBits        = flag.Int("jwt_rsa_bits", 2048, "Bit length of generated keys")
 	generate       = flag.Bool("jwt_rsa_generate", false, "Generate keys if not available")
 )
 
+// An RSAToken is a token that provides both the token.Claims required
+// components and the jtw.StandardClaims.
 type RSAToken struct {
 	token.Claims
 	jwt.StandardClaims
 }
 
+// The RSATokenService provides RSA tokens and the means to verify
+// them.
 type RSATokenService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
 }
 
 func init() {
-	token.RegisterService("jwt-rsa", NewRSA)
+	token.Register("jwt-rsa", NewRSA)
 }
 
-func NewRSA() (token.TokenService, error) {
+// NewRSA returns an RSATokenService initialized and ready for use.
+func NewRSA() (token.Service, error) {
 	x := RSATokenService{}
 	if err := x.GetKeys(); err != nil {
 		return nil, err
@@ -45,10 +50,11 @@ func NewRSA() (token.TokenService, error) {
 	return &x, nil
 }
 
-func (s *RSATokenService) Generate(claims token.Claims, config token.TokenConfig) (string, error) {
+// Generate generates a token signed by an RSA key.
+func (s *RSATokenService) Generate(claims token.Claims, config token.Config) (string, error) {
 	if s.privateKey == nil {
 		// Private key is unavailable, signing is not possible
-		return "", token.KeyUnavailable
+		return "", token.ErrKeyUnavailable
 	}
 
 	claims.RenewalsLeft = config.Renewals
@@ -68,14 +74,15 @@ func (s *RSATokenService) Generate(claims token.Claims, config token.TokenConfig
 	tkn := jwt.NewWithClaims(jwt.SigningMethodRS512, c)
 	ss, err := tkn.SignedString(s.privateKey)
 	if err != nil {
-		return "", token.InternalError
+		return "", token.ErrInternalError
 	}
 	return ss, nil
 }
 
+// Validate validates a token signed by an RSA key.
 func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 	if s.publicKey == nil {
-		return token.Claims{}, token.KeyUnavailable
+		return token.Claims{}, token.ErrKeyUnavailable
 	}
 
 	t, err := jwt.ParseWithClaims(tkn, &RSAToken{}, func(t *jwt.Token) (interface{}, error) {
@@ -88,19 +95,22 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 		// This case gets raised if the token wasn't parsable
 		// for some reason, or the signing key was wrong, or
 		// it was corrupt in some way.
-		return token.Claims{}, token.InternalError
+		return token.Claims{}, token.ErrInternalError
 	}
 
-	if claims, ok := t.Claims.(*RSAToken); ok && t.Valid {
-		return claims.Claims, nil
-	} else {
+	claims, ok := t.Claims.(*RSAToken)
+	if !ok || !t.Valid {
 		// This case is raised when the token was parseable,
 		// but wasn't validated due to key errors, expiration
 		// or other similar problems.
-		return token.Claims{}, token.TokenInvalid
+		return token.Claims{}, token.ErrTokenInvalid
 	}
+	return claims.Claims, nil
 }
 
+// GetKeys obtains the keys for an RSATokenService.  If the keys are
+// not available and it is not disabled, then a keypair will be
+// generated.
 func (s *RSATokenService) GetKeys() error {
 	log.Printf("Loading public key from %s", *publicKeyFile)
 	f, err := ioutil.ReadFile(*publicKeyFile)
@@ -109,16 +119,16 @@ func (s *RSATokenService) GetKeys() error {
 
 		if !*generate {
 			log.Println("Generating keys is disabled!")
-			return token.KeyGenerationDisabled
+			return token.ErrKeyGenerationDisabled
 		}
 
 		log.Println("Generating keys")
 
 		// No keys, we need to create them
-		s.privateKey, err = rsa.GenerateKey(rand.Reader, *rsa_bits)
+		s.privateKey, err = rsa.GenerateKey(rand.Reader, *rsaBits)
 		if err != nil {
 			log.Println(err)
-			return token.InternalError
+			return token.ErrInternalError
 		}
 		s.publicKey = &s.privateKey.PublicKey
 
@@ -131,14 +141,14 @@ func (s *RSATokenService) GetKeys() error {
 		)
 		if err := ioutil.WriteFile(*privateKeyFile, pridata, 0400); err != nil {
 			log.Println(err)
-			return token.InternalError
+			return token.ErrInternalError
 		}
 
 		// Marshal the public key
 		pubASN1, err := x509.MarshalPKIXPublicKey(s.publicKey)
 		if err != nil {
 			log.Println(err)
-			return token.InternalError
+			return token.ErrInternalError
 		}
 		pubdata := pem.EncodeToMemory(
 			&pem.Block{
@@ -148,7 +158,7 @@ func (s *RSATokenService) GetKeys() error {
 		)
 		if err := ioutil.WriteFile(*publicKeyFile, pubdata, 0644); err != nil {
 			log.Println(err)
-			return token.InternalError
+			return token.ErrInternalError
 		}
 		// At this point the key is saved to disk and
 		// initialized
@@ -156,24 +166,24 @@ func (s *RSATokenService) GetKeys() error {
 	}
 	if err != nil {
 		log.Println("No key available and generate disabled!")
-		return token.KeyUnavailable
+		return token.ErrKeyUnavailable
 	}
 
 	block, _ := pem.Decode([]byte(f))
 	if block == nil {
 		log.Println("Error decoding PEM block")
-		return token.KeyUnavailable
+		return token.ErrKeyUnavailable
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		return token.KeyUnavailable
+		return token.ErrKeyUnavailable
 	}
 
 	p, ok := pub.(*rsa.PublicKey)
 	if !ok {
 		log.Printf("%s does not contain a public key", *publicKeyFile)
-		return token.KeyUnavailable
+		return token.ErrKeyUnavailable
 	}
 	s.publicKey = p
 

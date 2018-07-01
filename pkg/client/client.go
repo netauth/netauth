@@ -20,7 +20,7 @@ type NetAuthClient struct {
 	cfg        *NACLConfig
 	tokenStore TokenStore
 
-	tokenService token.TokenService
+	tokenService token.Service
 }
 
 type NACLConfig struct {

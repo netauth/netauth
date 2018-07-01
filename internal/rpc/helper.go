@@ -71,9 +71,9 @@ func toWireError(err error) error {
 		return status.Errorf(codes.NotFound, err.Error())
 	case db.ErrUnknownGroup:
 		return status.Errorf(codes.NotFound, err.Error())
-	case token.KeyUnavailable:
+	case token.ErrKeyUnavailable:
 		return status.Errorf(codes.FailedPrecondition, err.Error())
-	case token.TokenInvalid:
+	case token.ErrTokenInvalid:
 		return status.Errorf(codes.Unauthenticated, err.Error())
 	case tree.ErrDuplicateEntityID:
 		return status.Errorf(codes.AlreadyExists, err.Error())

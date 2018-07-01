@@ -47,5 +47,5 @@ type EntityTree interface {
 
 type NetAuthServer struct {
 	Tree  EntityTree
-	Token token.TokenService
+	Token token.Service
 }

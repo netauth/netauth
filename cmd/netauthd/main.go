@@ -12,7 +12,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db"
 	_ "github.com/NetAuth/NetAuth/internal/db/impl"
 	"github.com/NetAuth/NetAuth/internal/token"
-	_ "github.com/NetAuth/NetAuth/internal/token/impl"
+	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
 	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/rpc"

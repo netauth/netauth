@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	config = token.TokenConfig{
+	config = token.Config{
 		Lifetime: time.Minute * 5,
 		Renewals: 0,
 		Issuer:   "NetAuth Test",
@@ -54,7 +54,7 @@ func genFixedKey(t *testing.T) {
 	r := rand.New(rand.NewSource(4))
 
 	// No keys, we need to create them
-	privateKey, err := rsa.GenerateKey(r, *rsa_bits)
+	privateKey, err := rsa.GenerateKey(r, *rsaBits)
 	if err != nil {
 		t.Log("Keys unavailable")
 	}
@@ -108,7 +108,7 @@ func TestNewMissingKeys(t *testing.T) {
 	*generate = false
 
 	_, err := NewRSA()
-	if err != token.KeyGenerationDisabled {
+	if err != token.ErrKeyGenerationDisabled {
 		t.Fatal(err)
 	}
 }
@@ -163,7 +163,7 @@ func TestGenerateToken(t *testing.T) {
 	}
 }
 
-func TestValidateKey(t *testing.T) {
+func TestValidateToken(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
 	*privateKeyFile = filepath.Join(testDir, "netauth.key")
@@ -183,7 +183,7 @@ func TestValidateKey(t *testing.T) {
 		EntityID: "foo",
 	}
 
-	cfg := token.TokenConfig{
+	cfg := token.Config{
 		Lifetime:  time.Minute * 5,
 		IssuedAt:  time.Now(),
 		NotBefore: time.Now(),
@@ -193,7 +193,7 @@ func TestValidateKey(t *testing.T) {
 
 	tkn, err := x.Generate(c, cfg)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	os.Remove(*privateKeyFile)
@@ -204,7 +204,7 @@ func TestValidateKey(t *testing.T) {
 
 	claims, err := x.Validate(tkn)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	// structs containing []string can't be compared directly, so

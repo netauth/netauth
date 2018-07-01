@@ -1,20 +1,25 @@
 package token
 
 import (
-	"errors"
 	"flag"
 	"log"
 	"time"
 )
 
-type TokenServiceFactory func() (TokenService, error)
+// A ServiceFactory returns a token service when called.
+type ServiceFactory func() (Service, error)
 
-type TokenService interface {
-	Generate(Claims, TokenConfig) (string, error)
+// The Service type defines the required interface for the Token
+// Service.  The service must generate tokens, and be able to validate
+// them.
+type Service interface {
+	Generate(Claims, Config) (string, error)
 	Validate(string) (Claims, error)
 }
 
-type TokenConfig struct {
+// The Config struct contains information that should be used when
+// generating a token.
+type Config struct {
 	Lifetime  time.Duration
 	Renewals  int
 	Issuer    string
@@ -22,31 +27,21 @@ type TokenConfig struct {
 	NotBefore time.Time
 }
 
-type Claims struct {
-	EntityID     string
-	Capabilities []string
-	RenewalsLeft int
-}
-
 var (
-	services map[string]TokenServiceFactory
+	services map[string]ServiceFactory
 
 	impl     = flag.String("token_impl", "", "Token implementation to use")
 	lifetime = flag.Duration("token_lifetime", time.Hour*10, "Token lifetime")
 	renewals = flag.Int("token_renewals", 5, "Maximum number of times the token may be renewed")
-
-	UnknownTokenService   = errors.New("No token service with that name exists")
-	KeyUnavailable        = errors.New("A required key is not available")
-	KeyGenerationDisabled = errors.New("Key generation is disabled!")
-	InternalError         = errors.New("An unrecoverable internal error has occured")
-	TokenInvalid          = errors.New("The provided token is invalid")
 )
 
 func init() {
-	services = make(map[string]TokenServiceFactory)
+	services = make(map[string]ServiceFactory)
 }
 
-func New() (TokenService, error) {
+// New returns an initialized token service based on the value of the
+// --token_impl flag.
+func New() (Service, error) {
 	if *impl == "" && len(services) == 1 {
 		log.Println("Warning: No token implementation selected, using only registered option...")
 		*impl = GetBackendList()[0]
@@ -54,12 +49,14 @@ func New() (TokenService, error) {
 
 	t, ok := services[*impl]
 	if !ok {
-		return nil, UnknownTokenService
+		return nil, ErrUnknownTokenService
 	}
 	return t()
 }
 
-func RegisterService(name string, impl TokenServiceFactory) {
+// Register is called by implementations to register ServiceFactory
+// functions.
+func Register(name string, impl ServiceFactory) {
 	if _, ok := services[name]; ok {
 		// Already registered
 		return
@@ -67,30 +64,24 @@ func RegisterService(name string, impl TokenServiceFactory) {
 	services[name] = impl
 }
 
+// GetBackendList returns a []string of implementation names.
 func GetBackendList() []string {
-	l := []string{}
+	var l []string
 
-	for b, _ := range services {
+	for b := range services {
 		l = append(l, b)
 	}
 
 	return l
 }
 
-func GetConfig() TokenConfig {
-	return TokenConfig{
+// GetConfig returns a struct containing the configuration for the
+// token service to use while issuing tokens.
+func GetConfig() Config {
+	return Config{
 		Lifetime:  *lifetime,
 		Renewals:  *renewals,
 		IssuedAt:  time.Now(),
 		NotBefore: time.Now(),
 	}
-}
-
-func (c *Claims) HasCapability(cap string) bool {
-	for _, tc := range c.Capabilities {
-		if tc == cap || tc == "GLOBAL_ROOT" {
-			return true
-		}
-	}
-	return false
 }

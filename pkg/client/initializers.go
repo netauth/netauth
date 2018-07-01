@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/NetAuth/NetAuth/internal/token"
-	_ "github.com/NetAuth/NetAuth/internal/token/impl"
+	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
 	"github.com/BurntSushi/toml"
 	"google.golang.org/grpc"
