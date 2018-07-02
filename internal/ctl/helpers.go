@@ -8,7 +8,8 @@ import (
 )
 
 func printEntity(entity *pb.Entity, fields string) {
-	fieldList := []string{}
+	var fieldList []string
+
 	if fields != "" {
 		fieldList = strings.Split(fields, ",")
 	} else {
@@ -69,7 +70,8 @@ func printEntity(entity *pb.Entity, fields string) {
 }
 
 func printGroup(group *pb.Group, fields string) {
-	fieldList := []string{}
+	var fieldList []string
+
 	if fields != "" {
 		fieldList = strings.Split(fields, ",")
 	} else {

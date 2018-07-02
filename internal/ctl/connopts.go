@@ -88,12 +88,12 @@ func getServerCert() string {
 // configured and ready to use.
 func getClient() (*client.NetAuthClient, error) {
 	cconf := client.NACLConfig{
-		Server:     *serverAddr,
-		Port:       *serverPort,
-		ClientID:   *clientID,
-		ServiceID:  *serviceID,
-		ServerCert: *serverCert,
-		PWN_ME:     *insecure,
+		Server:         *serverAddr,
+		Port:           *serverPort,
+		ClientID:       *clientID,
+		ServiceID:      *serviceID,
+		ServerCert:     *serverCert,
+		WildlyInsecure: *insecure,
 	}
 	return client.New(&cconf)
 }

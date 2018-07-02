@@ -10,18 +10,23 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// EntityMembershipCmd modifies the direct group membership for an
+// entity.
 type EntityMembershipCmd struct {
 	entityID  string
 	groupName string
 	action    string
 }
 
+// Name of this cmdlet will be 'entity-membership'
 func (*EntityMembershipCmd) Name() string { return "entity-membership" }
 
+// Synopsis returns the short-form usage information
 func (*EntityMembershipCmd) Synopsis() string {
 	return "Add or remove an existing entity to an existing group"
 }
 
+// Usage returns the long form usage information.
 func (*EntityMembershipCmd) Usage() string {
 	return `entity-membership --ID <ID> --group <name> --action <add|remove>
 
@@ -30,12 +35,14 @@ and the group must exist already.
 `
 }
 
-func (c *EntityMembershipCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&c.entityID, "ID", getEntity(), "ID of the entity to add to the group")
-	f.StringVar(&c.groupName, "group", "", "Name of the group to add to")
-	f.StringVar(&c.action, "action", "", "Action to perform, must be 'add' or 'remove'")
+// SetFlags sets the cmdlet specific flags.
+func (cmd *EntityMembershipCmd) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&cmd.entityID, "ID", getEntity(), "ID of the entity to add to the group")
+	f.StringVar(&cmd.groupName, "group", "", "Name of the group to add to")
+	f.StringVar(&cmd.action, "action", "", "Action to perform, must be 'add' or 'remove'")
 }
 
+// Execute runs the cmdlet.
 func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()

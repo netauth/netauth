@@ -8,18 +8,26 @@ import (
 	"github.com/google/subcommands"
 )
 
+// InspectTokenCmd examines the local token and prints properties about it
 type InspectTokenCmd struct{}
 
-func (*InspectTokenCmd) Name() string     { return "inspect-token" }
+// Name of this cmdlet is 'inspect-token'
+func (*InspectTokenCmd) Name() string { return "inspect-token" }
+
+// Synopsis returns the short-form usage.
 func (*InspectTokenCmd) Synopsis() string { return "Inspect an existing token locally." }
+
+// Usage returns the long-form usage.
 func (*InspectTokenCmd) Usage() string {
-	return `validate-token
+	return `inspect-token
   Inspect the token locally, printing its contents if it is valid.
 `
 }
 
+// SetFlags is required by the interface, but InspectTokenCmd has no flags of its own.
 func (*InspectTokenCmd) SetFlags(f *flag.FlagSet) {}
 
+// Execute runs the cmdlet.
 func (*InspectTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()

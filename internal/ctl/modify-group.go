@@ -10,26 +10,34 @@ import (
 	"github.com/google/subcommands"
 )
 
+// ModifyGroupCmd modifies mutable information on a group.
 type ModifyGroupCmd struct {
 	name        string
 	displayName string
 	managedby   string
 }
 
-func (*ModifyGroupCmd) Name() string     { return "modify-group" }
+// Name of this cmdlet is 'modify-group'
+func (*ModifyGroupCmd) Name() string { return "modify-group" }
+
+// Synopsis returns the short-form usage information.
 func (*ModifyGroupCmd) Synopsis() string { return "Modify mutable fields on a group" }
+
+// Usage returns the long-form usage information.
 func (*ModifyGroupCmd) Usage() string {
 	return `modify-group --name <name> [fields-to-be-modified]
 Modify a group by updating the named fields to the provided values.
 `
 }
 
+// SetFlags sets the cmdlet specific flags
 func (p *ModifyGroupCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.name, "name", "", "Name of the group to modify")
 	f.StringVar(&p.displayName, "display_name", "NO_CHANGE", "Group displayName")
 	f.StringVar(&p.managedby, "managed_by", "NO_CHANGE", "Group that manages this group")
 }
 
+// Execute runs the cmdlet.
 func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()

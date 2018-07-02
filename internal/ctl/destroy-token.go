@@ -8,10 +8,16 @@ import (
 	"github.com/google/subcommands"
 )
 
+// DestroyTokenCmd clears the local token.
 type DestroyTokenCmd struct{}
 
-func (*DestroyTokenCmd) Name() string     { return "destroy-token" }
+// Name to return for this cmdlet.
+func (*DestroyTokenCmd) Name() string { return "destroy-token" }
+
+// Synopsis for the cmdlet.
 func (*DestroyTokenCmd) Synopsis() string { return "Destroy an existing local token." }
+
+// Usage for the cmdlet.
 func (*DestroyTokenCmd) Usage() string {
 	return `destroy-token
   Attempt to destroy the local authority token.  This command will
@@ -19,8 +25,11 @@ func (*DestroyTokenCmd) Usage() string {
 `
 }
 
+// SetFlags is required by the interface but DestroyTokenCmd has no
+// flags to set.
 func (*DestroyTokenCmd) SetFlags(f *flag.FlagSet) {}
 
+// Execute is the interface method that runs the actions of the cmdlet.
 func (*DestroyTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()

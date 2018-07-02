@@ -10,6 +10,7 @@ import (
 	"github.com/google/subcommands"
 )
 
+// ModifyMetaCmd requests the server to modify the EntityMeta section of an entity.
 type ModifyMetaCmd struct {
 	ID             string
 	GECOS          string
@@ -22,14 +23,20 @@ type ModifyMetaCmd struct {
 	badgeNumber    string
 }
 
-func (*ModifyMetaCmd) Name() string     { return "modify-meta" }
+// Name of this cmdlet is 'modify-meta'
+func (*ModifyMetaCmd) Name() string { return "modify-meta" }
+
+// Synopsis returns short-form usage information.
 func (*ModifyMetaCmd) Synopsis() string { return "Modify meta-data on an entity" }
+
+// Usage returns long-form usage information.
 func (*ModifyMetaCmd) Usage() string {
 	return `modify-meta --ID <ID> [fields-to-be-modified]
 Modify an entity by updating the named fields to the provided values.
 `
 }
 
+// SetFlags sets the cmdlet specific flags.
 func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.ID, "ID", getEntity(), "ID for the entity to modify")
 	f.StringVar(&p.PrimaryGroup, "primary-group", "NO_CHANGE", "Primary Group")
@@ -42,6 +49,7 @@ func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.badgeNumber, "badgeNumber", "NO_CHANGE", "Badge number for the entity")
 }
 
+// Execute runs the cmdlet.
 func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()

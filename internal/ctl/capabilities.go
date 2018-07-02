@@ -8,6 +8,7 @@ import (
 	"github.com/google/subcommands"
 )
 
+// CapabilitiesCmd supports the ModifyCapabilities RPC.
 type CapabilitiesCmd struct {
 	mode       string
 	entity     string
@@ -15,8 +16,13 @@ type CapabilitiesCmd struct {
 	capability string
 }
 
-func (*CapabilitiesCmd) Name() string     { return "modify-capabilities" }
+// Name of this cmdlet is 'modify-capabilities'
+func (*CapabilitiesCmd) Name() string { return "modify-capabilities" }
+
+// Synopsis for the cmdlet
 func (*CapabilitiesCmd) Synopsis() string { return "Modify capabilities on an entity or group" }
+
+// Usage of this cmdlet in long form.
 func (*CapabilitiesCmd) Usage() string {
 	return `modify-capabilities --capability <capability> <[--entity <ID>]|[--group <name>]> --mode <ADD|REMOVE>
 
@@ -25,6 +31,7 @@ are specififed (unsupported) then the group will be ignored.
 `
 }
 
+// SetFlags is called to set flags specific to this cmdlet
 func (p *CapabilitiesCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.mode, "mode", "ADD", "Mode, must be one of ADD or REMOVE")
 	f.StringVar(&p.entity, "entity", "", "Entity to modify")
@@ -32,6 +39,7 @@ func (p *CapabilitiesCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.capability, "capability", "", "Capability to modify")
 }
 
+// Execute is the interface method that runs the actions of the cmdlet.
 func (p *CapabilitiesCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	if p.entity == "" && p.group == "" {
 		fmt.Println("Either --entity or --group must be specified!")

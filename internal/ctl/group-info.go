@@ -8,13 +8,20 @@ import (
 	"github.com/google/subcommands"
 )
 
+// GroupInfoCmd returns  information about a named  group filtered for
+// specific fields.
 type GroupInfoCmd struct {
 	name   string
 	fields string
 }
 
-func (*GroupInfoCmd) Name() string     { return "group-info" }
+// Name of this cmdlet will be 'group-info'
+func (*GroupInfoCmd) Name() string { return "group-info" }
+
+// Synopsis returns the short-form usage.
 func (*GroupInfoCmd) Synopsis() string { return "Obtain information on a group" }
+
+// Usage returns the long-form usage.
 func (*GroupInfoCmd) Usage() string {
 	return `group-info --name <name> [--fields field1,field2,field3...]
 
@@ -23,11 +30,13 @@ single group, as opposed to attempting to list all groups.
 `
 }
 
+// SetFlags sets the cmdlet specific flags.
 func (p *GroupInfoCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
 	f.StringVar(&p.name, "name", "", "Name of the group to query")
 }
 
+// Execute gets the group and prints information on it.
 func (p *GroupInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()
