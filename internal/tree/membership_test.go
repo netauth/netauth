@@ -3,7 +3,7 @@ package tree
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto/impl/nocrypto"
+	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 

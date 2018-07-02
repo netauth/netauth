@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
-	_ "github.com/NetAuth/NetAuth/internal/crypto/impl"
+	_ "github.com/NetAuth/NetAuth/internal/crypto/all"
 	"github.com/NetAuth/NetAuth/internal/db"
 	_ "github.com/NetAuth/NetAuth/internal/db/impl"
 	"github.com/NetAuth/NetAuth/internal/token"
