@@ -26,10 +26,10 @@ type Engine struct {
 }
 
 // New registers this crypto type for use by the NetAuth server.
-func New() crypto.EMCrypto {
+func New() (crypto.EMCrypto, error) {
 	x := new(Engine)
 	x.cost = *cost
-	return x
+	return x, nil
 }
 
 // SecureSecret takes in a secret and generates a bcrypt hash from it.

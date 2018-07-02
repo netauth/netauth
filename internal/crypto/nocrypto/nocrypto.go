@@ -16,8 +16,8 @@ func init() {
 }
 
 // New registers this crypto type for use by the NetAuth server.
-func New() crypto.EMCrypto {
-	return &NoCrypto{}
+func New() (crypto.EMCrypto, error) {
+	return &NoCrypto{}, nil
 }
 
 // SecureSecret returns the secret unmodified.

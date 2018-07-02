@@ -10,7 +10,10 @@ func TestEncryptDecrypt(t *testing.T) {
 	secret := "foo"
 
 	*cost = 0
-	e := New()
+	e, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 	hash, err := e.SecureSecret(secret)
 	t.Log("Testing GenerateFromPassword")
 	if err != nil {
@@ -26,7 +29,10 @@ func TestEncryptDecrypt(t *testing.T) {
 
 func TestBadDecode(t *testing.T) {
 	*cost = 0
-	e := New()
+	e, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if err := e.VerifySecret("", ""); err != crypto.ErrAuthorizationFailure {
 		t.Errorf("Bad crypto error: %s", err)

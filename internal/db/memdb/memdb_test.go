@@ -12,7 +12,9 @@ import (
 
 func TestDiscoverEntities(t *testing.T) {
 	x, err := New()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	l, err := x.DiscoverEntityIDs()
 	if err != nil {
@@ -50,7 +52,9 @@ func TestDiscoverEntities(t *testing.T) {
 
 func TestSaveLoadDeleteEntity(t *testing.T) {
 	x, err := New()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	e := &pb.Entity{ID: proto.String("foo")}
 
@@ -81,7 +85,9 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 
 func TestDiscoverGroups(t *testing.T) {
 	x, err := New()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	l, err := x.DiscoverGroupNames()
 	if err != nil {
@@ -119,7 +125,9 @@ func TestDiscoverGroups(t *testing.T) {
 
 func TestGroupSaveLoadDelete(t *testing.T) {
 	x, err := New()
-	if err != nil { t.Fatal(err) }
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	g := &pb.Group{Name: proto.String("foo")}
 

@@ -10,7 +10,7 @@ type EMCrypto interface {
 
 // The Factory type is to be implemented by crypto implementations and
 // shall be fed to the Register function.
-type Factory func() EMCrypto
+type Factory func() (EMCrypto, error)
 
 var (
 	backends = make(map[string]Factory)
@@ -23,7 +23,7 @@ func New(name string) (EMCrypto, error) {
 	if !ok {
 		return nil, ErrUnknownCrypto
 	}
-	return b(), nil
+	return b()
 }
 
 // Register takes in a name for the engine and a function

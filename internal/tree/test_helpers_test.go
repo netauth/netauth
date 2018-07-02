@@ -13,6 +13,10 @@ func getNewEntityManager(t *testing.T) *Manager {
 		t.Fatal(err)
 	}
 
-	crypto := nocrypto.New()
+	crypto, err := nocrypto.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	return New(db, crypto)
 }

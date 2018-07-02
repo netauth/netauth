@@ -7,7 +7,10 @@ import (
 )
 
 func TestSecureSecret(t *testing.T) {
-	e := New()
+	e, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 	s := "foo"
 	h, err := e.SecureSecret("foo")
 	if h != s && err != nil {
@@ -16,7 +19,10 @@ func TestSecureSecret(t *testing.T) {
 }
 
 func TestSecureSecretBadAuth(t *testing.T) {
-	e := New()
+	e, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 	s := "foo"
 	h := "bar"
 
@@ -26,7 +32,10 @@ func TestSecureSecretBadAuth(t *testing.T) {
 }
 
 func TestVerifySecret(t *testing.T) {
-	e := New()
+	e, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 	h := "foo"
 	s := "foo"
 	if err := e.VerifySecret(s, h); err != nil {
