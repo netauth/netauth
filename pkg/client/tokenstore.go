@@ -15,6 +15,10 @@ import (
 // NetAuth.  In reality the only sane backends are likely memory and
 // file.
 
+// The TokenStore is a convenient way to securely store tokens for
+// entities.  Care should be taken with all implementations to avoid
+// loosing security of the token, since a token attack can be
+// escalated to persistent root in the right circumstances.
 type TokenStore interface {
 	StoreToken(string, string) error
 	GetToken(string) (string, error)
@@ -25,8 +29,13 @@ var (
 	backends map[string]TokenStore
 	impl     = flag.String("tokenstore", "disk", "Token storage system")
 
-	NoSuchTokenStore = errors.New("No token store with that name exists!")
-	TokenUnavailable = errors.New("The stored token is unavailable")
+	// ErrNoSuchTokenStore is returned in the case when the token
+	// store requested does not actually exist.
+	ErrNoSuchTokenStore = errors.New("no token store with that name exists")
+
+	// ErrTokenUnavailable is returned when there is no token
+	// available to be returned.
+	ErrTokenUnavailable = errors.New("the stored token is unavailable")
 )
 
 func init() {
@@ -35,7 +44,8 @@ func init() {
 	Register("disk", &fsTokenStore{})
 }
 
-// Mechanism to register token storage systems
+// Register is called by implementations to register into the token
+// system.
 func Register(name string, impl TokenStore) {
 	if _, ok := backends[name]; ok {
 		// Already registered
@@ -49,7 +59,7 @@ func getTokenStore() (TokenStore, error) {
 	// registered, if more were registered than the user has to
 	// make an stated choice.
 	if *impl == "" && len(backends) == 1 {
-		for b, _ := range backends {
+		for b := range backends {
 			*impl = b
 			break
 		}
@@ -58,7 +68,7 @@ func getTokenStore() (TokenStore, error) {
 	if t, ok := backends[*impl]; ok {
 		return t, nil
 	}
-	return nil, NoSuchTokenStore
+	return nil, ErrNoSuchTokenStore
 }
 
 // Exposed functions to store and retrieve the tokens
@@ -72,17 +82,13 @@ func (n *NetAuthClient) getTokenFromStore(name string) (string, error) {
 		return "", err
 	}
 	if t == "" {
-		return "", TokenUnavailable
+		return "", ErrTokenUnavailable
 	}
 	return n.tokenStore.GetToken(name)
 }
 
 func (n *NetAuthClient) putTokenInStore(name, token string) error {
 	return n.tokenStore.StoreToken(name, token)
-}
-
-func (n *NetAuthClient) DestroyToken(name string) error {
-	return n.tokenStore.DestroyToken(name)
 }
 
 // Basic in memory token store

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/NetAuth/NetAuth/internal/token"
+	// Register the token services on import
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
 	"github.com/BurntSushi/toml"
@@ -17,7 +18,9 @@ import (
 )
 
 var (
-	ConfigError = errors.New("Required configuration values are missing")
+	// ErrConfigError is returned when the configuration was
+	// loaded but was missing required values.
+	ErrConfigError = errors.New("Required configuration values are missing")
 )
 
 // New takes in a NACLConfig pointer and uses this to bootstrap a
@@ -37,7 +40,7 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 
 	// Make sure the server/port tuple is defined.
 	if cfg.Server == "" {
-		return nil, ConfigError
+		return nil, ErrConfigError
 	}
 	if cfg.Port == 0 {
 		cfg.Port = 8080
@@ -45,7 +48,7 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 
 	// Setup the connection.
 	var opts []grpc.DialOption
-	if cfg.PWN_ME {
+	if cfg.WildlyInsecure {
 		opts = []grpc.DialOption{grpc.WithInsecure()}
 	} else {
 		// If it wasn't set then pull it from the default

@@ -15,6 +15,10 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// The NetAuthClient is the logical abstraction on top of the gRPC
+// client form the Protobuf.  This includes the additional components
+// such as the TokenService and the TokenStore, as well as the config
+// structures that drive the client.
 type NetAuthClient struct {
 	c          pb.NetAuthClient
 	cfg        *NACLConfig
@@ -23,6 +27,8 @@ type NetAuthClient struct {
 	tokenService token.Service
 }
 
+// The NACLConfig configures the library to make connections to a
+// remote NetAuth servers.
 type NACLConfig struct {
 	Server    string
 	Port      int
@@ -31,7 +37,7 @@ type NACLConfig struct {
 
 	// This could just be "Insecure", but this makes it a bit more
 	// clear that you're a fool to be running with this set.
-	PWN_ME bool
+	WildlyInsecure bool
 
 	ServerCert string
 }
@@ -217,9 +223,9 @@ func (n *NetAuthClient) RemoveEntity(id, token string) (*pb.SimpleResult, error)
 	return result, nil
 }
 
-// Obtain the entity object with the secure fields redacted.  This is
-// primarily used for displaying the values of the metadata struct
-// internally.
+// EntityInfo btains the entity object with the secure fields
+// redacted.  This is primarily used for displaying the values of the
+// metadata struct internally.
 func (n *NetAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 	request := pb.NetAuthRequest{
 		Entity: &pb.Entity{
