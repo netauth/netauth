@@ -19,11 +19,11 @@ type MemDB struct {
 }
 
 // New returns a usable memdb with internal structures initialized.
-func New() db.DB {
+func New() (db.DB, error) {
 	return &MemDB{
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
-	}
+	}, nil
 }
 
 // DiscoverEntityIDs returns a list of entity IDs which can then be

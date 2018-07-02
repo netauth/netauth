@@ -10,7 +10,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	_ "github.com/NetAuth/NetAuth/internal/crypto/all"
 	"github.com/NetAuth/NetAuth/internal/db"
-	_ "github.com/NetAuth/NetAuth/internal/db/impl"
+	_ "github.com/NetAuth/NetAuth/internal/db/all"
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
 

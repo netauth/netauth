@@ -42,14 +42,14 @@ func init() {
 // directory and children.  This function will bail out the entire
 // program as without the backing store the functionality of the rest
 // of the server is undefined!
-func New() db.DB {
+func New() (db.DB, error) {
 	x := new(ProtoDB)
 	x.dataRoot = *dataRoot
 	if err := x.ensureDataDirectory(); err != nil {
-		log.Fatalf("Could not establish data directory! (%s)", err)
-		return nil
+		log.Printf("Could not establish data directory! (%s)", err)
+		return nil, err
 	}
-	return x
+	return x, nil
 }
 
 // DiscoverEntityIDs returns a list of entity IDs that this loader can

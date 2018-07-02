@@ -32,7 +32,11 @@ func TestDiscoverEntities(t *testing.T) {
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
 	defer cleanTmpTestDir(*dataRoot, t)
-	x := New()
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	l, err := x.DiscoverEntityIDs()
 	if err != nil {
 		t.Error(err)
@@ -72,7 +76,10 @@ func TestEntitySaveLoadDelete(t *testing.T) {
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
 	defer cleanTmpTestDir(*dataRoot, t)
-	x := New()
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	e := &pb.Entity{ID: proto.String("foo")}
 
@@ -106,7 +113,10 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
 	defer cleanTmpTestDir(*dataRoot, t)
-	x := New()
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	g := &pb.Group{Name: proto.String("foo")}
 

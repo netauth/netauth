@@ -3,15 +3,13 @@ package tree
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/db/impl/memdb"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 func TestMembershipEdit(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	e := &pb.Entity{}
 
@@ -36,7 +34,7 @@ func TestMembershipEdit(t *testing.T) {
 }
 
 func TestAddEntityToGroupExternal(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	s := []struct {
 		entity  string
@@ -63,7 +61,7 @@ func TestAddEntityToGroupExternal(t *testing.T) {
 }
 
 func TestAddEntityToGroupTwice(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Fatal(err)
@@ -87,7 +85,7 @@ func TestAddEntityToGroupTwice(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroupExternalNoEntity(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.RemoveEntityFromGroup("", ""); err != db.ErrUnknownEntity {
 		t.Fatal(err)
@@ -95,7 +93,7 @@ func TestRemoveEntityFromGroupExternalNoEntity(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroupExternal(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewEntity("foo", -1, ""); err != nil {
 		t.Fatal(err)
@@ -107,7 +105,7 @@ func TestRemoveEntityFromGroupExternal(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroup(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Get an entity and some groups
 	if err := em.NewEntity("foo", -1, ""); err != nil {
@@ -144,7 +142,7 @@ func TestRemoveEntityFromGroup(t *testing.T) {
 }
 
 func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	e := &pb.Entity{}
 
@@ -154,7 +152,7 @@ func TestRemoveEntityFromGroupNilMeta(t *testing.T) {
 }
 
 func TestGetGroupsNoMeta(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	e := &pb.Entity{}
 
@@ -164,7 +162,7 @@ func TestGetGroupsNoMeta(t *testing.T) {
 }
 
 func TestGetMemberships(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Create some groups
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
@@ -216,7 +214,7 @@ func TestGetMemberships(t *testing.T) {
 }
 
 func TestListMembersALLInternal(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	s := []string{
 		"foo",
@@ -245,7 +243,7 @@ func TestListMembersALLInternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchInternal(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 	list, err := em.listMembers("")
 	if list != nil && err != db.ErrUnknownGroup {
 		t.Error(err)
@@ -253,7 +251,7 @@ func TestListMembersNoMatchInternal(t *testing.T) {
 }
 
 func TestListMembersNoMatchExternal(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 	list, err := em.ListMembers("")
 	if list != nil && err != db.ErrUnknownGroup {
 		t.Error(err)
@@ -261,7 +259,7 @@ func TestListMembersNoMatchExternal(t *testing.T) {
 }
 
 func TestListMembersNoExpansions(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -285,7 +283,7 @@ func TestListMembersNoExpansions(t *testing.T) {
 }
 
 func TestListMembersWithExpansions(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Create some groups
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
@@ -349,7 +347,7 @@ func TestListMembersWithExpansions(t *testing.T) {
 }
 
 func TestAddExpansionInclude(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -373,7 +371,7 @@ func TestAddExpansionInclude(t *testing.T) {
 }
 
 func TestAddExpansionExclude(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -397,7 +395,7 @@ func TestAddExpansionExclude(t *testing.T) {
 }
 
 func TestDropExpansion(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {
@@ -429,7 +427,7 @@ func TestDropExpansion(t *testing.T) {
 }
 
 func TestModifyExpansionBadParent(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.ModifyGroupExpansions("Bogus-Parent", "", pb.ExpansionMode_INCLUDE); err != db.ErrUnknownGroup {
 		t.Fatal(err)
@@ -437,7 +435,7 @@ func TestModifyExpansionBadParent(t *testing.T) {
 }
 
 func TestModifyExpansionBadChild(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	if err := em.NewGroup("grp1", "", "", -1); err != nil {
 		t.Fatal(err)
@@ -449,7 +447,7 @@ func TestModifyExpansionBadChild(t *testing.T) {
 }
 
 func TestModifyExpansionDuplicate(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2"} {
@@ -470,7 +468,7 @@ func TestModifyExpansionDuplicate(t *testing.T) {
 }
 
 func TestModifyExpansionCycle(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {
@@ -496,7 +494,7 @@ func TestModifyExpansionCycle(t *testing.T) {
 }
 
 func TestCheckGroupCyclesCorruptDB(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	// Set up some groups
 	for _, g := range []string{"grp1", "grp2", "grp3"} {
@@ -526,7 +524,7 @@ func TestCheckGroupCyclesCorruptDB(t *testing.T) {
 }
 
 func TestDedupEntityList(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	s := []struct {
 		ID     string
@@ -569,7 +567,7 @@ func TestDedupEntityList(t *testing.T) {
 }
 
 func TestEntityListDifference(t *testing.T) {
-	em := New(memdb.New(), nocrypto.New())
+	em := getNewEntityManager(t)
 
 	s := []struct {
 		ID     string

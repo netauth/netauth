@@ -4,8 +4,6 @@ package db
 // various database options.
 
 import (
-	"errors"
-
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -26,26 +24,10 @@ type DB interface {
 
 // Factory defines the function which can be used to register new
 // implementations.
-type Factory func() DB
+type Factory func() (DB, error)
 
 var (
 	backends = make(map[string]Factory)
-
-	// ErrUnknownEntity is returned for requests to load an entity
-	// that does not exist.
-	ErrUnknownEntity = errors.New("The specified entity does not exist")
-
-	// ErrUnknownGroup is returned for requests to load a group
-	// that does not exist.
-	ErrUnknownGroup = errors.New("The specified group does not exist")
-
-	// ErrUnknownDatabase is returned for an attempt to create a
-	// new database that hasn't been registered.
-	ErrUnknownDatabase = errors.New("The specified database does not exist")
-
-	// ErrInternalError is used for all other errors that occur
-	// within a database implementation.
-	ErrInternalError = errors.New("The database has encountered an internal error")
 )
 
 // New returns a db struct.
@@ -54,7 +36,7 @@ func New(name string) (DB, error) {
 	if !ok {
 		return nil, ErrUnknownDatabase
 	}
-	return b(), nil
+	return b()
 }
 
 // RegisterDB takes in a name of the database to register and a
