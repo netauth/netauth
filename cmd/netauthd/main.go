@@ -25,30 +25,30 @@ import (
 )
 
 var (
-	bindPort    = flag.Int("port", 8080, "Serving port, defaults to 8080")
-	bindAddr    = flag.String("bind", "localhost", "Bind address, defaults to localhost")
-	insecure    = flag.Bool("PWN_ME", false, "Disable TLS; Don't set on a production server!")
-	certFile    = flag.String("cert_file", "netauth.cert", "Path to certificate file")
-	keyFile     = flag.String("key_file", "netauth.certkey", "Path to key file")
-	bootstrap   = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	db_impl     = flag.String("db", "ProtoDB", "Database implementation to use.")
-	crypto_impl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
+	bindPort   = flag.Int("port", 8080, "Serving port, defaults to 8080")
+	bindAddr   = flag.String("bind", "localhost", "Bind address, defaults to localhost")
+	insecure   = flag.Bool("PWN_ME", false, "Disable TLS; Don't set on a production server!")
+	certFile   = flag.String("cert_file", "netauth.cert", "Path to certificate file")
+	keyFile    = flag.String("key_file", "netauth.certkey", "Path to key file")
+	bootstrap  = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
+	dbImpl     = flag.String("db", "ProtoDB", "Database implementation to use.")
+	cryptoImpl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
 )
 
 func newServer() *rpc.NetAuthServer {
 	// Need to setup the Database for use with the entity tree
-	db, err := db.New(*db_impl)
+	db, err := db.New(*dbImpl)
 	if err != nil {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
 
-	crypto, err := crypto.New(*crypto_impl)
+	crypto, err := crypto.New(*cryptoImpl)
 	if err != nil {
 		log.Fatalf("Fatal crypto error! (%s)", err)
 	}
 
 	// Initialize the entity tree
-	log.Printf("Initializing new Entity Tree with %s and %s", *db_impl, *crypto_impl)
+	log.Printf("Initializing new Entity Tree with %s and %s", *dbImpl, *cryptoImpl)
 	tree := tree.New(db, crypto)
 
 	// Initialize the token service
