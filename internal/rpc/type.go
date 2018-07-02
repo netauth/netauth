@@ -9,11 +9,26 @@ import (
 )
 
 var (
-	RequestorUnqualified = errors.New("The requestor is not qualified to perform that action")
-	MalformedRequest     = errors.New("The request is malformed and cannot be processed")
-	InternalError        = errors.New("An internal error has occured")
+	// ErrRequestorUnqualified is returned when a caller has
+	// attempted to perform some action that requires
+	// authorization and the caller is either not authorized, was
+	// unable to present a token, or the token did not contain
+	// sufficient capabilities.
+	ErrRequestorUnqualified = errors.New("the requestor is not qualified to perform that action")
+
+	// ErrMalformedRequest is returned when a caller makes some
+	// request to the server but has failed to provide a complete
+	// request, or has provided a request that is in conflict with
+	// itself.
+	ErrMalformedRequest = errors.New("the request is malformed and cannot be processed")
+
+	// ErrInternalError is a catchall for errors that are
+	// otherwise unidentified and unrecoverable in the server.
+	ErrInternalError = errors.New("An internal error has occured")
 )
 
+// An EntityTree is a mechanism for storing entities and information
+// about them.
 type EntityTree interface {
 	GetEntity(string) (*pb.Entity, error)
 	ValidateSecret(string, string) error
@@ -45,6 +60,8 @@ type EntityTree interface {
 	RemoveGroupCapabilityByName(string, string) error
 }
 
+// A NetAuthServer is a collection of methods that satisfy the
+// requirements of the NetAuthServer protocol buffer.
 type NetAuthServer struct {
 	Tree  EntityTree
 	Token token.Service

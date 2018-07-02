@@ -11,6 +11,9 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// NewEntity creates a new entity.  This action must be authorized by
+// the presentation of a valid token containing appropriate
+// capabilities.
 func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -23,7 +26,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("CREATE_ENTITY") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.NewEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err != nil {
@@ -42,6 +45,9 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 	}, toWireError(nil)
 }
 
+// RemoveEntity removes an entity.  This action must be authorized by
+// the presentation of a valid token containing appropriate
+// capabilities.
 func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -54,7 +60,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("DESTROY_ENTITY") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.DeleteEntityByID(e.GetID()); err != nil {
@@ -73,6 +79,10 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 	}, toWireError(nil)
 }
 
+// EntityInfo returns as much information about an entity is as known.
+// This response will not include information about the entity's
+// memberships in groups within the tree, but will include all fields
+// in the EntityMeta section.
 func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*pb.Entity, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -86,6 +96,12 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 	return e, toWireError(err)
 }
 
+// ModifyEntityMeta can be used to modify the EntityMeta section of an
+// Entity.  This request must be authorized by a token that either
+// contains the correct capabilities to modify others, or the entityID
+// must match the entity for which the change was requested.  Some
+// fields cannot be changed by this mechanism and must be changed via
+// other calls which perform more authorization and validation checks.
 func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -98,7 +114,7 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("MODIFY_ENTITY_META") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.UpdateEntityMeta(e.GetID(), e.GetMeta()); err != nil {
@@ -118,6 +134,9 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 	}, toWireError(nil)
 }
 
+// ModifyEntityKeys can be used to add, remove, or retrieve the keys
+// associated with an entity.  This action must be authorized by the
+// presentation of a token with appropriate capabilities.
 func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKeyRequest) (*pb.KeyList, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -137,7 +156,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
 		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
-			return nil, toWireError(RequestorUnqualified)
+			return nil, toWireError(ErrRequestorUnqualified)
 		}
 	}
 

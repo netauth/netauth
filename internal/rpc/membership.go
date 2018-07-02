@@ -9,6 +9,10 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// AddEntityToGroup will add an existing entity to an existing group
+// if they are not already a direct member.  If they are a direct
+// member this call is idempotent.  This action must be authorized by
+// the presentation of a token containing the appropriate capability.
 func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMembershipRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -24,7 +28,7 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	// Add to the group
@@ -45,6 +49,9 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 	}, toWireError(nil)
 }
 
+// RemoveEntityFromGroup will remove an existing entity from an
+// existing group.  This action must be authorized by the presentation
+// of a token containing appropriate capabilities.
 func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEntityMembershipRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -60,7 +67,7 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	// Remove from the group
@@ -81,6 +88,11 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	}, toWireError(nil)
 }
 
+// ListGroups lists the groups a particular entity is in, or all
+// groups on the server if no entity is specified.  In the case of
+// calculating the groups a specific entity is in this can be quite
+// expensive since large chunks of the membership tree will need to be
+// calculated.
 func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -121,6 +133,9 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 	}, toWireError(nil)
 }
 
+// ListGroupMembers lists the members that are in a particular group.
+// This call requires computing fairly large chunks of the membership
+// graph.
 func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberRequest) (*pb.EntityList, error) {
 	client := r.GetInfo()
 	g := r.GetGroup()
@@ -140,6 +155,11 @@ func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberR
 	}, toWireError(nil)
 }
 
+// ModifyGroupNesting permits changing the rules for group expansions.
+// These expansions can either include a group's members, or prune the
+// members of one group from another.  Expansions are checked to
+// ensure they do not exist already, and that the addition of an
+// expansion would not create a cycle in the membership graph.
 func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNestingRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -156,7 +176,7 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, child.GetName()) && !c.HasCapability("MODIFY_GROUP_MEMBERS") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.ModifyGroupExpansions(parent.GetName(), child.GetName(), mode); err != nil {

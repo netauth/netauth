@@ -13,6 +13,9 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// Ping requests the health status of the server and returns it to the
+// client.  This is designed to be a virtually free action that should
+// be safe to invoke at any time to see if the server is available.
 func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (*pb.PingResponse, error) {
 	// Ping takes in a request from the client, and then replies
 	// with a Pong containing the server status.

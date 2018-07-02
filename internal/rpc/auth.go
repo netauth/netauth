@@ -11,6 +11,10 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// AuthEntity performs entity authentication and returns boolean
+// status for the authentication attempt.  This method should be
+// preferred for systems that will not need a token, or will issue a
+// token of their own on the authority of this response.
 func (s *NetAuthServer) AuthEntity(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
 	// Log out some useful stuff for debugging
 	client := r.GetInfo()
@@ -32,6 +36,9 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	return result, toWireError(nil)
 }
 
+// GetToken is functionally identical to AuthEntity above, but will
+// also return a token that can be used to perform further requests to
+// the NetAuth server.
 func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb.TokenResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -50,7 +57,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	e, err := s.Tree.GetEntity(e.GetID())
 	if err != nil {
 		log.Println("Entity Vanished!")
-		return nil, toWireError(InternalError)
+		return nil, toWireError(ErrInternalError)
 	}
 
 	// First get the capabilities that are provided by the entity
@@ -79,7 +86,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 
 	// Flatten the capabilities out into a list
 	var capabilities []string
-	for c, _ := range caps {
+	for c := range caps {
 		capabilities = append(capabilities, c)
 	}
 
@@ -105,6 +112,8 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	return &reply, toWireError(nil)
 }
 
+// ValidateToken will attempt to determine the validity of a token
+// previously issued by the NetAuth server.
 func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -128,6 +137,14 @@ func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest)
 	}, toWireError(nil)
 }
 
+// ChangeSecret allows an entity secret to be reset.  There are two
+// possible flows through this function based on whether or not the
+// request is self-modifying or not.  In the case of a self modifying
+// request (entity requests change of its own secret) then the entity
+// must be in posession of the old secret, not a token, to authorize
+// the change.  In the event the request is administrative (the entity
+// is requesting the change of another entity's secret) then the
+// entity must posses a token with the right capability.
 func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
@@ -168,7 +185,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	// was false, so this needs a valid token to proceed.
 	c, err := s.Token.Validate(t)
 	if err != nil || !c.HasCapability("CHANGE_ENTITY_SECRET") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	// Change the secret per what was specified in the
@@ -189,6 +206,10 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	}, toWireError(nil)
 }
 
+// ManageCapabilities permits the assignment and removal of
+// capabilities from an entity or group.  If the entity and group are
+// both specified, then the group will be ignored and the modification
+// will be performed on the named entity.
 func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabilityRequest) (*pb.SimpleResult, error) {
 	entity := r.GetEntity()
 	group := r.GetGroup()
@@ -204,7 +225,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	// add more capabilities.
 	c, err := s.Token.Validate(t)
 	if err != nil || !c.HasCapability("GLOBAL_ROOT") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if entity != nil {
@@ -227,7 +248,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, toWireError(MalformedRequest)
+			}, toWireError(ErrMalformedRequest)
 		}
 	} else if group != nil {
 		switch mode {
@@ -249,14 +270,14 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 			return &pb.SimpleResult{
 				Success: proto.Bool(false),
 				Msg:     proto.String("Mode must be either ADD or REMOVE"),
-			}, toWireError(MalformedRequest)
+			}, toWireError(ErrMalformedRequest)
 		}
 
 	} else {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
 			Msg:     proto.String("Either entity or group must be provided!"),
-		}, toWireError(MalformedRequest)
+		}, toWireError(ErrMalformedRequest)
 	}
 
 	return &pb.SimpleResult{

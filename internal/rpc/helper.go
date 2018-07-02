@@ -85,11 +85,11 @@ func toWireError(err error) error {
 		return status.Errorf(codes.NotFound, err.Error())
 	case tree.ErrExistingExpansion:
 		return status.Errorf(codes.AlreadyExists, err.Error())
-	case MalformedRequest:
+	case ErrMalformedRequest:
 		return status.Errorf(codes.InvalidArgument, err.Error())
-	case RequestorUnqualified:
+	case ErrRequestorUnqualified:
 		return status.Errorf(codes.PermissionDenied, err.Error())
-	case InternalError:
+	case ErrInternalError:
 		return status.Errorf(codes.Internal, err.Error())
 	default:
 		return status.Errorf(codes.Unknown, "An unidentifiable error has occured")

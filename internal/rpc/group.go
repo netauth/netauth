@@ -9,6 +9,9 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// NewGroup creates a new group on the NetAuth server.  This action
+// must be authorized by the presentation of a token containing
+// appropriate capabilities.
 func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -21,7 +24,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("CREATE_GROUP") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.NewGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err != nil {
@@ -40,6 +43,13 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 	}, toWireError(nil)
 }
 
+// DeleteGroup removes a group from the NetAuth server.  This action
+// must be authorized by the presentation of a token containing
+// apropriate capabilities.  This call will not CASCADE deletes and
+// will not check if the group is empty before proceeding.  Other
+// methods *should* safely handle this and check that they aren't
+// pointing to a group that doesn't exist anymore, but its still good
+// form to clean up references before calling this action.
 func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -52,7 +62,7 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 
 	// Verify the correct capability is present in the token.
 	if !c.HasCapability("DESTROY_GROUP") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.DeleteGroup(g.GetName()); err != nil {
@@ -71,6 +81,8 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	}, toWireError(nil)
 }
 
+// GroupInfo returns as much information as is known about a group.
+// This does not include group membership.
 func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*pb.GroupInfoResult, error) {
 	client := r.GetInfo()
 	g := r.GetGroup()
@@ -99,6 +111,12 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 	return &pb.GroupInfoResult{Group: grp, Managed: mgd}, nil
 }
 
+// ModifyGroupMeta allows metadata stored on the group to be
+// rewritten.  Some fields may not be changed using this action and
+// must use more specialized calls which perform additional
+// authorization and validation checks.  This action must be
+// authorized by the presentation of a token containing appropriate
+// capabilities.
 func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	t := r.GetAuthToken()
@@ -113,7 +131,7 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
 	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_META") {
-		return nil, toWireError(RequestorUnqualified)
+		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
 	if err := s.Tree.UpdateGroupMeta(g.GetName(), g); err != nil {
