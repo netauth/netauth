@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"strings"
 
 	"github.com/google/subcommands"
 )
@@ -63,8 +62,7 @@ func (p *ModifyKeysCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	for _, k := range keys {
-		parts := strings.Split(k, ":")
-		fmt.Printf("Type: %s; Key: %s\n", parts[0], strings.Join(parts[1:], " "))
+		fmt.Printf("Type: %s; Key: %s\n", p.keyType, k)
 	}
 
 	return subcommands.ExitSuccess
