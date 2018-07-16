@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/bgentry/speakeasy"
+
 	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
@@ -34,10 +36,20 @@ func loadConfig() {
 	}
 }
 
-// Hide the entity and secret behind functions so its easier to swap
-// them out later for more complex ways to get the values.
+// Entity is abstracted so we can later get it from a file.
 func getEntity() string { return *entity }
-func getSecret() string { return *secret }
+
+// Prompt for the secret if it wasn't provided in cleartext.
+func getSecret() string {
+	if *secret != "" {
+		return *secret
+	}
+	password, err := speakeasy.Ask("Secret: ")
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	return password
+}
 
 // Hide the other defaults as well
 func getServer() string {
