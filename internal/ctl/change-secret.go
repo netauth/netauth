@@ -29,8 +29,8 @@ entity specified by the top level flag will be used instead.`
 
 // SetFlags is the interface function to set flags specific to this cmdlet.
 func (p *ChangeSecretCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", "", "ID for the new entity")
-	f.StringVar(&p.secret, "secret", "", "secret for the new entity")
+	f.StringVar(&p.ID, "ID", getEntity(), "ID to change secret")
+	f.StringVar(&p.secret, "secret", "", "Secret for change-own-secret")
 }
 
 // Execute is the interface function to run the cmdlet.

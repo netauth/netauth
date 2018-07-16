@@ -30,7 +30,7 @@ limit the information that is printed.
 
 // SetFlags processes the flags for this cmdlet.
 func (p *EntityInfoCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", "", "ID for the new entity")
+	f.StringVar(&p.ID, "ID", getEntity(), "ID to summon info for")
 	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
 }
 
