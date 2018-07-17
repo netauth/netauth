@@ -17,8 +17,8 @@ import (
 )
 
 var (
-	privateKeyFile = flag.String("jwt_rsa_privatekey", "netauth.key", "Path to private key")
-	publicKeyFile  = flag.String("jwt_rsa_publickey", "netauth.pem", "Path to public key")
+	privateKeyFile = flag.String("jwt_rsa_privatekey", "token.key", "Path to private key")
+	publicKeyFile  = flag.String("jwt_rsa_publickey", "/usr/share/netauth/token.pem", "Path to public key")
 	rsaBits        = flag.Int("jwt_rsa_bits", 2048, "Bit length of generated keys")
 	generate       = flag.Bool("jwt_rsa_generate", false, "Generate keys if not available")
 )
