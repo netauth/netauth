@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/user"
 
 	"github.com/bgentry/speakeasy"
 
@@ -36,8 +37,17 @@ func loadConfig() {
 	}
 }
 
-// Entity is abstracted so we can later get it from a file.
-func getEntity() string { return *entity }
+// Try to return the entity from the system unless overridden.
+func getEntity() string {
+	if *entity != "" {
+		return *entity
+	}
+	user, err := user.Current()
+	if err != nil {
+		return ""
+	}
+	return user.Username
+}
 
 // Prompt for the secret if it wasn't provided in cleartext.
 func getSecret() string {
