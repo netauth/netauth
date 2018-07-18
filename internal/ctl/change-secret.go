@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/bgentry/speakeasy"
 	"github.com/google/subcommands"
 )
 
@@ -35,10 +36,14 @@ func (p *ChangeSecretCmd) SetFlags(f *flag.FlagSet) {
 
 // Execute is the interface function to run the cmdlet.
 func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// If the entity wasn't provided, use the one that was set
-	// earlier.
-	if p.ID == "" {
-		p.ID = getEntity()
+	// Get the secret if it wasn't specified on the line
+	if *secret != "" {
+		password, err := speakeasy.Ask("New Secret: ")
+		if err != nil {
+			fmt.Println(err)
+			return subcommands.ExitFailure
+		}
+		*secret = password
 	}
 
 	// Grab a client
