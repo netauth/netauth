@@ -31,21 +31,11 @@ entity specified by the top level flag will be used instead.`
 // SetFlags is the interface function to set flags specific to this cmdlet.
 func (p *ChangeSecretCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.ID, "ID", getEntity(), "ID to change secret")
-	f.StringVar(&p.secret, "secret", "", "Secret for change-own-secret")
+	f.StringVar(&p.secret, "secret", "", "New secret (omit for prompt)")
 }
 
 // Execute is the interface function to run the cmdlet.
 func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// Get the secret if it wasn't specified on the line
-	if *secret != "" {
-		password, err := speakeasy.Ask("New Secret: ")
-		if err != nil {
-			fmt.Println(err)
-			return subcommands.ExitFailure
-		}
-		*secret = password
-	}
-
 	// Grab a client
 	c, err := getClient()
 	if err != nil {
@@ -58,6 +48,16 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
+	}
+
+	// Get the secret if it wasn't specified on the line
+	if p.secret == "" {
+		var err error
+		p.secret, err = speakeasy.Ask("New Secret: ")
+		if err != nil {
+			fmt.Println(err)
+			return subcommands.ExitFailure
+		}
 	}
 
 	// Change the secret
