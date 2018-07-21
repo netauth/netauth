@@ -12,15 +12,20 @@ import (
 	"github.com/google/subcommands"
 )
 
+var (
+	debug = flag.Bool("debug", false, "Enable debug logging")
+)
+
 func main() {
 	flag.Parse()
 
 	// Turn off the logging since the client should not be
 	// spitting out any content unless its explicitly printed out
 	// from internal/ctl.
-	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
-
+	if !*debug {
+		log.SetFlags(0)
+		log.SetOutput(ioutil.Discard)
+	}
 	// Register all the subcommands, each subcommand must be
 	// registered after the builtins to be resolved in the right
 	// order.  The order they are resolved here will not be the

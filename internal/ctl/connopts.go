@@ -62,6 +62,19 @@ func getSecret() string {
 	return *secret
 }
 
+
+func getToken(c *client.NetAuthClient, entity string) (string, error) {
+	t, err := c.GetToken(entity, "")
+	switch err {
+	case nil:
+		return t, nil
+	case client.ErrTokenUnavailable:
+		return c.GetToken(entity, getSecret())
+	default:
+		return "", err
+	}
+}
+
 // Hide the other defaults as well
 func getServer() string {
 	loadConfig()

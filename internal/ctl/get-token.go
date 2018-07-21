@@ -38,7 +38,7 @@ func (*GetTokenCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}
 	}
 
 	// Attempt to get a token
-	_, err = c.GetToken(getEntity(), getSecret())
+	_, err = getToken(c, getEntity())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

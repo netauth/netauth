@@ -90,41 +90,6 @@ func (n *NetAuthClient) Authenticate(entity string, secret string) (*pb.SimpleRe
 	return result, nil
 }
 
-// GetToken is identical to Authenticate except on success it will
-// return a token which can be used to authorize additional later
-// requests.
-func (n *NetAuthClient) GetToken(entity, secret string) (string, error) {
-	// See if we have a local copy first.
-	t, err := n.getTokenFromStore(entity)
-	if err == nil {
-		if _, err := n.InspectToken(t); err == nil {
-			return t, nil
-		}
-	}
-
-	request := pb.NetAuthRequest{
-		Entity: &pb.Entity{
-			ID:     &entity,
-			Secret: &secret,
-		},
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
-	}
-	tokenResult, err := n.c.GetToken(context.Background(), &request)
-	if status.Code(err) != codes.OK {
-		return "", err
-	}
-
-	t = tokenResult.GetToken()
-	if err := n.tokenStore.DestroyToken(entity); err != nil {
-		return "", err
-	}
-	err = n.putTokenInStore(entity, t)
-	return t, err
-}
-
 // ValidateToken sends the token to the server for validation.  This
 // is effectively asking the server to authenticate the token and not
 // do anything else.  Returns a comment from the server and an error.

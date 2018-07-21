@@ -46,7 +46,7 @@ func (p *NewEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfac
 	}
 
 	// Get the authorization token
-	t, err := c.GetToken(getEntity(), getSecret())
+	t, err := getToken(c, getEntity())
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
