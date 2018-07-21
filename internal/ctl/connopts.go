@@ -54,11 +54,12 @@ func getSecret() string {
 	if *secret != "" {
 		return *secret
 	}
-	password, err := speakeasy.Ask("Secret: ")
+	var err error
+	*secret, err = speakeasy.Ask("Secret: ")
 	if err != nil {
 		fmt.Printf("Error: %s", err)
 	}
-	return password
+	return *secret
 }
 
 // Hide the other defaults as well
