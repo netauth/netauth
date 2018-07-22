@@ -60,6 +60,26 @@ v0.0.7:
   * TLS by default
   * Primary Group for UNIX accounts
 
+v0.0.8:
+  * Linter concerns and review fixes
+  * Turn off builds of shim interfaces
+
+v0.0.8.1:
+  * Add License
+
+v0.0.8.2:
+  * Select default UID if none is provided
+  * Check key availability before decoding
+  * Prompt for secret information
+
+v0.0.8.3:
+  * Set a default location for keys
+  * Use system username for default entityID
+
+v0.0.8.4:
+  * Support prompting for all secure information
+  * Ensure efficient reuse of locally cached tokens
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
