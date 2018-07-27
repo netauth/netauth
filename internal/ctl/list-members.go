@@ -10,8 +10,8 @@ import (
 
 // ListMembersCmd lists the entities that are members of a named group.
 type ListMembersCmd struct {
-	ID     string
-	fields string
+	groupName string
+	fields    string
 }
 
 // Name of this cmdlet is 'list-members'
@@ -31,14 +31,14 @@ show only the named fields in the result.
 
 // SetFlags sets the flags specific to this cmdlet.
 func (p *ListMembersCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "group", "", "Name of the group to list")
+	f.StringVar(&p.groupName, "group", "", "Name of the group to list")
 	f.StringVar(&p.fields, "fields", "", "Fields to display")
 }
 
 // Execute runs the cmdlet.
 func (p *ListMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	if p.ID == "" {
-		fmt.Println("--group must be specified for group-members")
+	if p.groupName == "" {
+		fmt.Println("--group must be specified")
 		return subcommands.ExitFailure
 	}
 
@@ -50,7 +50,7 @@ func (p *ListMembersCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 	}
 
 	// Obtain the membership list
-	membersList, err := c.ListGroupMembers(p.ID)
+	membersList, err := c.ListGroupMembers(p.groupName)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

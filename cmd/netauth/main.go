@@ -48,7 +48,7 @@ func main() {
 	subcommands.Register(&ctl.ModifyKeysCmd{}, "Entity Administration")
 
 	subcommands.Register(&ctl.NewGroupCmd{}, "Group Administration")
-	subcommands.Register(&ctl.DeleteGroupCmd{}, "Group Administration")
+	subcommands.Register(&ctl.DestroyGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.ListGroupsCmd{}, "Group Administration")
 	subcommands.Register(&ctl.ModifyGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.GroupInfoCmd{}, "Group Administration")

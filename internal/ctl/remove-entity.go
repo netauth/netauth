@@ -10,7 +10,7 @@ import (
 
 // RemoveEntityCmd requests the server to remove an entity.
 type RemoveEntityCmd struct {
-	ID string
+	entityID string
 }
 
 // Name of this cmdlet is 'remove-entity'
@@ -21,13 +21,13 @@ func (*RemoveEntityCmd) Synopsis() string { return "Add a remove entity to the s
 
 // Usage returns the long-form usage information.
 func (*RemoveEntityCmd) Usage() string {
-	return `remove-entity --ID <ID>
+	return `remove-entity --entity <ID>
 Remove the specified entity from the server.`
 }
 
 // SetFlags sets the cmdlet specific flags.
 func (p *RemoveEntityCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", "", "ID for the entity to be removed")
+	f.StringVar(&p.entityID, "entity", "", "ID for the entity to be removed")
 }
 
 // Execute runs the cmdlet
@@ -47,7 +47,7 @@ func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Remove the entity
-	result, err := c.RemoveEntity(p.ID, t)
+	result, err := c.RemoveEntity(p.entityID, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

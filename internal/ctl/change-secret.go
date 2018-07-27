@@ -11,8 +11,8 @@ import (
 
 // ChangeSecretCmd services the ChangeSecret RPC
 type ChangeSecretCmd struct {
-	ID     string
-	secret string
+	entityID string
+	secret   string
 }
 
 // Name of this cmdlet is 'change-secret'
@@ -23,14 +23,14 @@ func (*ChangeSecretCmd) Synopsis() string { return "Change the secret for a give
 
 // Usage in long form for the cmdlet.
 func (*ChangeSecretCmd) Usage() string {
-	return `change-secret --ID <ID>  --secret <secret>
+	return `change-secret --entity <ID>  --secret <secret>
 Change the secret for the listed entity.  If no entity is provided the
 entity specified by the top level flag will be used instead.`
 }
 
 // SetFlags is the interface function to set flags specific to this cmdlet.
 func (p *ChangeSecretCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", getEntity(), "ID to change secret")
+	f.StringVar(&p.entityID, "entity", getEntity(), "ID to change secret")
 	f.StringVar(&p.secret, "secret", "", "New secret (omit for prompt)")
 }
 
@@ -61,7 +61,7 @@ func (p *ChangeSecretCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 	}
 
 	// Change the secret
-	result, err := c.ChangeSecret(getEntity(), getSecret(), p.ID, p.secret, t)
+	result, err := c.ChangeSecret(getEntity(), getSecret(), p.entityID, p.secret, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

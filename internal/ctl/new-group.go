@@ -10,7 +10,7 @@ import (
 
 // NewGroupCmd requests the server to provision a new group.
 type NewGroupCmd struct {
-	name        string
+	groupName   string
 	displayName string
 	gid         int
 	managedBy   string
@@ -34,7 +34,7 @@ displayName.
 
 // SetFlags sets the cmdlet specific flags.
 func (p *NewGroupCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.name, "name", "", "Name for the new group.")
+	f.StringVar(&p.groupName, "name", "", "Name for the new group.")
 	f.StringVar(&p.displayName, "display_name", "", "Display Name for the new group.")
 	f.IntVar(&p.gid, "gid_number", -1, "Group ID Number for the new group (automatic if unset)")
 	f.StringVar(&p.managedBy, "managed_by", "", "Group that will manage the new group")
@@ -56,7 +56,7 @@ func (p *NewGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface
 		return subcommands.ExitFailure
 	}
 
-	result, err := c.NewGroup(p.name, p.displayName, p.managedBy, t, p.gid)
+	result, err := c.NewGroup(p.groupName, p.displayName, p.managedBy, t, p.gid)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

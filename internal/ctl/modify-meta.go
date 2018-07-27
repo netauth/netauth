@@ -12,7 +12,7 @@ import (
 
 // ModifyMetaCmd requests the server to modify the EntityMeta section of an entity.
 type ModifyMetaCmd struct {
-	ID             string
+	entityID       string
 	GECOS          string
 	PrimaryGroup   string
 	legalName      string
@@ -31,14 +31,14 @@ func (*ModifyMetaCmd) Synopsis() string { return "Modify meta-data on an entity"
 
 // Usage returns long-form usage information.
 func (*ModifyMetaCmd) Usage() string {
-	return `modify-meta --ID <ID> [fields-to-be-modified]
+	return `modify-meta --entity <ID> [fields-to-be-modified]
 Modify an entity by updating the named fields to the provided values.
 `
 }
 
 // SetFlags sets the cmdlet specific flags.
 func (p *ModifyMetaCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", getEntity(), "ID for the entity to modify")
+	f.StringVar(&p.entityID, "entity", getEntity(), "ID for the entity to modify")
 	f.StringVar(&p.PrimaryGroup, "primary-group", "NO_CHANGE", "Primary Group")
 	f.StringVar(&p.GECOS, "GECOS", "NO_CHANGE", "Entity GECOS field")
 	f.StringVar(&p.legalName, "legalName", "NO_CHANGE", "Legal name associated with the entity")
@@ -99,7 +99,7 @@ func (p *ModifyMetaCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 		meta.BadgeNumber = &p.badgeNumber
 	}
 
-	result, err := c.ModifyEntityMeta(p.ID, t, meta)
+	result, err := c.ModifyEntityMeta(p.entityID, t, meta)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

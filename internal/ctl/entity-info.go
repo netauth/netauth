@@ -10,8 +10,8 @@ import (
 
 // EntityInfoCmd summons information on a named entity
 type EntityInfoCmd struct {
-	ID     string
-	fields string
+	entityID string
+	fields   string
 }
 
 // Name of this cmdlet is 'entity-info'
@@ -22,7 +22,7 @@ func (*EntityInfoCmd) Synopsis() string { return "Obtain information on an entit
 
 // Usage info for the cmdlet.
 func (*EntityInfoCmd) Usage() string {
-	return `entity-info --ID <ID>  [--fields field1,field2...]
+	return `entity-info --entity <ID>  [--fields field1,field2...]
 Print information about an entity.  The listed fields can be used to
 limit the information that is printed.
 `
@@ -30,18 +30,12 @@ limit the information that is printed.
 
 // SetFlags processes the flags for this cmdlet.
 func (p *EntityInfoCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.ID, "ID", getEntity(), "ID to summon info for")
+	f.StringVar(&p.entityID, "entity", getEntity(), "ID to summon info for")
 	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
 }
 
 // Execute is called to run this cmdlet.
 func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	// If the entity wasn't provided, use the one that was set
-	// earlier.
-	if p.ID == "" {
-		p.ID = getEntity()
-	}
-
 	// Grab a client
 	c, err := getClient()
 	if err != nil {
@@ -50,7 +44,7 @@ func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interfa
 	}
 
 	// Obtain entity info
-	entity, err := c.EntityInfo(p.ID)
+	entity, err := c.EntityInfo(p.entityID)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure

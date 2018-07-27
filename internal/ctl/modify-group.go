@@ -12,7 +12,7 @@ import (
 
 // ModifyGroupCmd modifies mutable information on a group.
 type ModifyGroupCmd struct {
-	name        string
+	groupName   string
 	displayName string
 	managedby   string
 }
@@ -25,14 +25,14 @@ func (*ModifyGroupCmd) Synopsis() string { return "Modify mutable fields on a gr
 
 // Usage returns the long-form usage information.
 func (*ModifyGroupCmd) Usage() string {
-	return `modify-group --name <name> [fields-to-be-modified]
+	return `modify-group --group <name> [fields-to-be-modified]
 Modify a group by updating the named fields to the provided values.
 `
 }
 
 // SetFlags sets the cmdlet specific flags
 func (p *ModifyGroupCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.name, "name", "", "Name of the group to modify")
+	f.StringVar(&p.groupName, "group", "", "Name of the group to modify")
 	f.StringVar(&p.displayName, "display_name", "NO_CHANGE", "Group displayName")
 	f.StringVar(&p.managedby, "managed_by", "NO_CHANGE", "Group that manages this group")
 }
@@ -53,7 +53,7 @@ func (p *ModifyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 		return subcommands.ExitFailure
 	}
 
-	group := &pb.Group{Name: &p.name}
+	group := &pb.Group{Name: &p.groupName}
 
 	// This if block is kind of a hack, it is needed to ensure
 	// that fields that weren't set to be modified in the command

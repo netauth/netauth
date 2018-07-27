@@ -11,8 +11,8 @@ import (
 // CapabilitiesCmd supports the ModifyCapabilities RPC.
 type CapabilitiesCmd struct {
 	mode       string
-	entity     string
-	group      string
+	entityID   string
+	groupName  string
 	capability string
 }
 
@@ -34,14 +34,14 @@ are specififed (unsupported) then the group will be ignored.
 // SetFlags is called to set flags specific to this cmdlet
 func (p *CapabilitiesCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.mode, "mode", "ADD", "Mode, must be one of ADD or REMOVE")
-	f.StringVar(&p.entity, "entity", "", "Entity to modify")
-	f.StringVar(&p.group, "group", "", "Group to modify")
+	f.StringVar(&p.entityID, "entity", "", "Entity to modify")
+	f.StringVar(&p.groupName, "group", "", "Group to modify")
 	f.StringVar(&p.capability, "capability", "", "Capability to modify")
 }
 
 // Execute is the interface method that runs the actions of the cmdlet.
 func (p *CapabilitiesCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
-	if p.entity == "" && p.group == "" {
+	if p.entityID == "" && p.groupName == "" {
 		fmt.Println("Either --entity or --group must be specified!")
 		return subcommands.ExitFailure
 	}
@@ -65,7 +65,7 @@ func (p *CapabilitiesCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...inter
 		return subcommands.ExitFailure
 	}
 
-	result, err := c.ManageCapabilities(t, p.entity, p.group, p.capability, p.mode)
+	result, err := c.ManageCapabilities(t, p.entityID, p.groupName, p.capability, p.mode)
 	if result.GetMsg() != "" {
 		fmt.Println(result.GetMsg())
 	}

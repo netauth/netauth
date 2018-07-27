@@ -8,33 +8,31 @@ import (
 	"github.com/google/subcommands"
 )
 
-// DeleteGroupCmd deletes a group
-type DeleteGroupCmd struct {
-	name        string
-	displayName string
-	gid         int
+// DestroyGroupCmd deletes a group
+type DestroyGroupCmd struct {
+	groupName string
 }
 
 // Name returns the name of this cmdlet.
-func (*DeleteGroupCmd) Name() string { return "delete-group" }
+func (*DestroyGroupCmd) Name() string { return "destroy-group" }
 
 // Synopsis returns the short-form info for this cmdlet.
-func (*DeleteGroupCmd) Synopsis() string { return "Delete a group existing on the server." }
+func (*DestroyGroupCmd) Synopsis() string { return "Delete a group existing on the server." }
 
 // Usage returns the long-form info form this cmdlet.
-func (*DeleteGroupCmd) Usage() string {
-	return `new-group --name <name>
+func (*DestroyGroupCmd) Usage() string {
+	return `destroy-group --group <name>
 Delete the named group.
 `
 }
 
 // SetFlags is the interface function which sets flags specific to this cmdlet.
-func (p *DeleteGroupCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.name, "name", "", "Name for the new group.")
+func (p *DestroyGroupCmd) SetFlags(f *flag.FlagSet) {
+	f.StringVar(&p.groupName, "group", "", "Name of the group to destroy.")
 }
 
 // Execute is the interface function which runs this cmdlet.
-func (p *DeleteGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (p *DestroyGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()
 	if err != nil {
@@ -49,7 +47,7 @@ func (p *DeleteGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interf
 		return subcommands.ExitFailure
 	}
 
-	result, err := c.DeleteGroup(p.name, t)
+	result, err := c.DeleteGroup(p.groupName, t)
 	if err != nil {
 		fmt.Println(err)
 		return subcommands.ExitFailure
