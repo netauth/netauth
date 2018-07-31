@@ -15,7 +15,8 @@ import (
 type EntityMembershipCmd struct {
 	entityID  string
 	groupName string
-	action    string
+	add       bool
+	drop      bool
 }
 
 // Name of this cmdlet will be 'entity-membership'
@@ -28,7 +29,7 @@ func (*EntityMembershipCmd) Synopsis() string {
 
 // Usage returns the long form usage information.
 func (*EntityMembershipCmd) Usage() string {
-	return `entity-membership --ID <ID> --group <name> --action <add|remove>
+	return `entity-membership --entity <ID> --group <name> --<add|remove>
 
 Add or remove the named entity from the named group.  Both the entity
 and the group must exist already.
@@ -37,9 +38,10 @@ and the group must exist already.
 
 // SetFlags sets the cmdlet specific flags.
 func (cmd *EntityMembershipCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&cmd.entityID, "ID", getEntity(), "ID of the entity to add to the group")
+	f.StringVar(&cmd.entityID, "entity", getEntity(), "ID of the entity to add to the group")
 	f.StringVar(&cmd.groupName, "group", "", "Name of the group to add to")
-	f.StringVar(&cmd.action, "action", "", "Action to perform, must be 'add' or 'remove'")
+	f.BoolVar(&cmd.add, "add", false, "Add the specified membership")
+	f.BoolVar(&cmd.drop, "drop", false, "Drop the specified membership")
 }
 
 // Execute runs the cmdlet.
@@ -59,13 +61,12 @@ func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ..
 	}
 
 	result := &pb.SimpleResult{}
-	switch cmd.action {
-	case "add":
+	if cmd.add {
 		result, err = c.AddEntityToGroup(t, cmd.groupName, cmd.entityID)
-	case "remove":
+	} else if cmd.drop {
 		result, err = c.RemoveEntityFromGroup(t, cmd.groupName, cmd.entityID)
-	default:
-		fmt.Println("You must specify either --action add or --action remove!")
+	} else {
+		fmt.Println("You must specify either --add or --drop for this command!")
 		return subcommands.ExitFailure
 	}
 	if err != nil {
