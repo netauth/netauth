@@ -41,13 +41,13 @@ func main() {
 	subcommands.Register(&ctl.InspectTokenCmd{}, "Authentication")
 	subcommands.Register(&ctl.ChangeSecretCmd{}, "Authentication")
 
-	subcommands.Register(&ctl.NewEntityCmd{}, "Entity Administration")
-	subcommands.Register(&ctl.RemoveEntityCmd{}, "Entity Administration")
+	subcommands.Register(&ctl.CreateEntityCmd{}, "Entity Administration")
+	subcommands.Register(&ctl.DestroyEntityCmd{}, "Entity Administration")
 	subcommands.Register(&ctl.EntityInfoCmd{}, "Entity Administration")
 	subcommands.Register(&ctl.ModifyMetaCmd{}, "Entity Administration")
 	subcommands.Register(&ctl.ModifyKeysCmd{}, "Entity Administration")
 
-	subcommands.Register(&ctl.NewGroupCmd{}, "Group Administration")
+	subcommands.Register(&ctl.CreateGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.DestroyGroupCmd{}, "Group Administration")
 	subcommands.Register(&ctl.ListGroupsCmd{}, "Group Administration")
 	subcommands.Register(&ctl.ModifyGroupCmd{}, "Group Administration")

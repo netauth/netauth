@@ -8,8 +8,8 @@ import (
 	"github.com/google/subcommands"
 )
 
-// NewGroupCmd requests the server to provision a new group.
-type NewGroupCmd struct {
+// CreateGroupCmd requests the server to provision a new group.
+type CreateGroupCmd struct {
 	groupName   string
 	displayName string
 	gid         int
@@ -17,14 +17,14 @@ type NewGroupCmd struct {
 }
 
 // Name of this cmdlet will be 'new-group'
-func (*NewGroupCmd) Name() string { return "new-group" }
+func (*CreateGroupCmd) Name() string { return "create-group" }
 
 // Synopsis returns the short-form usage.
-func (*NewGroupCmd) Synopsis() string { return "Add a new group to the server" }
+func (*CreateGroupCmd) Synopsis() string { return "Add a new group to the server" }
 
 // Usage returns the long format usage information.
-func (*NewGroupCmd) Usage() string {
-	return `new-group --name <name> [--display_name <display name>] [--gid_number <number>] [--managed_by <name>]
+func (*CreateGroupCmd) Usage() string {
+	return `create-group --name <name> [--display_name <display name>] [--gid_number <number>] [--managed_by <name>]
 Allocate a new group with the given name and optional display name.
 If the gid_number is not specified then the next available number will
 be used.  The name and number cannot be changed once set, only the
@@ -33,7 +33,7 @@ displayName.
 }
 
 // SetFlags sets the cmdlet specific flags.
-func (p *NewGroupCmd) SetFlags(f *flag.FlagSet) {
+func (p *CreateGroupCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.groupName, "name", "", "Name for the new group.")
 	f.StringVar(&p.displayName, "display_name", "", "Display Name for the new group.")
 	f.IntVar(&p.gid, "gid_number", -1, "Group ID Number for the new group (automatic if unset)")
@@ -41,7 +41,7 @@ func (p *NewGroupCmd) SetFlags(f *flag.FlagSet) {
 }
 
 // Execute runs the cmdlet.
-func (p *NewGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (p *CreateGroupCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()
 	if err != nil {

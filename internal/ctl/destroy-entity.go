@@ -8,30 +8,30 @@ import (
 	"github.com/google/subcommands"
 )
 
-// RemoveEntityCmd requests the server to remove an entity.
-type RemoveEntityCmd struct {
+// DestroyEntityCmd requests the server to remove an entity.
+type DestroyEntityCmd struct {
 	entityID string
 }
 
 // Name of this cmdlet is 'remove-entity'
-func (*RemoveEntityCmd) Name() string { return "remove-entity" }
+func (*DestroyEntityCmd) Name() string { return "destroy-entity" }
 
 // Synopsis returns the short-form usage information.
-func (*RemoveEntityCmd) Synopsis() string { return "Add a remove entity to the server" }
+func (*DestroyEntityCmd) Synopsis() string { return "Remove an entity from the server" }
 
 // Usage returns the long-form usage information.
-func (*RemoveEntityCmd) Usage() string {
-	return `remove-entity --entity <ID>
+func (*DestroyEntityCmd) Usage() string {
+	return `destroy-entity --entity <ID>
 Remove the specified entity from the server.`
 }
 
 // SetFlags sets the cmdlet specific flags.
-func (p *RemoveEntityCmd) SetFlags(f *flag.FlagSet) {
+func (p *DestroyEntityCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.entityID, "entity", "", "ID for the entity to be removed")
 }
 
 // Execute runs the cmdlet
-func (p *RemoveEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func (p *DestroyEntityCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
 	// Grab a client
 	c, err := getClient()
 	if err != nil {
