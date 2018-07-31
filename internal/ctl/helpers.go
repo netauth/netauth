@@ -28,24 +28,24 @@ func printEntity(entity *pb.Entity, fields string) {
 	}
 
 	for _, f := range fieldList {
-		switch f {
-		case "ID":
+		switch strings.ToLower(f) {
+		case "id":
 			fmt.Printf("ID: %s\n", entity.GetID())
 		case "number":
 			fmt.Printf("Number: %d\n", entity.GetNumber())
-		case "PrimaryGroup":
+		case "primarygroup":
 			if entity.Meta != nil && entity.GetMeta().GetPrimaryGroup() != "" {
 				fmt.Printf("Primary Group: %s\n", entity.GetMeta().GetPrimaryGroup())
 			}
-		case "GECOS":
+		case "gecos":
 			if entity.Meta != nil && entity.GetMeta().GetGECOS() != "" {
 				fmt.Printf("GECOS: %s\n", entity.GetMeta().GetGECOS())
 			}
-		case "legalName":
+		case "legalname":
 			if entity.Meta != nil && entity.GetMeta().GetLegalName() != "" {
 				fmt.Printf("legalName: %s\n", entity.GetMeta().GetLegalName())
 			}
-		case "displayName":
+		case "displayname":
 			if entity.Meta != nil && entity.Meta.GetDisplayName() != "" {
 				fmt.Printf("displayname: %s\n", entity.GetMeta().GetDisplayName())
 			}
@@ -57,11 +57,11 @@ func printEntity(entity *pb.Entity, fields string) {
 			if entity.Meta != nil && entity.GetMeta().GetShell() != "" {
 				fmt.Printf("shell: %s\n", entity.GetMeta().GetShell())
 			}
-		case "graphicalShell":
+		case "graphicalshell":
 			if entity.Meta != nil && entity.GetMeta().GetGraphicalShell() != "" {
 				fmt.Printf("graphicalShell: %s\n", entity.GetMeta().GetGraphicalShell())
 			}
-		case "badgeNumber":
+		case "badgenumber":
 			if entity.Meta != nil && entity.GetMeta().GetBadgeNumber() != "" {
 				fmt.Printf("badgeNumber: %s\n", entity.GetMeta().GetBadgeNumber())
 			}
@@ -85,14 +85,14 @@ func printGroup(group *pb.Group, fields string) {
 	}
 
 	for _, f := range fieldList {
-		switch f {
+		switch strings.ToLower(f) {
 		case "name":
 			fmt.Printf("Name: %s\n", group.GetName())
-		case "displayName":
+		case "displayname":
 			fmt.Printf("Display Name: %s\n", group.GetDisplayName())
 		case "number":
 			fmt.Printf("Number: %d\n", group.GetNumber())
-		case "managedBy":
+		case "managedby":
 			if group.GetManagedBy() == "" {
 				continue
 			}
