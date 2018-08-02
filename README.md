@@ -5,8 +5,8 @@ you to have one user account that is available to a lot of different
 machines.
 
 The ultimate goal is to have a small service which could live in a
-cloud host such as Google AppEngine and provide fleet wide
-authentication and identity services for a small fleet of machines.
+small VM and provide fleet wide authentication and identity services
+for a small fleet of machines.
 
 What Does it Do?
 ----------------
@@ -60,20 +60,28 @@ settings in place to observe HTTPS traffic).
 How do I hook up other things to NetAuth?
 -----------------------------------------
 
-Right now you don't.  I plan to implement a general purpose binary
-which will be usable as a shim to see if a user is valid.  Of course
-since the protobuf definition is available here you could always write
-your own service that interacts with the NetAuth server.
+There are several systems available to plug in to NetAuth.  For Linux
+hosts you can use
+[pam_netauth](https://github.com/NetAuth/pam_netauth) and
+[nsscache](https://github.com/NetAuth/nsscache).  If you want to pull
+ssh keys, then you probably want
+[NetKeys](https://github.com/NetAuth/NetKeys).
+
+Other modules are coming, if you want to help out, reach out in
+`#netauth-dev` on freenode.
 
 Do you recommend using NetAuth for super important things?
 ----------------------------------------------------------
 
-No, absolutely not.  I am a single engineer working with my own body
-of knowledge.  I do not have a background in crypto or auth systems,
-and so I am depending on authors of the libraries I have chosen to
-use.  If you see a problem or have such a background, please reach out
-to me.  For security bugs please take care that you do not
-accidentally disclose security issues before they are made public.
+Probably not.  I am a single engineer working with my own body of
+knowledge.  I do not have a background in crypto or auth systems, and
+so I am depending on authors of the libraries I have chosen to use.
+If you see a problem or have such a background, please reach out to
+me.  For security bugs please take care that you do not accidentally
+disclose security issues before they are made public.
+
+That being said, there are a few installations of NetAuth in the "real
+world" that have "real users".  These users seem reasonably satisfied.
 
 Why wouldn't you use LDAP and Kerberos?  Why did you build this?
 ----------------------------------------------------------------
