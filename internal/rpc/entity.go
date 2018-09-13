@@ -97,11 +97,10 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 }
 
 // ModifyEntityMeta can be used to modify the EntityMeta section of an
-// Entity.  This request must be authorized by a token that either
-// contains the correct capabilities to modify others, or the entityID
-// must match the entity for which the change was requested.  Some
-// fields cannot be changed by this mechanism and must be changed via
-// other calls which perform more authorization and validation checks.
+// Entity.  This request must be authorized by a token that contains
+// the correct capabilities to modify others.  Some fields cannot be
+// changed by this mechanism and must be changed via other calls which
+// perform more authorization and validation checks.
 func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityRequest) (*pb.SimpleResult, error) {
 	client := r.GetInfo()
 	e := r.GetEntity()
