@@ -57,11 +57,13 @@ func New() (db.DB, error) {
 // is not foolproof, but assuming that the data_root is not modified
 // by hand it should be safe enough.
 func (pdb *ProtoDB) DiscoverEntityIDs() ([]string, error) {
-	// Locate all known entities.
-	globs, err := filepath.Glob(filepath.Join(pdb.dataRoot, entitySubdir, "*.dat"))
-	if err != nil {
-		return nil, db.ErrInternalError
-	}
+	// Locate all known entities.  We throw away the error here
+	// because from the manual: "Glob ignores file system errors
+	// such as I/O errors reading directories. The only possible
+	// returned error is ErrBadPattern, when pattern is
+	// malformed."  Given that the pattern is hard coded, it is
+	// impossible for an error to be returned from this call.
+	globs, _ := filepath.Glob(filepath.Join(pdb.dataRoot, entitySubdir, "*.dat"))
 
 	// Strip the extensions off the files.
 	IDs := make([]string, 0)
@@ -102,6 +104,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 	out, err := proto.Marshal(e)
 	if err != nil {
 		log.Printf("Failed to marshal entity '%s' (%s)", e.GetID(), err)
+		return db.ErrInternalError
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
@@ -117,7 +120,13 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 // do given that each entity is owned by exactly one file on disk.
 // Simply removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteEntity(ID string) error {
-	return os.Remove(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
+	err := os.Remove(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
+
+	if os.IsNotExist(err) {
+		return db.ErrUnknownEntity
+	}
+
+	return nil
 }
 
 // DiscoverGroupNames returns a list of group names that this loader
@@ -125,11 +134,13 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 // This is not foolproof, but assuming that the data_root is not
 // modified by hand it should be safe enough.
 func (pdb *ProtoDB) DiscoverGroupNames() ([]string, error) {
-	// Locate all known entities.
-	globs, err := filepath.Glob(filepath.Join(pdb.dataRoot, groupSubdir, "*.dat"))
-	if err != nil {
-		return nil, db.ErrInternalError
-	}
+	// Locate all known groups.  We throw away the error here
+	// because from the manual: "Glob ignores file system errors
+	// such as I/O errors reading directories. The only possible
+	// returned error is ErrBadPattern, when pattern is
+	// malformed."  Given that the pattern is hard coded, it is
+	// impossible for an error to be returned from this call.
+	globs, _ := filepath.Glob(filepath.Join(pdb.dataRoot, groupSubdir, "*.dat"))
 
 	// Strip the extensions off the files.
 	Names := make([]string, 0)
@@ -170,6 +181,7 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 	out, err := proto.Marshal(g)
 	if err != nil {
 		log.Printf("Failed to marshal entity '%s' (%s)", g.GetName(), err)
+		return db.ErrInternalError
 	}
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
@@ -190,25 +202,26 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	if os.IsNotExist(err) {
 		return db.ErrUnknownGroup
 	}
+
 	return nil
 }
 
 // ensureDataDirectory is called during initialization of this backend
 // to ensure that the data directories are available.
 func (pdb *ProtoDB) ensureDataDirectory() error {
-	if _, err := os.Stat(pdb.dataRoot); os.IsNotExist(err) {
+	if stat, err := os.Stat(pdb.dataRoot); os.IsNotExist(err) || !stat.IsDir() {
 		if err := os.Mkdir(pdb.dataRoot, 0755); err != nil {
 			return db.ErrInternalError
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(pdb.dataRoot, entitySubdir)); os.IsNotExist(err) {
+	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, entitySubdir)); os.IsNotExist(err) || !stat.IsDir() {
 		if err := os.Mkdir(filepath.Join(pdb.dataRoot, entitySubdir), 0755); err != nil {
 			return db.ErrInternalError
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(pdb.dataRoot, groupSubdir)); os.IsNotExist(err) {
+	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, groupSubdir)); os.IsNotExist(err) || !stat.IsDir() {
 		if err := os.Mkdir(filepath.Join(pdb.dataRoot, groupSubdir), 0755); err != nil {
 			return db.ErrInternalError
 		}
