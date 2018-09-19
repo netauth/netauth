@@ -337,24 +337,9 @@ func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]s
 	case "LIST":
 		return e.GetMeta().GetKeys(), nil
 	case "ADD":
-		for _, k := range e.GetMeta().GetKeys() {
-			if strings.Contains(k, key) {
-				return nil, nil
-			}
-		}
-		// Add the key to the metadata
-		e.Meta.Keys = append(e.Meta.Keys, fmt.Sprintf("%s:%s", keyType, key))
-
+		e.Meta.Keys = patchStringSlice(e.Meta.Keys, fmt.Sprintf("%s:%s", keyType, key), true, true)
 	case "DEL":
-		newKeys := []string{}
-		for _, key := range e.GetMeta().GetKeys() {
-			if strings.Contains(key, key) {
-				continue
-			}
-			// Add the key to the metadata
-			newKeys = append(newKeys, key)
-		}
-		e.Meta.Keys = newKeys
+		e.Meta.Keys = patchStringSlice(e.Meta.Keys, key, false, true)
 	}
 
 	// Save changes
