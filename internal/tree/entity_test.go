@@ -426,6 +426,38 @@ func TestUpdateEntityMetaExternalNoEntity(t *testing.T) {
 	}
 }
 
+func TestUpdateEntityKeys(t *testing.T) {
+	em := getNewEntityManager(t)
+
+	if err := em.NewEntity("foo", -1, "bar"); err != nil {
+		t.Error(err)
+	}
+
+	if _, err := em.UpdateEntityKeys("foo", "ADD", "SIMPLE", "KEYCODE"); err != nil {
+		t.Error(err)
+	}
+
+	l, err := em.UpdateEntityKeys("foo", "LIST", "", "")
+	if err != nil {
+		t.Error(err)
+	}
+	if len(l) != 1 || l[0] != "SIMPLE:KEYCODE" {
+		t.Errorf("Bad Key: %v", l)
+	}
+
+	if _, err := em.UpdateEntityKeys("foo", "DEL", "", "KEY"); err != nil {
+		t.Error(err)
+	}
+
+	l, err = em.UpdateEntityKeys("foo", "LIST", "", "")
+	if err != nil {
+		t.Error(err)
+	}
+	if len(l) != 0 {
+		t.Errorf("Zombie keys: %s", l)
+	}
+}
+
 func TestSafeCopyEntity(t *testing.T) {
 	em := getNewEntityManager(t)
 

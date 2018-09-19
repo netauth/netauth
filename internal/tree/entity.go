@@ -339,7 +339,7 @@ func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]s
 	case "ADD":
 		e.Meta.Keys = patchStringSlice(e.Meta.Keys, fmt.Sprintf("%s:%s", keyType, key), true, true)
 	case "DEL":
-		e.Meta.Keys = patchStringSlice(e.Meta.Keys, key, false, true)
+		e.Meta.Keys = patchStringSlice(e.Meta.Keys, key, false, false)
 	}
 
 	// Save changes
