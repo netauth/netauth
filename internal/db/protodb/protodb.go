@@ -93,26 +93,6 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 	return e, nil
 }
 
-// LoadEntityNumber loads a single entity from the data_root given the
-// number associated with the entity.
-func (pdb *ProtoDB) LoadEntityNumber(number int32) (*pb.Entity, error) {
-	l, err := pdb.DiscoverEntityIDs()
-	if err != nil {
-		return nil, db.ErrInternalError
-	}
-
-	for _, en := range l {
-		e, err := pdb.LoadEntity(en)
-		if err != nil {
-			return nil, db.ErrInternalError
-		}
-		if e.GetNumber() == number {
-			return e, nil
-		}
-	}
-	return nil, db.ErrUnknownEntity
-}
-
 // SaveEntity writes  an entity to  disk.  Errors may be  returned for
 // proto marshal  errors or for  errors writing to disk.   No promises
 // are made  regarding if  the data  has been written  to disk  at the
@@ -179,25 +159,6 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 		return nil, db.ErrInternalError
 	}
 	return e, nil
-}
-
-// LoadGroupNumber attempts to load a group by number.
-func (pdb *ProtoDB) LoadGroupNumber(number int32) (*pb.Group, error) {
-	l, err := pdb.DiscoverGroupNames()
-	if err != nil {
-		return nil, db.ErrInternalError
-	}
-
-	for _, gn := range l {
-		g, err := pdb.LoadGroup(gn)
-		if err != nil {
-			return nil, db.ErrInternalError
-		}
-		if g.GetNumber() == number {
-			return g, nil
-		}
-	}
-	return nil, db.ErrUnknownGroup
 }
 
 // SaveGroup writes  an entity to  disk.  Errors may be  returned for
