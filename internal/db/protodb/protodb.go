@@ -93,9 +93,9 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 	return e, nil
 }
 
-// SaveEntity writes  an entity to  disk.  Errors may be  returned for
-// proto marshal  errors or for  errors writing to disk.   No promises
-// are made  regarding if  the data  has been written  to disk  at the
+// SaveEntity writes an entity to disk.  Errors may be returned for
+// proto marshal errors or for errors writing to disk.  No promises
+// are made regarding if the data has been written to disk at the
 // return of this function as the operatig system may choose to buffer
 // the data until a larger block may be written.
 func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
@@ -120,7 +120,7 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 	return os.Remove(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
 }
 
-// DiscoverGroupNames returns a list of entity IDs that this loader
+// DiscoverGroupNames returns a list of group names that this loader
 // can retrieve by globbing the group directory of the data_root.
 // This is not foolproof, but assuming that the data_root is not
 // modified by hand it should be safe enough.
@@ -161,9 +161,9 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 	return e, nil
 }
 
-// SaveGroup writes  an entity to  disk.  Errors may be  returned for
-// proto marshal  errors or for  errors writing to disk.   No promises
-// are made  regarding if  the data  has been written  to disk  at the
+// SaveGroup writes an group to disk.  Errors may be returned for
+// proto marshal errors or for errors writing to disk.  No promises
+// are made regarding if the data has been written to disk at the
 // return of this function as the operatig system may choose to buffer
 // the data until a larger block may be written.
 func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
@@ -181,9 +181,9 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 	return nil
 }
 
-// DeleteGroup removes an entity from disk.  This is rather simple to
-// do given that each group is owned by exactly one file on disk.
-// Simply removing the file is sufficient to delete the entity.
+// DeleteGroup removes a group from disk.  This is rather simple to do
+// given that each group is owned by exactly one file on disk.  Simply
+// removing the file is sufficient to delete the entity.
 func (pdb *ProtoDB) DeleteGroup(name string) error {
 	err := os.Remove(filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", name)))
 
