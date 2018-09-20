@@ -155,3 +155,25 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestDeleteEntityUnknown(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := x.DeleteEntity("unknown-entity"); err != db.ErrUnknownEntity {
+		t.Error(err)
+	}
+}
+
+func TestDeleteGroupUnknown(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := x.DeleteGroup("unknown-group"); err != db.ErrUnknownGroup {
+		t.Error(err)
+	}
+}
