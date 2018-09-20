@@ -177,3 +177,20 @@ func TestDeleteGroupUnknown(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestHealthCheck(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Fish out the concrete type to call non-interface methods.
+	rx, ok := x.(*MemDB)
+	if !ok {
+		t.Fatal("Type assertion failed, bad type!")
+	}
+
+	if r := rx.healthCheck(); r.OK != true {
+		t.Error("hard coded health check somehow changed")
+	}
+}

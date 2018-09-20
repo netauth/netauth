@@ -2,6 +2,7 @@ package memdb
 
 import (
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/health"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -20,10 +21,13 @@ type MemDB struct {
 
 // New returns a usable memdb with internal structures initialized.
 func New() (db.DB, error) {
-	return &MemDB{
+	x := &MemDB{
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
-	}, nil
+	}
+
+	health.RegisterCheck("MemDB", x.healthCheck)
+	return x, nil
 }
 
 // DiscoverEntityIDs returns a list of entity IDs which can then be
@@ -95,4 +99,13 @@ func (m *MemDB) DeleteGroup(name string) error {
 
 	delete(m.gMap, name)
 	return nil
+}
+
+
+func (m *MemDB) healthCheck() health.SubsystemStatus {
+	return health.SubsystemStatus{
+		OK: true,
+		Name: "MemDB",
+		Status: "MemDB is operating normally",
+	}
 }
