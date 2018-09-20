@@ -24,7 +24,8 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 	log.Printf("Ping from %s@%s", client.GetService(), client.GetID())
 
 	reply := new(pb.PingResponse)
-	reply.Healthy = proto.Bool(health.Get())
+	status := health.Check()
+	reply.Healthy = proto.Bool(status.OK)
 	hostname, err := os.Hostname()
 	if err != nil {
 		log.Println("Hostname could not be determined!")

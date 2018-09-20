@@ -14,7 +14,6 @@ import (
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
-	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/rpc"
 	"github.com/NetAuth/NetAuth/internal/tree"
 
@@ -142,8 +141,6 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
 
-	// Flip the status okay and launch into the RPC handling
-	// phase.
-	health.SetGood()
+	// Commence serving
 	grpcServer.Serve(sock)
 }
