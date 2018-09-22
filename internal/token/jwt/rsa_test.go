@@ -1,6 +1,8 @@
 package jwt
 
 import (
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -20,8 +22,6 @@ var (
 		Renewals: 0,
 		Issuer:   "NetAuth Test",
 	}
-
-	testToken = "eyJhbGciOiJSUzUxMiIsInR5cCI6IkpXVCJ9.eyJFbnRpdHlJRCI6ImZvbyIsIkNhcGFiaWxpdGllcyI6bnVsbCwiUmVuZXdhbHNMZWZ0IjowLCJhdWQiOiJVbnJlc3RyaWN0ZWQiLCJleHAiOi02MjEzNTU5NjUwMCwianRpIjoiZm9vIiwiaWF0IjotNjIxMzU1OTY4MDAsImlzcyI6Ik5ldEF1dGggVGVzdCIsIm5iZiI6LTYyMTM1NTk2ODAwLCJzdWIiOiJOZXRBdXRoIFN0YW5kYXJkIFRva2VuIn0.OpGakOumqqA9EscEU3vgDkX3DJtVifLxmpLXgPr5YZ7bgWxXk-pWBxSG4aAgbdSC2G78JGi6QuJXc849XvtuWqdDZI8pTAWnNZSnicdJr0cHdGCnvgOe4Iwj2U6TAgAfwYAXe_JZJM8HRQXHULUihGIyQSkJgqrIlVoJCidYXoaTThUplWYqvWpaim6LmujC2ko3oJq7bCDzi1FuMiGrTwedHRKiFBBJet3tGsQUXLfhVR9qWz44iRyAaRCyMcTkjEN3tMPBXVYBy1ms_b8ZaQvPKWnJzP9EHjUfIO2u0hmQUWUfoc0ZDqbK0uXUOgNCrwYxolHD2U1c71luA3tDxQ"
 )
 
 func init() {
@@ -87,19 +87,6 @@ func genFixedKey(t *testing.T) {
 	}
 }
 
-func TestNewGenerateKeys(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	*privateKeyFile = filepath.Join(testDir, "netauth.key")
-	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
-	*generate = true
-
-	_, err := NewRSA()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestNewMissingKeys(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
@@ -113,7 +100,7 @@ func TestNewMissingKeys(t *testing.T) {
 	}
 }
 
-func TestLoadExistingKey(t *testing.T) {
+func TestNewExistingKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
 	*privateKeyFile = filepath.Join(testDir, "netauth.key")
@@ -134,32 +121,26 @@ func TestLoadExistingKey(t *testing.T) {
 	}
 }
 
-func TestGenerateToken(t *testing.T) {
+func TestGenerateNoKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
 	*privateKeyFile = filepath.Join(testDir, "netauth.key")
 	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
 
-	// Generate a fixed key
-	genFixedKey(t)
-
-	// Create the token service which will use the key generated
-	// earlier
 	x, err := NewRSA()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	c := token.Claims{
-		EntityID: "foo",
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Bad type assertion")
 	}
-	tkn, err := x.Generate(c, config)
-	if err != nil {
-		t.Error(err)
-	}
+	rx.privateKey = nil
 
-	if tkn != testToken {
-		t.Error("Bad Token")
+	if _, err := rx.Generate(token.Claims{}, config); err != token.ErrKeyUnavailable {
+		t.Error(err)
 	}
 }
 
@@ -211,5 +192,402 @@ func TestValidateToken(t *testing.T) {
 	// we compare the value that was set earlier
 	if claims.EntityID != c.EntityID {
 		t.Error("Claims are not the same!")
+	}
+}
+
+func TestValidateNoKey(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+
+	// generate a fixed value key
+	genFixedKey(t)
+
+	// Create the token service which will use the key generated
+	// earlier
+	x, err := NewRSA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	rx.publicKey = nil
+
+	if _, err := x.Validate(""); err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+}
+
+func TestValidateCorruptToken(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+
+	// generate a fixed value key
+	genFixedKey(t)
+
+	// Create the token service which will use the key generated
+	// earlier
+	x, err := NewRSA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := x.Validate(""); err != token.ErrInternalError {
+		t.Error(err)
+	}
+}
+
+func TestValidateWrongSigningMethod(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+
+	// generate a fixed value key
+	genFixedKey(t)
+
+	// Create the token service which will use the key generated
+	// earlier
+	x, err := NewRSA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	badToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+
+	if _, err := x.Validate(badToken); err != token.ErrTokenInvalid {
+		t.Logf("%T", err)
+		t.Error(err)
+	}
+}
+
+func TestValidateExpiredToken(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+
+	// generate a fixed value key
+	genFixedKey(t)
+
+	// Create the token service which will use the key generated
+	// earlier
+	x, err := NewRSA()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := token.Claims{
+		EntityID: "foo",
+	}
+
+	cfg := token.Config{
+		Lifetime:  0,
+		IssuedAt:  time.Now().Add(-1 * time.Minute),
+		NotBefore: time.Now().Add(-1 * time.Minute),
+		Renewals:  0,
+		Issuer:    "NetAuth Test",
+	}
+
+	tkn, err := x.Generate(c, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := x.Validate(tkn); err != token.ErrTokenInvalid {
+		t.Logf("%T", err)
+		t.Log(err)
+	}
+}
+
+func TestGetKeysNoGenerate(t *testing.T) {
+	*privateKeyFile = "/var/empty/unwritable-key-path"
+	*publicKeyFile = "/var/empty/unwritable-key-path"
+	*generate = true
+
+	_, err := NewRSA()
+	if err != token.ErrInternalError {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysBadPublicKeyFile(t *testing.T) {
+	*publicKeyFile = "/"
+	*generate = false
+
+	_, err := NewRSA()
+	if err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+
+}
+
+func TestGetKeysBadPublicKeyMode(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+
+	genFixedKey(t)
+
+	if err := os.Chmod(*publicKeyFile, 0400); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := NewRSA()
+	if err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysBadBlockDecode(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	if _, err := os.OpenFile(*publicKeyFile, os.O_RDONLY|os.O_CREATE, 0666); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := NewRSA()
+	if err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysPublicKeyWrongType(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = false
+
+	// Chosen by fair dice roll.
+	r := rand.New(rand.NewSource(4))
+	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Marshal the public key
+	pubASN1, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Couldn't marshal key")
+	}
+	pubdata := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "PUBLIC KEY",
+			Bytes: pubASN1,
+		},
+	)
+
+	if err := ioutil.WriteFile(*publicKeyFile, pubdata, 0644); err != nil {
+		t.Fatal("Keys unavailable")
+	}
+
+	_, err = NewRSA()
+	if err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysPublicKeyIsPrivate(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.pem")
+	*publicKeyFile = filepath.Join(testDir, "netauth.key")
+	*generate = false
+
+	// Generate the keys flipped, so that the private key winds up
+	// in the wrong file, then flip the keys back.
+	genFixedKey(t)
+	*publicKeyFile = *privateKeyFile
+
+	if err := os.Chmod(*privateKeyFile, 0644); err != nil {
+		t.Fatal("Couldn't set mode on key")
+	}
+
+	_, err := NewRSA()
+	if err != token.ErrKeyUnavailable {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysNoPrivateKey(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = false
+
+	// Write out a public key, then change where the private key
+	// points to cause a load error.  This must not cause an
+	// error.
+	genFixedKey(t)
+	*privateKeyFile = "/var/empty/nonexistant-key"
+
+	_, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysUnreadablePrivateKey(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = false
+
+	// Write out a public key, then change where the private key
+	// points to cause a load error.
+	genFixedKey(t)
+
+	if err := os.Chmod(*privateKeyFile, 0000); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGetKeysPrivateKeyIsPublic(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = false
+
+	// Write out a public key, then change where the private key
+	// points to cause a load error.  This must not cause an
+	// error.
+	genFixedKey(t)
+	*privateKeyFile = *publicKeyFile
+
+	_, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGenerateKeysSuccess(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if err := rx.generateKeys(256); err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGenerateKeysWrongBitNumber(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if err := rx.generateKeys(0); err != token.ErrInternalError {
+		t.Error(err)
+	}
+}
+
+func TestGenerateKeysBadPrivateKeyFile(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if err := os.Remove(*privateKeyFile); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Mkdir(*privateKeyFile, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := rx.generateKeys(256); err != token.ErrInternalError {
+		t.Error(err)
+	}
+}
+
+func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if err := os.Remove(*publicKeyFile); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Mkdir(*publicKeyFile, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := rx.generateKeys(256); err != token.ErrInternalError {
+		t.Error(err)
+	}
+}
+
+func TestCheckKeyModeOKBadStat(t *testing.T) {
+	if checkKeyModeOK("", "/var/empty/does-not-exist") {
+		t.Error("Stat succeeded on a non-existant path")
 	}
 }
