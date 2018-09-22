@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -49,6 +50,9 @@ func New() (db.DB, error) {
 		log.Printf("Could not establish data directory! (%s)", err)
 		return nil, err
 	}
+
+	health.RegisterCheck("ProtoDB", x.healthCheck)
+
 	return x, nil
 }
 
@@ -210,21 +214,65 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 // to ensure that the data directories are available.
 func (pdb *ProtoDB) ensureDataDirectory() error {
 	if stat, err := os.Stat(pdb.dataRoot); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(pdb.dataRoot, 0755); err != nil {
+		if err := os.Mkdir(pdb.dataRoot, 0750); err != nil {
 			return db.ErrInternalError
 		}
 	}
 
 	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, entitySubdir)); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(filepath.Join(pdb.dataRoot, entitySubdir), 0755); err != nil {
+		if err := os.Mkdir(filepath.Join(pdb.dataRoot, entitySubdir), 0750); err != nil {
 			return db.ErrInternalError
 		}
 	}
 
 	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, groupSubdir)); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(filepath.Join(pdb.dataRoot, groupSubdir), 0755); err != nil {
+		if err := os.Mkdir(filepath.Join(pdb.dataRoot, groupSubdir), 0750); err != nil {
 			return db.ErrInternalError
 		}
 	}
 	return nil
+}
+
+// healthCheck provides a sanity check that directories are okay and
+// permissions are correct.
+func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
+	status := health.SubsystemStatus{
+		OK:     true,
+		Name:   "ProtoDB",
+		Status: "ProtoDB is operating normally",
+	}
+
+	// Call the ensureDataDirectory function to do a quick check
+	// to ensure that things have the right permissions
+	err := pdb.ensureDataDirectory()
+	if err != nil {
+		status.Status = fmt.Sprintf("%s", err)
+	}
+
+	dirs := []string{
+		pdb.dataRoot,
+		filepath.Join(pdb.dataRoot, entitySubdir),
+		filepath.Join(pdb.dataRoot, groupSubdir),
+	}
+
+	log.Println(pdb.dataRoot)
+	for _, dir := range dirs {
+		stat, err := os.Stat(dir)
+		if err != nil {
+			status.OK = false
+			status.Status = fmt.Sprintf("Error while checking '%s': '%s'", dir, err)
+			return status
+		}
+		if !stat.IsDir() {
+			status.OK = false
+			status.Status = fmt.Sprintf("Path '%s' is not a directory", dir)
+			return status
+		}
+		if stat.Mode().String() != "drwxr-x---" {
+			status.OK = false
+			status.Status = fmt.Sprintf("Path '%s' has the wrong permissions '%v'", dir, stat.Mode())
+			return status
+		}
+	}
+	return status
 }

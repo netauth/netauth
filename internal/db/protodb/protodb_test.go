@@ -18,6 +18,9 @@ func mkTmpTestDir(t *testing.T) string {
 	if err != nil {
 		t.Error(err)
 	}
+
+	dir = filepath.Join(dir, "pdb")
+
 	return dir
 }
 
@@ -184,17 +187,6 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	}
 }
 
-func TestEnsureDataDirectoryCreate(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = filepath.Join(mkTmpTestDir(t), "foo")
-	defer cleanTmpTestDir(*dataRoot, t)
-	_, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestEnsureDataDirectoryBadBase(t *testing.T) {
 	*dataRoot = "/var/empty/foo"
 	_, err := New()
@@ -208,6 +200,10 @@ func TestEnsureDataDirectoryBadEntityDir(t *testing.T) {
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
 	defer cleanTmpTestDir(*dataRoot, t)
+
+	if err := os.Mkdir(*dataRoot, 0750); err != nil {
+		t.Fatal(err)
+	}
 
 	if _, err := os.OpenFile(filepath.Join(*dataRoot, entitySubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
@@ -223,6 +219,10 @@ func TestEnsureDataDirectoryBadGroupDir(t *testing.T) {
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
 	defer cleanTmpTestDir(*dataRoot, t)
+
+	if err := os.Mkdir(*dataRoot, 0750); err != nil {
+		t.Fatal(err)
+	}
 
 	if _, err := os.OpenFile(filepath.Join(*dataRoot, groupSubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
@@ -428,5 +428,101 @@ func TestDeleteUnknownGroup(t *testing.T) {
 
 	if err := x.DeleteGroup("unknown-group"); err != db.ErrUnknownGroup {
 		t.Error(err)
+	}
+}
+
+func TestHealthCheckOK(t *testing.T) {
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	status := rx.healthCheck()
+
+	if !status.OK || status.Status != "ProtoDB is operating normally" {
+		t.Errorf("Bad status: %v", status)
+	}
+}
+
+func TestHealthCheckBadBase(t *testing.T) {
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
+
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.RemoveAll(*dataRoot); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.OpenFile(*dataRoot, os.O_RDONLY|os.O_CREATE, 0666); err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	status := rx.healthCheck()
+
+	if status.OK {
+		t.Errorf("Bad status: %v", status)
+	}
+}
+
+func TestHealthCheckBadPermissions(t *testing.T) {
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
+
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := os.Chmod(*dataRoot, 0770); err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	status := rx.healthCheck()
+
+	if status.OK {
+		t.Errorf("Bad status: %v", status)
+	}
+}
+
+func TestHealthCheckBadStat(t *testing.T) {
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
+
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	rx.dataRoot = "/var/empty/does-not-exist"
+
+	status := rx.healthCheck()
+
+	if status.OK {
+		t.Errorf("Bad status: %v", status)
 	}
 }
