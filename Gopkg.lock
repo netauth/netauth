@@ -2,58 +2,73 @@
 
 
 [[projects]]
+  digest = "1:289dd4d7abfb3ad2b5f728fbe9b1d5c1bf7d265a3eb9ef92869af1f7baba4c7a"
   name = "github.com/BurntSushi/toml"
   packages = ["."]
+  pruneopts = ""
   revision = "b26d9c308763d68093482582cea63d69be07a0f0"
   version = "v0.3.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:71f22eddc22b5a500407c553bd69069e761c5852177907e922a5a5304ea2dfbe"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
+  pruneopts = ""
   revision = "9b14c08335b3b6f2248b5578bd1e6344212e8bda"
 
 [[projects]]
+  digest = "1:15ceb8ca7a71db4c426d8aef1909ea074f6840efa163490bb2798f475624e4ae"
   name = "github.com/bgentry/speakeasy"
   packages = ["."]
+  pruneopts = ""
   revision = "4aabc24848ce5fd31929f7d1e4ea74d3709c14cd"
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
+  pruneopts = ""
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:8c7a067a84868afafa105b2c179d2854646644e02b114050ee746e80c57d2a17"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
-    "ptypes/timestamp"
+    "ptypes/timestamp",
   ]
+  pruneopts = ""
   revision = "9eb2c01ac278a5d89ce4b2be68fe4500955d8179"
 
 [[projects]]
   branch = "master"
+  digest = "1:b264547c40314ec7619d2cf264e2621953843be7242c140efe1e3119f93877f4"
   name = "github.com/google/subcommands"
   packages = ["."]
+  pruneopts = ""
   revision = "5bae204cdfb2d92dcc333d56014bae6a2f6c58b1"
 
 [[projects]]
   branch = "master"
+  digest = "1:6ef14be530be39b6b9d75d54ce1d546ae9231e652d9e3eef198cbb19ce8ed3e7"
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
-    "blowfish"
+    "blowfish",
   ]
+  pruneopts = ""
   revision = "a49355c7e3f8fe157a85be2f77e6e269a0f89602"
 
 [[projects]]
   branch = "master"
+  digest = "1:4656104e65eed39be4ad82d1c2d31ccb391ba51817ccfbb6140562b141392b71"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -62,11 +77,13 @@
     "http2/hpack",
     "idna",
     "internal/timeseries",
-    "trace"
+    "trace",
   ]
+  pruneopts = ""
   revision = "afe8f62b1d6bbd81f31868121a50b06d8188e1f9"
 
 [[projects]]
+  digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
     "collate",
@@ -82,18 +99,22 @@
     "unicode/bidi",
     "unicode/cldr",
     "unicode/norm",
-    "unicode/rangetable"
+    "unicode/rangetable",
   ]
+  pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:51660d223cf2ac7b172cda2cad336aea0228fed65a18befe270356d8f2eaf317"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
+  pruneopts = ""
   revision = "80063a038e333bbe006c878e4c5ce4c74d055498"
 
 [[projects]]
+  digest = "1:5f31b45ee9da7a87f140bef3ed0a7ca34ea2a6d38eb888123b8e28170e8aa4f2"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -120,14 +141,27 @@
     "stats",
     "status",
     "tap",
-    "transport"
+    "transport",
   ]
+  pruneopts = ""
   revision = "168a6198bcb0ef175f7dacec0b8691fc141dc9b8"
   version = "v1.13.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e1a4a942881ac2601c24d26693a726e76e794339f55fdf6e75d3ca96fccdd8e8"
+  input-imports = [
+    "github.com/BurntSushi/toml",
+    "github.com/NetAuth/Protocol",
+    "github.com/bgentry/speakeasy",
+    "github.com/dgrijalva/jwt-go",
+    "github.com/golang/protobuf/proto",
+    "github.com/google/subcommands",
+    "golang.org/x/crypto/bcrypt",
+    "google.golang.org/grpc",
+    "google.golang.org/grpc/codes",
+    "google.golang.org/grpc/credentials",
+    "google.golang.org/grpc/status",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
