@@ -499,6 +499,13 @@ func TestGenerateKeysSuccess(t *testing.T) {
 		t.Fatal("Type Error")
 	}
 
+	for _, k := range []string{*privateKeyFile, *publicKeyFile} {
+		if err := os.Remove(k); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	
 	if err := rx.generateKeys(256); err != nil {
 		t.Error(err)
 	}
@@ -573,16 +580,42 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 		t.Fatal("Type Error")
 	}
 
-	if err := os.Remove(*publicKeyFile); err != nil {
+	// Remove the private key file since the system tries to write
+	// it first.
+	if err := os.Remove(*privateKeyFile); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.Mkdir(*publicKeyFile, 0755); err != nil {
-		t.Fatal(err)
-	}
-
+	// Point the public key file somewhere that it can't be
+	// written.
+	*publicKeyFile = "/var/empty/no-permissions-file"
+	
 	if err := rx.generateKeys(256); err != token.ErrInternalError {
 		t.Error(err)
+	} else {
+		t.Logf("%T", err)
+	}
+}
+
+func TestHealthCheck(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if status := rx.healthCheck(); !status.OK {
+		t.Error(status)
 	}
 }
 

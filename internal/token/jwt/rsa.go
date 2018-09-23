@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	"github.com/dgrijalva/jwt-go"
@@ -230,6 +231,40 @@ func (s *RSATokenService) generateKeys(bits int) error {
 	return nil
 }
 
+// healthCheck provides a sanity check that keys are loaded and owned
+// correctly.
+func (s *RSATokenService) healthCheck() health.SubsystemStatus {
+	status := health.SubsystemStatus{
+		OK:   false,
+		Name: "TKN_JWT-RSA",
+	}
+
+	if s.privateKey == nil {
+		status.Status = "No private key is loaded"
+		return status
+	}
+
+	if s.publicKey == nil {
+		status.Status = "No public key is loaded"
+		return status
+	}
+
+	if !checkKeyModeOK("-rw-r--r--", *publicKeyFile) {
+		status.Status = "Public key has incorrect mode"
+		return status
+	}
+
+	if !checkKeyModeOK("-r--------", *privateKeyFile) {
+		status.Status = "Private key has incorrect mode"
+		return status
+	}
+
+	status.OK = true
+	status.Status = "JWT-RSA TokenService is ready to issue/verify tokens"
+
+	return status
+}
+
 func marshalPrivateKey(key *rsa.PrivateKey, path string) error {
 	pridata := pem.EncodeToMemory(
 		&pem.Block{
@@ -237,10 +272,11 @@ func marshalPrivateKey(key *rsa.PrivateKey, path string) error {
 			Bytes: x509.MarshalPKCS1PrivateKey(key),
 		},
 	)
-	if err := ioutil.WriteFile(path, pridata, 0600); err != nil {
-		log.Println("Error writing private key file", err)
+	if err := ioutil.WriteFile(path, pridata, 0400); err != nil {
+		log.Println("Error writing private key file:", err)
 		return token.ErrInternalError
 	}
+
 	return nil
 }
 
@@ -258,7 +294,7 @@ func marshalPublicKey(key *rsa.PublicKey, path string) error {
 		},
 	)
 	if err := ioutil.WriteFile(path, pubdata, 0644); err != nil {
-		log.Println("Error writing public key file", err)
+		log.Println("Error writing public key file:", err)
 		return token.ErrInternalError
 	}
 	return nil
