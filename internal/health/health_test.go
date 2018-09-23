@@ -59,9 +59,6 @@ func TestHealthCheck(t *testing.T) {
 	if status.OK || len(status.Subsystems) != 3 {
 		t.Error("Wrong number of results")
 	}
-	if status.FirstFailure.Name != "Failed Subsystem" {
-		t.Errorf("First failure has been overwritten: %v", status.FirstFailure)
-	}
 }
 
 func TestSubsystemStatusString(t *testing.T) {
