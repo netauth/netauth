@@ -505,7 +505,6 @@ func TestGenerateKeysSuccess(t *testing.T) {
 		}
 	}
 
-	
 	if err := rx.generateKeys(256); err != nil {
 		t.Error(err)
 	}
@@ -589,7 +588,7 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 	// Point the public key file somewhere that it can't be
 	// written.
 	*publicKeyFile = "/var/empty/no-permissions-file"
-	
+
 	if err := rx.generateKeys(256); err != token.ErrInternalError {
 		t.Error(err)
 	} else {
@@ -615,6 +614,106 @@ func TestHealthCheck(t *testing.T) {
 	}
 
 	if status := rx.healthCheck(); !status.OK {
+		t.Error(status)
+	}
+}
+
+func TestHealthCheckNoPublicKey(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	rx.publicKey = nil
+
+	if status := rx.healthCheck(); status.OK {
+		t.Error(status)
+	}
+}
+
+func TestHealthCheckNoPrivateKey(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	rx.privateKey = nil
+
+	if status := rx.healthCheck(); status.OK {
+		t.Error(status)
+	}
+}
+
+func TestHealthCheckBadPrivateKeyPermissions(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := os.Chmod(*privateKeyFile, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if status := rx.healthCheck(); status.OK {
+		t.Error(status)
+	}
+}
+
+func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "netauth.key")
+	*publicKeyFile = filepath.Join(testDir, "netauth.pem")
+	*generate = true
+
+	x, err := NewRSA()
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err := os.Chmod(*publicKeyFile, 0600); err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if status := rx.healthCheck(); status.OK {
 		t.Error(status)
 	}
 }
