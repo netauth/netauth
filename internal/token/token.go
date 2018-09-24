@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// A ServiceFactory returns a token service when called.
-type ServiceFactory func() (Service, error)
+// A Factory returns a token service when called.
+type Factory func() (Service, error)
 
 // The Service type defines the required interface for the Token
 // Service.  The service must generate tokens, and be able to validate
@@ -28,7 +28,7 @@ type Config struct {
 }
 
 var (
-	services map[string]ServiceFactory
+	services map[string]Factory
 
 	impl     = flag.String("token_impl", "", "Token implementation to use")
 	lifetime = flag.Duration("token_lifetime", time.Hour*10, "Token lifetime")
@@ -36,7 +36,7 @@ var (
 )
 
 func init() {
-	services = make(map[string]ServiceFactory)
+	services = make(map[string]Factory)
 }
 
 // New returns an initialized token service based on the value of the
@@ -56,7 +56,7 @@ func New() (Service, error) {
 
 // Register is called by implementations to register ServiceFactory
 // functions.
-func Register(name string, impl ServiceFactory) {
+func Register(name string, impl Factory) {
 	if _, ok := services[name]; ok {
 		// Already registered
 		return
