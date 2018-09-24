@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	db.RegisterDB("MemDB", New)
+	db.Register("MemDB", New)
 }
 
 // The MemDB type binds the methods of this "database".  This DB is

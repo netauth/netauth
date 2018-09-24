@@ -34,7 +34,7 @@ var (
 )
 
 func init() {
-	db.RegisterDB("ProtoDB", New)
+	db.Register("ProtoDB", New)
 }
 
 // New returns a new ProtoDB instance that is initialized and ready

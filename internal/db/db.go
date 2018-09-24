@@ -27,8 +27,12 @@ type DB interface {
 type Factory func() (DB, error)
 
 var (
-	backends = make(map[string]Factory)
+	backends map[string]Factory
 )
+
+func init() {
+	backends = make(map[string]Factory)
+}
 
 // New returns a db struct.
 func New(name string) (DB, error) {
@@ -39,9 +43,9 @@ func New(name string) (DB, error) {
 	return b()
 }
 
-// RegisterDB takes in a name of the database to register and a
+// Register takes in a name of the database to register and a
 // function signature to bind to that name.
-func RegisterDB(name string, newFunc Factory) {
+func Register(name string, newFunc Factory) {
 	if _, ok := backends[name]; ok {
 		// Return if the backend is already registered.
 		return
