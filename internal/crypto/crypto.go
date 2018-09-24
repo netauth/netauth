@@ -13,8 +13,12 @@ type EMCrypto interface {
 type Factory func() (EMCrypto, error)
 
 var (
-	backends = make(map[string]Factory)
+	backends map[string]Factory
 )
+
+func init() {
+	backends = make(map[string]Factory)
+}
 
 // New returns an initialized Crypto instance which can create and
 // verify secure versions of secrets.
