@@ -34,7 +34,7 @@ specified, then only groups on that entity will be returned.
 
 // SetFlags sets the cmdlet specific flags
 func (p *ListGroupsCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
+	f.StringVar(&p.fields, "fields", "", "Comma separated list of fields to display")
 	f.StringVar(&p.entityID, "entity", "", "Entity to obtain groups for, blank for all groups")
 	f.BoolVar(&p.indirects, "indirects", true, "Include indirect group memberships")
 }

@@ -24,7 +24,7 @@ var (
 
 	// ErrInternalError is a catchall for errors that are
 	// otherwise unidentified and unrecoverable in the server.
-	ErrInternalError = errors.New("An internal error has occured")
+	ErrInternalError = errors.New("An internal error has occurred")
 )
 
 // An EntityTree is a mechanism for storing entities and information

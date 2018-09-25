@@ -10,7 +10,7 @@ func TestHasCapability(t *testing.T) {
 	}{
 		{[]string{"CREATE_ENTITY"}, "CREATE_ENTITY", true},
 		{[]string{"GLOBAL_ROOT"}, "CREATE_ENTITY", true},
-		{[]string{"DESTORY_ENTITY"}, "CREATE_ENTITY", false},
+		{[]string{"DESTROY_ENTITY"}, "CREATE_ENTITY", false},
 	}
 
 	for i, c := range cases {

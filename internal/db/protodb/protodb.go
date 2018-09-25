@@ -84,7 +84,7 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 	in, err := ioutil.ReadFile(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
 	if err != nil {
 		if os.IsNotExist(err) {
-			// In the specific case of a non-existance,
+			// In the specific case of a non-existence,
 			// that is a UnknownEntity condition.
 			return nil, db.ErrUnknownEntity
 		}
@@ -113,7 +113,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
 		fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
-		log.Printf("Failed to aquire write handle for '%s'", e.GetID())
+		log.Printf("Failed to acquire write handle for '%s'", e.GetID())
 		return db.ErrInternalError
 	}
 
@@ -190,7 +190,7 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 
 	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
 		fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
-		log.Printf("Failed to aquire write handle for '%s'", g.GetName())
+		log.Printf("Failed to acquire write handle for '%s'", g.GetName())
 		return db.ErrInternalError
 	}
 

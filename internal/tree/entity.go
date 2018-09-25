@@ -48,7 +48,7 @@ func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 	}
 
 	// Now we set the entity secret, this could be inlined, but
-	// having it in the seperate function makes resetting the
+	// having it in the separate function makes resetting the
 	// secret trivial.
 	if err := m.SetEntitySecretByID(ID, secret); err != nil {
 		return err
@@ -69,8 +69,8 @@ func (m *Manager) nextUIDNumber() (int32, error) {
 	// Iterate over the entities and return the largest ID found
 	// +1.  This allows them to be in any order or have IDs
 	// missing in the middle and still work.  Though an
-	// inefficient search this is worst case O(N) and happends
-	// only on provisioning a new entry in the database.
+	// inefficient search this is worst case O(N) and happens only
+	// on provisioning a new entry in the database.
 	el, err := m.db.DiscoverEntityIDs()
 	if err != nil {
 		return 0, err

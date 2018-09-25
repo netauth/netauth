@@ -141,7 +141,7 @@ func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest)
 // possible flows through this function based on whether or not the
 // request is self-modifying or not.  In the case of a self modifying
 // request (entity requests change of its own secret) then the entity
-// must be in posession of the old secret, not a token, to authorize
+// must be in possession of the old secret, not a token, to authorize
 // the change.  In the event the request is administrative (the entity
 // is requesting the change of another entity's secret) then the
 // entity must posses a token with the right capability.

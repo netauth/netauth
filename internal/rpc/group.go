@@ -45,7 +45,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 
 // DeleteGroup removes a group from the NetAuth server.  This action
 // must be authorized by the presentation of a token containing
-// apropriate capabilities.  This call will not CASCADE deletes and
+// appropriate capabilities.  This call will not CASCADE deletes and
 // will not check if the group is empty before proceeding.  Other
 // methods *should* safely handle this and check that they aren't
 // pointing to a group that doesn't exist anymore, but its still good

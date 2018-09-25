@@ -421,7 +421,7 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 func TestUpdateEntityMetaExternalNoEntity(t *testing.T) {
 	em := getNewEntityManager(t)
 
-	if err := em.UpdateEntityMeta("non-existant", nil); err != db.ErrUnknownEntity {
+	if err := em.UpdateEntityMeta("non-existent", nil); err != db.ErrUnknownEntity {
 		t.Fatal(err)
 	}
 }

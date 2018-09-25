@@ -32,7 +32,7 @@ single group, as opposed to attempting to list all groups.
 
 // SetFlags sets the cmdlet specific flags.
 func (p *GroupInfoCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
+	f.StringVar(&p.fields, "fields", "", "Comma separated list of fields to display")
 	f.StringVar(&p.groupName, "group", "", "Name of the group to query")
 }
 

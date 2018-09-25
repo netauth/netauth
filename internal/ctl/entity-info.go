@@ -31,7 +31,7 @@ limit the information that is printed.
 // SetFlags processes the flags for this cmdlet.
 func (p *EntityInfoCmd) SetFlags(f *flag.FlagSet) {
 	f.StringVar(&p.entityID, "entity", getEntity(), "ID to summon info for")
-	f.StringVar(&p.fields, "fields", "", "Comma seperated list of fields to display")
+	f.StringVar(&p.fields, "fields", "", "Comma separated list of fields to display")
 }
 
 // Execute is called to run this cmdlet.

@@ -62,7 +62,7 @@ func (s *NetAuthServer) manageByMembership(entityID, groupName string) bool {
 func toWireError(err error) error {
 	switch err {
 	case nil:
-		return status.Errorf(codes.OK, "Completed sucessfully")
+		return status.Errorf(codes.OK, "Completed successfully")
 	case crypto.ErrInternalError:
 		return status.Errorf(codes.Internal, err.Error())
 	case crypto.ErrAuthorizationFailure:
@@ -92,6 +92,6 @@ func toWireError(err error) error {
 	case ErrInternalError:
 		return status.Errorf(codes.Internal, err.Error())
 	default:
-		return status.Errorf(codes.Unknown, "An unidentifiable error has occured")
+		return status.Errorf(codes.Unknown, "An unidentifiable error has occurred")
 	}
 }

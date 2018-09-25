@@ -72,7 +72,7 @@ func (p *GroupExpansionsCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...in
 	} else if p.drop {
 		mode = "DROP"
 	} else {
-		fmt.Println("You must specifiy --include, --exclude, or --drop")
+		fmt.Println("You must specify --include, --exclude, or --drop")
 		return subcommands.ExitFailure
 	}
 

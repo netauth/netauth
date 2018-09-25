@@ -23,7 +23,7 @@ var (
 
 	// ErrInternalError captures all unidentified error cases
 	// within various token services.
-	ErrInternalError = errors.New("an unrecoverable internal error has occured")
+	ErrInternalError = errors.New("an unrecoverable internal error has occurred")
 
 	// ErrTokenInvalid is returned for generic cases where the
 	// token is invalid for some reason.

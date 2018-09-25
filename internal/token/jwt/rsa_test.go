@@ -720,6 +720,6 @@ func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
 
 func TestCheckKeyModeOKBadStat(t *testing.T) {
 	if checkKeyModeOK("", "/var/empty/does-not-exist") {
-		t.Error("Stat succeeded on a non-existant path")
+		t.Error("Stat succeeded on a non-existent path")
 	}
 }

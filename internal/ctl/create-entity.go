@@ -25,8 +25,8 @@ func (*CreateEntityCmd) Synopsis() string { return "Add a new entity to the serv
 func (*CreateEntityCmd) Usage() string {
 	return `create-entity --ID <ID> --number <number> --secret <secret>
   Create a new entity with the specified ID, number, and secret.
-  number may be ommitted to select the next available number.
-  Secret may be ommitted to leave unset.`
+  number may be omitted to select the next available number.
+  Secret may be omitted to leave unset.`
 }
 
 // SetFlags sets the flags specific to this command.
