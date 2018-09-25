@@ -11,8 +11,8 @@ import (
 // GroupInfoCmd returns  information about a named  group filtered for
 // specific fields.
 type GroupInfoCmd struct {
-	groupName   string
-	fields string
+	groupName string
+	fields    string
 }
 
 // Name of this cmdlet will be 'group-info'

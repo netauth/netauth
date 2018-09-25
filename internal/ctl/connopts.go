@@ -62,7 +62,6 @@ func getSecret() string {
 	return *secret
 }
 
-
 func getToken(c *client.NetAuthClient, entity string) (string, error) {
 	t, err := c.GetToken(entity, "")
 	switch err {

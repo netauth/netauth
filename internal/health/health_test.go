@@ -100,7 +100,7 @@ func TestSystemStatusString(t *testing.T) {
 			status: SystemStatus{
 				OK: true,
 				Subsystems: []SubsystemStatus{
-					SubsystemStatus{
+					{
 						OK:     true,
 						Name:   "Sub1",
 						Status: "System is Ready",
@@ -118,12 +118,12 @@ func TestSystemStatusString(t *testing.T) {
 					Status: "System is Broken",
 				},
 				Subsystems: []SubsystemStatus{
-					SubsystemStatus{
+					{
 						OK:     true,
 						Name:   "Sub1",
 						Status: "System is Ready",
 					},
-					SubsystemStatus{
+					{
 						OK:     false,
 						Name:   "Sub2",
 						Status: "System is Broken",

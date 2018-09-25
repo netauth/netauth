@@ -2,10 +2,11 @@ package crypto
 
 import "testing"
 
-type dummyCrypto struct {}
+type dummyCrypto struct{}
+
 func (*dummyCrypto) SecureSecret(_ string) (string, error) { return "", nil }
-func (*dummyCrypto) VerifySecret(_, _ string) error { return nil }
-func dummyCryptoFactory() (EMCrypto, error) { return new(dummyCrypto), nil }
+func (*dummyCrypto) VerifySecret(_, _ string) error        { return nil }
+func dummyCryptoFactory() (EMCrypto, error)                { return new(dummyCrypto), nil }
 
 func TestRegister(t *testing.T) {
 	backends = make(map[string]Factory)

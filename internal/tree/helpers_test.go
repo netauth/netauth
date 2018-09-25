@@ -31,8 +31,8 @@ func TestPatchStringSlice(t *testing.T) {
 
 func TestStringMatcher(t *testing.T) {
 	cases := []struct {
-		str       string
-		substr      string
+		str        string
+		substr     string
 		matchExact bool
 		want       bool
 	}{

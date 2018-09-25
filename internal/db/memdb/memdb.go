@@ -101,11 +101,10 @@ func (m *MemDB) DeleteGroup(name string) error {
 	return nil
 }
 
-
 func (m *MemDB) healthCheck() health.SubsystemStatus {
 	return health.SubsystemStatus{
-		OK: true,
-		Name: "MemDB",
+		OK:     true,
+		Name:   "MemDB",
 		Status: "MemDB is operating normally",
 	}
 }
