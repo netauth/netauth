@@ -351,14 +351,14 @@ func TestGetEntity(t *testing.T) {
 	}
 
 	// First validate that this works with no entity
-	entity, err := em.GetEntity("")
+	_, err := em.GetEntity("")
 	if err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 
 	// Now check that we get back the right values for the entity
 	// we added earlier.
-	entity, err = em.GetEntity("foo")
+	entity, err := em.GetEntity("foo")
 	if err != nil {
 		t.Error(err)
 	}
