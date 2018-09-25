@@ -116,11 +116,7 @@ type fsTokenStore struct{}
 func (*fsTokenStore) StoreToken(name, token string) error {
 	tokenFile := filepath.Join(os.TempDir(), fmt.Sprintf("%s.%s", name, "token"))
 
-	if err := ioutil.WriteFile(tokenFile, []byte(token), 0400); err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(tokenFile, []byte(token), 0400)
 }
 
 func (*fsTokenStore) GetToken(name string) (string, error) {

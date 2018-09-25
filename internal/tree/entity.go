@@ -302,11 +302,7 @@ func (m *Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	proto.Merge(meta, newMeta)
 
 	// Save changes
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-
-	return nil
+	return m.db.SaveEntity(e)
 }
 
 // UpdateEntityMeta drives the internal version by obtaining the

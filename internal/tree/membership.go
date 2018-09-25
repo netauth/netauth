@@ -42,10 +42,7 @@ func (m *Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
 	// is not in the named group via direct membership.
 	e.Meta.Groups = append(e.Meta.Groups, groupName)
 
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-	return nil
+	return m.db.SaveEntity(e)
 }
 
 // GetMemberships returns all groups the entity is a member of,
@@ -144,10 +141,7 @@ func (m *Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
 	}
 	e.Meta.Groups = newGroups
 
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-	return nil
+	return m.db.SaveEntity(e)
 }
 
 // allEntities is a convenient way to return all the entities
