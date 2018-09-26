@@ -80,6 +80,9 @@ v0.0.8.4:
   * Support prompting for all secure information
   * Ensure efficient reuse of locally cached tokens
 
+v0.0.9:
+  * Standardized verbs and flags
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
