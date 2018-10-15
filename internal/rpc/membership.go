@@ -94,7 +94,6 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 // expensive since large chunks of the membership tree will need to be
 // calculated.
 func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 	inclindr := r.GetIncludeIndirects()
 
@@ -124,10 +123,6 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 		}
 	}
 
-	log.Printf("Group list requested (%s@%s)",
-		client.GetService(),
-		client.GetID())
-
 	return &pb.GroupList{
 		Groups: list,
 	}, toWireError(nil)
@@ -137,18 +132,12 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 // This call requires computing fairly large chunks of the membership
 // graph.
 func (s *NetAuthServer) ListGroupMembers(ctx context.Context, r *pb.GroupMemberRequest) (*pb.EntityList, error) {
-	client := r.GetInfo()
 	g := r.GetGroup()
 
 	memberlist, err := s.Tree.ListMembers(g.GetName())
 	if err != nil {
 		return nil, toWireError(err)
 	}
-
-	log.Printf("Membership of '%s' requested (%s@%s)",
-		g.GetName(),
-		client.GetService(),
-		client.GetID())
 
 	return &pb.EntityList{
 		Members: memberlist,
