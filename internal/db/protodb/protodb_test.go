@@ -26,6 +26,15 @@ func mkTmpTestDir(t *testing.T) string {
 
 func cleanTmpTestDir(dir string, t *testing.T) {
 	// Remove the tmpdir, don't want to clutter the filesystem
+	path, final := filepath.Split(dir)
+	t.Log(path, final)
+
+	// Strip the added directory path if this came from
+	// mkTmpTestDir
+	if final == "pdb" {
+		dir = path
+	}
+
 	if err := os.RemoveAll(dir); err != nil {
 		t.Log(err)
 	}
