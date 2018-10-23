@@ -83,6 +83,11 @@ v0.0.8.4:
 v0.0.9:
   * Standardized verbs and flags
 
+v0.0.9.1:
+  * Maintenence Release
+    * Update logging to ensure useful things are logged
+    * Improve test coverage and fix minor correctness bugs
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
