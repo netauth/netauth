@@ -27,7 +27,6 @@ func mkTmpTestDir(t *testing.T) string {
 func cleanTmpTestDir(dir string, t *testing.T) {
 	// Remove the tmpdir, don't want to clutter the filesystem
 	path, final := filepath.Split(dir)
-	t.Log(path, final)
 
 	// Strip the added directory path if this came from
 	// mkTmpTestDir
@@ -197,7 +196,15 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 }
 
 func TestEnsureDataDirectoryBadBase(t *testing.T) {
-	*dataRoot = "/var/empty/foo"
+	// This is a slight race condition since we're manipulating
+	// flags, but this shouldn't actually be flaky.
+	*dataRoot = mkTmpTestDir(t)
+	defer cleanTmpTestDir(*dataRoot, t)
+
+	if _, err := os.OpenFile(*dataRoot, os.O_RDONLY|os.O_CREATE, 0000); err != nil {
+		t.Fatal(err)
+	}
+
 	_, err := New()
 	if err != db.ErrInternalError {
 		t.Fatal(err)
