@@ -308,9 +308,14 @@ func TestValidateExpiredToken(t *testing.T) {
 }
 
 func TestGetKeysNoGenerate(t *testing.T) {
-	*privateKeyFile = "/var/empty/unwritable-key-path"
-	*publicKeyFile = "/var/empty/unwritable-key-path"
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	*privateKeyFile = filepath.Join(testDir, "badPrivateKeyFile")
 	*generate = true
+
+	if err := os.Mkdir(*privateKeyFile, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	_, err := NewRSA()
 	if err != token.ErrInternalError {
@@ -585,9 +590,10 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Point the public key file somewhere that it can't be
-	// written.
-	*publicKeyFile = "/var/empty/no-permissions-file"
+	*publicKeyFile = filepath.Join(testDir, "badPublicKey")
+	if err := os.Mkdir(*publicKeyFile, 0755); err != nil {
+		t.Fatal(err)
+	}
 
 	if err := rx.generateKeys(256); err != token.ErrInternalError {
 		t.Error(err)
