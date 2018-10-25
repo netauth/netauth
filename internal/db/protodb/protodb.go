@@ -213,20 +213,13 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 // ensureDataDirectory is called during initialization of this backend
 // to ensure that the data directories are available.
 func (pdb *ProtoDB) ensureDataDirectory() error {
-	if stat, err := os.Stat(pdb.dataRoot); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(pdb.dataRoot, 0750); err != nil {
-			return db.ErrInternalError
-		}
+	dirs := []string{
+		pdb.dataRoot,
+		filepath.Join(pdb.dataRoot, entitySubdir),
+		filepath.Join(pdb.dataRoot, groupSubdir),
 	}
-
-	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, entitySubdir)); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(filepath.Join(pdb.dataRoot, entitySubdir), 0750); err != nil {
-			return db.ErrInternalError
-		}
-	}
-
-	if stat, err := os.Stat(filepath.Join(pdb.dataRoot, groupSubdir)); os.IsNotExist(err) || !stat.IsDir() {
-		if err := os.Mkdir(filepath.Join(pdb.dataRoot, groupSubdir), 0750); err != nil {
+	for _, d := range dirs {
+		if err := os.MkdirAll(d, 0750); err != nil {
 			return db.ErrInternalError
 		}
 	}
@@ -246,7 +239,9 @@ func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
 	// to ensure that things have the right permissions
 	err := pdb.ensureDataDirectory()
 	if err != nil {
+		status.OK = false
 		status.Status = fmt.Sprintf("%s", err)
+		return status
 	}
 
 	dirs := []string{

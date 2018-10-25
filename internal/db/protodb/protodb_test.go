@@ -534,7 +534,12 @@ func TestHealthCheckBadStat(t *testing.T) {
 		t.Fatal("Bad type assertion")
 	}
 
-	rx.dataRoot = "/var/empty/does-not-exist"
+	bad := filepath.Join(*dataRoot, "bad")
+	if err := os.Mkdir(bad, 0000); err != nil {
+		t.Fatal(err)
+	}
+
+	rx.dataRoot = bad
 
 	status := rx.healthCheck()
 
