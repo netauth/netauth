@@ -88,6 +88,11 @@ v0.0.9.1:
     * Update logging to ensure useful things are logged
     * Improve test coverage and fix minor correctness bugs
 
+v0.0.9.2:
+  * Maintenence Release
+    * Improve ensureDataDirectory in PDB
+    * Improve test resiliancy on fully writable filesystems
+
 v0.1.0:
   * API is marked stable
   * Development of other modules will be permitted to move forwards
