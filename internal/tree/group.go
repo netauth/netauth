@@ -2,6 +2,7 @@ package tree
 
 import (
 	"log"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
 
@@ -87,6 +88,32 @@ func (m *Manager) UpdateGroupMeta(name string, update *pb.Group) error {
 	update.Number = &number
 
 	return nil
+}
+
+// ManageUntypedGroupMeta handles the things that may be annotated
+// onto a group.  These annotations should be used sparingly as they
+// incur a non-trivial lookup cost on the server.
+func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]string, error) {
+	// Load Entity
+	g, err := m.GetGroupByName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	// Patch the KV slice
+	tmp := patchKeyValueSlice(g.GetUntypedMeta(), mode, key, value)
+
+	// If this was a read, bail out now with whatever was read
+	if strings.ToUpper(mode) == "READ" {
+		return tmp, nil
+	}
+
+	// Save changes
+	g.UntypedMeta = tmp
+	if err := m.db.SaveGroup(g); err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
 // ListGroups literally returns a list of groups

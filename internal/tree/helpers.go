@@ -1,6 +1,9 @@
 package tree
 
 import (
+	"fmt"
+	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -32,6 +35,94 @@ func patchStringSlice(in []string, patch string, insert bool, matchExact bool) [
 	// above process doesn't remove dups that may have gotten into
 	// the slice in previous versions of NetAuth.
 	return dedupStringSlice(retSlice)
+}
+
+// patchKeyValueSlice patches slices that use key/value pairs.  Its
+// designed with more advanced functionality around exact key
+// matching, fuzzy and exact clearing, and OpenLDAP-style Z-Ordering.
+func patchKeyValueSlice(slice []string, mode, key, value string) []string {
+	mode = strings.ToUpper(mode)
+
+	switch mode {
+	case "UPSERT":
+		var newSlice []string
+		inserted := false
+		for _, s := range slice {
+			parts := strings.Split(s, ":")
+			if parts[0] == key {
+				newSlice = append(newSlice, fmt.Sprintf("%s:%s", key, value))
+				inserted = true
+			} else {
+				newSlice = append(newSlice, s)
+			}
+		}
+		if !inserted {
+			newSlice = append(newSlice, fmt.Sprintf("%s:%s", key, value))
+		}
+
+		newSlice = dedupStringSlice(newSlice)
+		sort.Strings(newSlice)
+		return newSlice
+	case "CLEARFUZZY":
+		var newSlice []string
+		// Iterate over the keys, performing matching after
+		// discarding the pattern {\d+}$ to permit OpenLDAP
+		// style Z-Ordering of values.
+		re := regexp.MustCompile("{\\d+}$")
+		strippedK := re.ReplaceAllString(key, "")
+		for _, kv := range slice {
+			parts := strings.Split(kv, ":")
+			if re.ReplaceAllString(parts[0], "") != strippedK {
+				newSlice = append(newSlice, kv)
+			}
+		}
+
+		newSlice = dedupStringSlice(newSlice)
+		sort.Strings(newSlice)
+		return newSlice
+	case "CLEAREXACT":
+		var newSlice []string
+
+		for _, kv := range slice {
+			parts := strings.Split(kv, ":")
+			if parts[0] != key {
+				newSlice = append(newSlice, kv)
+			}
+		}
+
+		newSlice = dedupStringSlice(newSlice)
+		sort.Strings(newSlice)
+		return newSlice
+	case "READ":
+		// Special key '*' returns all values.
+		out := []string{}
+		if key == "*" {
+			out = slice
+			sort.Strings(out)
+			return out
+		}
+
+		// Iterate over the keys, performing matching after
+		// discarding the pattern {\d+}$ to permit OpenLDAP
+		// style Z-Ordering of values.
+		re := regexp.MustCompile("{\\d+}$")
+		strippedK := re.ReplaceAllString(key, "")
+		for _, kv := range slice {
+			parts := strings.Split(kv, ":")
+			if re.ReplaceAllString(parts[0], "") == strippedK {
+				out = append(out, kv)
+			}
+		}
+
+		// Sort to ensure any Z-Ordering that may be present
+		sort.Strings(out)
+
+		return out
+	}
+
+	// We shouldn't be here, but just in case return the original
+	// slice unmodified for safety.
+	return slice
 }
 
 // stringMatcher solves the problem introduced above of possibly

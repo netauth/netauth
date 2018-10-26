@@ -29,6 +29,43 @@ func TestPatchStringSlice(t *testing.T) {
 	}
 }
 
+func TestPatchKeyValueSlice(t *testing.T) {
+	cases := []struct {
+		slice []string
+		mode  string
+		key   string
+		value string
+		want  []string
+	}{
+		// Upsert tests
+		{nil, "upsert", "k1", "v1", []string{"k1:v1"}},
+		{[]string{"k1:v1"}, "upsert", "k1", "v1", []string{"k1:v1"}},
+		{[]string{"k1:v1"}, "upsert", "k1", "v2", []string{"k1:v2"}},
+		{[]string{"k1{0}:v1"}, "upsert", "k1{1}", "v1", []string{"k1{0}:v1", "k1{1}:v1"}},
+
+		// Read tests
+		{[]string{"k1:v1", "k2:v2"}, "read", "*", "", []string{"k1:v1", "k2:v2"}},
+		{[]string{"k1:v1", "k2:v2"}, "read", "k1", "", []string{"k1:v1"}},
+		{[]string{"k1{0}:v1", "k1{1}:v1", "k2:v1"}, "read", "k1", "", []string{"k1{0}:v1", "k1{1}:v1"}},
+
+		// ClearFuzzy tests
+		{[]string{"k1{0}:v1", "k1{1}:v1", "k2:v1"}, "clearfuzzy", "k1", "", []string{"k2:v1"}},
+
+		// ClearExact tests
+		{[]string{"k1{0}:v1", "k1{1}:v1", "k2:v1"}, "clearexact", "k1{0}", "", []string{"k1{1}:v1", "k2:v1"}},
+
+		// WTF?
+		{[]string{"k1:v1"}, "unknown_mode", "k1", "", []string{"k1:v1"}},
+	}
+
+	for i, c := range cases {
+		got := patchKeyValueSlice(c.slice, c.mode, c.key, c.value)
+		if !slicesAreEqual(got, c.want) {
+			t.Errorf("%d: Got %v; Want %v", i, got, c.want)
+		}
+	}
+}
+
 func TestStringMatcher(t *testing.T) {
 	cases := []struct {
 		str        string

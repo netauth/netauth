@@ -11,11 +11,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:be3932a31e67860b85baab313bc889db2fc11d3f226a004668816db0aa79d28a"
+  digest = "1:2644de660cd7465d121ee0925018112830f08dc639037b896dad9268a09a7079"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
   pruneopts = ""
-  revision = "66a3cec65a5b63cd87f5b464a231c564c128e95c"
+  revision = "8c422a6d7480b387430f4e40dce88073918e0e9b"
 
 [[projects]]
   digest = "1:15ceb8ca7a71db4c426d8aef1909ea074f6840efa163490bb2798f475624e4ae"

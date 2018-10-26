@@ -92,6 +92,39 @@ func TestUpdateGroupMetaInternal(t *testing.T) {
 	}
 }
 
+func TestManageUntypedGroupMeta(t *testing.T) {
+	em := getNewEntityManager(t)
+
+	if err := em.NewGroup("g1","g1", "", -1); err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		groupName string
+		mode      string
+		key       string
+		value     string
+		wantKV    []string
+		wantErr   error
+	}{
+		{"g1", "upsert", "k1", "v1", nil, nil},
+		{"g1", "read", "*", "", []string{"k1:v1"}, nil},
+		{"unknown", "read", "*", "", nil, db.ErrUnknownGroup},
+	}
+
+	for i, c := range cases {
+		kv, err := em.ManageUntypedGroupMeta(c.groupName, c.mode, c.key, c.value)
+		if err != c.wantErr {
+			t.Fatalf("%d: Got: %v; Want: %v", i, err, c.wantErr)
+		}
+
+		// This function is defined in helpers_test.go
+		if !slicesAreEqual(kv, c.wantKV) {
+			t.Fatalf("%d: Got: %v; Want: %v", i, kv, c.wantKV)
+		}
+	}
+}
+
 func TestSetSameGroupCapabilityTwice(t *testing.T) {
 	em := getNewEntityManager(t)
 

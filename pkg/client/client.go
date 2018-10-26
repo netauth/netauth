@@ -261,6 +261,36 @@ func (n *NetAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, erro
 	return keys, nil
 }
 
+// ModifyUntypedEntityMeta manages actions on the untyped metadata
+// storage.
+func (n *NetAuthClient) ModifyUntypedEntityMeta(t, e, m, k, v string) (map[string]string, error) {
+	request := pb.ModEntityMetaRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		AuthToken: &t,
+		Mode:      &m,
+		Key:       &k,
+		Value:     &v,
+		Info: &pb.ClientInfo{
+			ID:      &n.cfg.ClientID,
+			Service: &n.cfg.ServiceID,
+		},
+	}
+
+	result, err := n.c.ModifyUntypedEntityMeta(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+
+	utm := make(map[string]string)
+	for _, kv := range result.GetUntypedMeta() {
+		parts := strings.SplitN(kv, ":", 2)
+		utm[parts[0]] = parts[1]
+	}
+	return utm, nil
+}
+
 // NewGroup creates a new group with the given name, display name, and
 // group number.  This action must be authorized.
 func (n *NetAuthClient) NewGroup(name, displayname, managedby, t string, number int) (*pb.SimpleResult, error) {
@@ -461,6 +491,36 @@ func (n *NetAuthClient) ModifyGroupExpansions(t, p, c, m string) (*pb.SimpleResu
 		return nil, err
 	}
 	return result, nil
+}
+
+// ModifyUntypedGroupMeta manages actions on the untyped metadata
+// storage.
+func (n *NetAuthClient) ModifyUntypedGroupMeta(t, g, m, k, v string) (map[string]string, error) {
+	request := pb.ModGroupMetaRequest{
+		Group: &pb.Group{
+			Name: &g,
+		},
+		AuthToken: &t,
+		Mode:      &m,
+		Key:       &k,
+		Value:     &v,
+		Info: &pb.ClientInfo{
+			ID:      &n.cfg.ClientID,
+			Service: &n.cfg.ServiceID,
+		},
+	}
+
+	result, err := n.c.ModifyUntypedGroupMeta(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+
+	utm := make(map[string]string)
+	for _, kv := range result.GetUntypedMeta() {
+		parts := strings.SplitN(kv, ":", 2)
+		utm[parts[0]] = parts[1]
+	}
+	return utm, nil
 }
 
 // ManageCapabilities modifies the capabilities present on an entity

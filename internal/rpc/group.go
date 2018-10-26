@@ -3,8 +3,11 @@ package rpc
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/golang/protobuf/proto"
+
+	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -148,4 +151,48 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 		Msg:     proto.String("Group modified successfully"),
 		Success: proto.Bool(true),
 	}, toWireError(err)
+}
+
+// ModifyUntypedGroupMeta alters the data stored in the untyped K/V
+// segment of an entity's metadata.  This action must be authorized by
+// the presentation of a token with appropriate capabilities.
+func (s *NetAuthServer) ModifyUntypedGroupMeta(ctx context.Context, r *pb.ModGroupMetaRequest) (*pb.UntypedMetaResult, error) {
+	client := r.GetInfo()
+	g := r.GetGroup()
+	t := r.GetAuthToken()
+
+	mode := strings.ToUpper(r.GetMode())
+
+	// If we aren't doing a read only operation then we need a
+	// token for this
+	var c token.Claims
+	var err error
+	if mode != "READ" {
+		c, err = s.Token.Validate(t)
+		if err != nil {
+			return nil, toWireError(err)
+		}
+
+		// Verify the correct capability is present in the token or
+		// that this is not a read only query.
+		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+			return nil, toWireError(ErrRequestorUnqualified)
+		}
+	}
+
+	meta, err := s.Tree.ManageUntypedGroupMeta(g.GetName(), r.GetMode(), r.GetKey(), r.GetValue())
+	if err != nil {
+		return nil, toWireError(err)
+	}
+
+	if mode != "READ" {
+		log.Printf("UntypedMeta for %s updated by %s (%s@%s)",
+			g.GetName(),
+			c.EntityID,
+			client.GetService(),
+			client.GetID(),
+		)
+	}
+
+	return &pb.UntypedMetaResult{UntypedMeta: meta}, toWireError(nil)
 }

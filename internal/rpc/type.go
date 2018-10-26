@@ -40,12 +40,14 @@ type EntityTree interface {
 	DeleteEntityByID(string) error
 	UpdateEntityMeta(string, *pb.EntityMeta) error
 	UpdateEntityKeys(string, string, string, string) ([]string, error)
+	ManageUntypedEntityMeta(string, string, string, string) ([]string, error)
 
 	NewGroup(string, string, string, int32) error
 	DeleteGroup(string) error
 	ListGroups() ([]*pb.Group, error)
 	GetGroupByName(string) (*pb.Group, error)
 	UpdateGroupMeta(string, *pb.Group) error
+	ManageUntypedGroupMeta(string, string, string, string) ([]string, error)
 	GetMemberships(*pb.Entity, bool) []string
 
 	AddEntityToGroup(string, string) error

@@ -59,6 +59,8 @@ func main() {
 
 	subcommands.Register(&ctl.CapabilitiesCmd{}, "Capabilities Administration")
 
+	subcommands.Register(&ctl.UntypedMetaCmd{}, "Untyped Meta-Data")
+
 	// Register in the global flags as important
 	subcommands.ImportantFlag("server")
 	subcommands.ImportantFlag("port")

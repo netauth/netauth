@@ -355,6 +355,32 @@ func (m *Manager) UpdateEntityKeys(entityID, mode, keytype, key string) ([]strin
 	return m.updateEntityKeys(e, mode, keytype, key)
 }
 
+// ManageUntypedEntityMeta handles the things that may be annotated
+// onto an entity.  These annotations should be used sparingly as they
+// incur a non-trivial lookup cost on the server.
+func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]string, error) {
+	// Load Entity
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Patch the KV slice
+	tmp := patchKeyValueSlice(e.GetMeta().UntypedMeta, mode, key, value)
+
+	// If this was a read, bail out now with whatever was read
+	if strings.ToUpper(mode) == "READ" {
+		return tmp, nil
+	}
+
+	// Save changes
+	e.Meta.UntypedMeta = tmp
+	if err := m.db.SaveEntity(e); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
 // safeCopyEntity makes a copy of the entity provided but removes
 // fields that are related to security.  This permits the entity that
 // is returned to be handed off outside the server.
