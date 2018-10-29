@@ -47,6 +47,9 @@ func NewRSA() (token.Service, error) {
 	if err := x.GetKeys(); err != nil {
 		return nil, err
 	}
+
+	health.RegisterCheck("JWT-RSA", x.healthCheck)
+
 	return &x, nil
 }
 
