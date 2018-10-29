@@ -250,7 +250,6 @@ func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
 		filepath.Join(pdb.dataRoot, groupSubdir),
 	}
 
-	log.Println(pdb.dataRoot)
 	for _, dir := range dirs {
 		stat, err := os.Stat(dir)
 		if err != nil {
