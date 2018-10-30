@@ -220,6 +220,7 @@ func (pdb *ProtoDB) ensureDataDirectory() error {
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0750); err != nil {
+			log.Println(err)
 			return db.ErrInternalError
 		}
 	}
@@ -233,15 +234,6 @@ func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
 		OK:     true,
 		Name:   "ProtoDB",
 		Status: "ProtoDB is operating normally",
-	}
-
-	// Call the ensureDataDirectory function to do a quick check
-	// to ensure that things have the right permissions
-	err := pdb.ensureDataDirectory()
-	if err != nil {
-		status.OK = false
-		status.Status = fmt.Sprintf("%s", err)
-		return status
 	}
 
 	dirs := []string{

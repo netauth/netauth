@@ -211,7 +211,7 @@ func TestEnsureDataDirectoryBadBase(t *testing.T) {
 	}
 }
 
-func TestEnsureDataDirectoryBadEntityDir(t *testing.T) {
+func TestEnsureDataDirectoryBadSubDir(t *testing.T) {
 	// This is a slight race condition since we're manipulating
 	// flags, but this shouldn't actually be flaky.
 	*dataRoot = mkTmpTestDir(t)
@@ -222,25 +222,6 @@ func TestEnsureDataDirectoryBadEntityDir(t *testing.T) {
 	}
 
 	if _, err := os.OpenFile(filepath.Join(*dataRoot, entitySubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
-		t.Fatal(err)
-	}
-	_, err := New()
-	if err != db.ErrInternalError {
-		t.Fatal(err)
-	}
-}
-
-func TestEnsureDataDirectoryBadGroupDir(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
-
-	if err := os.Mkdir(*dataRoot, 0750); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := os.OpenFile(filepath.Join(*dataRoot, groupSubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
 	}
 	_, err := New()
@@ -534,12 +515,7 @@ func TestHealthCheckBadStat(t *testing.T) {
 		t.Fatal("Bad type assertion")
 	}
 
-	bad := filepath.Join(*dataRoot, "bad")
-	if err := os.Mkdir(bad, 0000); err != nil {
-		t.Fatal(err)
-	}
-
-	rx.dataRoot = bad
+	rx.dataRoot = filepath.Join(*dataRoot, "bad")
 
 	status := rx.healthCheck()
 
