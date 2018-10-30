@@ -320,11 +320,6 @@ func (m *Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) erro
 // be simpler, and to account for proto.Merge() merging list contents
 // rather than overwriting.
 func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]string, error) {
-	// Account for this being the first bit of metadata
-	if e.GetMeta() == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
 	// Normalize the type and the mode
 	mode = strings.ToUpper(mode)
 	keyType = strings.ToUpper(keyType)
