@@ -85,6 +85,8 @@ func toWireError(err error) error {
 		return status.Errorf(codes.NotFound, err.Error())
 	case tree.ErrExistingExpansion:
 		return status.Errorf(codes.AlreadyExists, err.Error())
+	case tree.ErrEntityLocked:
+		return status.Errorf(codes.FailedPrecondition, err.Error())
 	case ErrMalformedRequest:
 		return status.Errorf(codes.InvalidArgument, err.Error())
 	case ErrRequestorUnqualified:

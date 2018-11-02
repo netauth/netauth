@@ -131,6 +131,28 @@ func TestMakeBootstrapCreateEntity(t *testing.T) {
 	}
 }
 
+func TestBootstrapLockedEntity(t *testing.T) {
+	em := getNewEntityManager(t)
+
+	if err := em.NewEntity("foo", -1, "foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := em.LockEntity("foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := em.ValidateSecret("foo", "foo"); err != ErrEntityLocked {
+		t.Fatal(err)
+	}
+
+	em.MakeBootstrap("foo", "foo")
+
+	if err := em.ValidateSecret("foo", "foo"); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestDisableBootstrap(t *testing.T) {
 	em := getNewEntityManager(t)
 
@@ -488,6 +510,37 @@ func TestManageUntypedEntityMeta(t *testing.T) {
 		if !slicesAreEqual(kv, c.wantKV) {
 			t.Fatalf("%d: Got: %v; Want: %v", i, kv, c.wantKV)
 		}
+	}
+}
+
+func TestLockUnlockEntity(t *testing.T) {
+	em := getNewEntityManager(t)
+	if err := em.NewEntity("foo", -1, "bar"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := em.LockEntity("foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := em.ValidateSecret("foo", "bar"); err != ErrEntityLocked {
+		t.Fatal(err)
+	}
+
+	if err := em.UnlockEntity("foo"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := em.ValidateSecret("foo", "bar"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSetEntityLockState(t *testing.T) {
+	em := getNewEntityManager(t)
+
+	if err := em.setEntityLockState("does-not-exist", true); err != db.ErrUnknownEntity {
+		t.Fatal(err)
 	}
 }
 

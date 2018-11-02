@@ -109,6 +109,16 @@ func (m *Manager) MakeBootstrap(ID string, secret string) {
 		log.Printf("No entity with ID '%s' exists!  Creating...", ID)
 	}
 
+	// We need to force unlock an entity here in the event that
+	// the global bootstrap user somehow got locked.
+	if e.GetMeta().GetLocked() {
+		log.Println("Unlocking Entity")
+		e.Meta.Locked = proto.Bool(false)
+		if err := m.db.SaveEntity(e); err != nil {
+			log.Printf("Could not unlock bootstrap entity: %s", err)
+		}
+	}
+
 	// This is not a normal Go way of doing this, but this
 	// function has two possible success cases, the flow may jump
 	// in here and return if there is an existing entity to get
@@ -260,6 +270,11 @@ func (m *Manager) ValidateSecret(ID string, secret string) error {
 		return err
 	}
 
+	// Locked entities can't validate.
+	if e.GetMeta().GetLocked() {
+		return ErrEntityLocked
+	}
+
 	err = m.crypto.VerifySecret(secret, *e.Secret)
 	if err != nil {
 		log.Printf("Failed to authenticate '%s'", e.GetID())
@@ -374,6 +389,37 @@ func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]
 		return nil, err
 	}
 	return nil, nil
+}
+
+// setEntityLockState is a convenience function to handle the setting
+// of an entity's lock state.
+func (m *Manager) setEntityLockState(entityID string, locked bool) error {
+	// Load Entity
+	e, err := m.db.LoadEntity(entityID)
+	if err != nil {
+		return err
+	}
+
+	// update state
+	e.Meta.Locked = &locked
+
+	// Save changes
+	if err := m.db.SaveEntity(e); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LockEntity allows external callers to lock entities directly.
+// Internal users can just set the value directly.
+func (m *Manager) LockEntity(entityID string) error {
+	return m.setEntityLockState(entityID, true)
+}
+
+// UnlockEntity allows external callers to lock entities directly.
+// Internal users can just set the value directly.
+func (m *Manager) UnlockEntity(entityID string) error {
+	return m.setEntityLockState(entityID, false)
 }
 
 // safeCopyEntity makes a copy of the entity provided but removes

@@ -23,4 +23,10 @@ var (
 	// ErrExistingExpansion is returned when an action would
 	// create an expansion that already exists.
 	ErrExistingExpansion = errors.New("this expansion already exists")
+
+	// ErrEntityLocked is returned when certain actions are
+	// attempted on a locked entity.  Locked entities cannot
+	// authenticate or change secrets.  They are effectively dead
+	// to the system.
+	ErrEntityLocked = errors.New("this entity is locked")
 )
