@@ -555,6 +555,47 @@ func (n *NetAuthClient) ManageCapabilities(t, e, g, c, m string) (*pb.SimpleResu
 	return result, nil
 }
 
+// LockEntity locks an entity which prevents validation of an entity
+// secret.
+func (n *NetAuthClient) LockEntity(t, e string) (*pb.SimpleResult, error) {
+	request := pb.NetAuthRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      &n.cfg.ClientID,
+			Service: &n.cfg.ServiceID,
+		},
+	}
+
+	result, err := n.c.LockEntity(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+	return result, nil
+}
+
+// UnlockEntity unlocks an entity which was previously locked.
+func (n *NetAuthClient) UnlockEntity(t, e string) (*pb.SimpleResult, error) {
+	request := pb.NetAuthRequest{
+		Entity: &pb.Entity{
+			ID: &e,
+		},
+		AuthToken: &t,
+		Info: &pb.ClientInfo{
+			ID:      &n.cfg.ClientID,
+			Service: &n.cfg.ServiceID,
+		},
+	}
+
+	result, err := n.c.UnlockEntity(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+	return result, nil
+}
+
 func ensureClientID(clientID string) string {
 	if clientID == "" {
 		hostname, err := os.Hostname()

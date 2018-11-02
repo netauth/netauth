@@ -285,3 +285,73 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 		Msg:     proto.String("Capability Modified"),
 	}, toWireError(nil)
 }
+
+// LockEntity locks an entity.  This action must be authorized with an
+// appropriate token.
+func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	t := r.GetAuthToken()
+
+	// Verify the correct capability is present in the token.
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return nil, toWireError(err)
+	}
+	if !c.HasCapability("LOCK_ENTITY") {
+		return nil, toWireError(ErrRequestorUnqualified)
+	}
+
+	if err := s.Tree.LockEntity(e.GetID()); err != nil {
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg: proto.String("An error occured while locking"),
+		}, toWireError(err)
+	}
+
+	log.Printf("Entity %s locked by %s (%s@%s)",
+		e.GetID(),
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+
+	return &pb.SimpleResult{
+		Success: proto.Bool(true),
+		Msg: proto.String("Entity is now locked"),
+	}, toWireError(nil)
+}
+
+// UnlockEntity locks an entity.  This action must be authorized with an
+// appropriate token.
+func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) (*pb.SimpleResult, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+	t := r.GetAuthToken()
+
+	// Verify the correct capability is present in the token.
+	c, err := s.Token.Validate(t)
+	if err != nil {
+		return nil, toWireError(err)
+	}
+	if !c.HasCapability("LOCK_ENTITY") {
+		return nil, toWireError(ErrRequestorUnqualified)
+	}
+
+	if err := s.Tree.UnlockEntity(e.GetID()); err != nil {
+		return &pb.SimpleResult{
+			Success: proto.Bool(false),
+			Msg: proto.String("An error occured while locking"),
+		}, toWireError(err)
+	}
+
+	log.Printf("Entity %s unlocked by %s (%s@%s)",
+		e.GetID(),
+		c.EntityID,
+		client.GetService(),
+		client.GetID())
+
+	return &pb.SimpleResult{
+		Success: proto.Bool(true),
+		Msg: proto.String("Entity is now unlocked"),
+	}, toWireError(nil)
+}

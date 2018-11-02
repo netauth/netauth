@@ -36,6 +36,9 @@ type EntityTree interface {
 	DisableBootstrap()
 	SetEntitySecretByID(string, string) error
 
+	LockEntity(string) error
+	UnlockEntity(string) error
+
 	NewEntity(string, int32, string) error
 	DeleteEntityByID(string) error
 	UpdateEntityMeta(string, *pb.EntityMeta) error
