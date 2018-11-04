@@ -389,7 +389,6 @@ func TestGetEntity(t *testing.T) {
 		ID:     proto.String("foo"),
 		Number: proto.Int32(1),
 		Secret: proto.String("<REDACTED>"),
-		Meta:   &pb.EntityMeta{},
 	}
 
 	if !proto.Equal(entity, entityTest) {

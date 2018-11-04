@@ -5,10 +5,46 @@ import (
 	"log"
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/tree/hooks"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
+
+
+type setEntityNumber struct {
+	m *Manager
+}
+
+func (*setEntityNumber) Name() string  { return "set-entity-number" }
+func (*setEntityNumber) Priority() int { return 5 }
+func (s *setEntityNumber) Run(e, de *pb.Entity) error {
+	if de.GetNumber() == -1 {
+		n, err := s.m.nextUIDNumber()
+		if err != nil {
+			return err
+		}
+		e.Number = &n
+		return nil
+	}
+	e.Number = de.Number
+	return nil
+}
+
+type failOnExistingEntity struct {
+	db.DB
+}
+
+func (*failOnExistingEntity) Name() string  { return "fail-on-missing" }
+func (*failOnExistingEntity) Priority() int { return 0 }
+func (l *failOnExistingEntity) Run(e, de *pb.Entity) error {
+	_, err := l.LoadEntity(de.GetID())
+	if err == nil {
+		return ErrDuplicateEntityID
+	}
+	return nil
+}
 
 // NewEntity creates a new entity given an ID, number, and secret.
 // Its not necessary to set the secret upon creation and it can be set
@@ -17,47 +53,23 @@ import (
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
 func (m *Manager) NewEntity(ID string, number int32, secret string) error {
-	// Does this entity exist already?
-	if _, err := m.db.LoadEntity(ID); err == nil {
-		log.Printf("Entity with ID '%s' already exists!", ID)
-		return ErrDuplicateEntityID
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID:     &ID,
+			Number: &number,
+			Secret: &secret,
+		},
 	}
 
-	// Were we given a specific number?
-	if number == -1 {
-		var err error
-		// -1 is a sentinel value that tells us to pick the
-		// next available number and assign it.
-		number, err = m.nextUIDNumber()
-		if err != nil {
-			return err
-		}
-	}
+	ep.Register(&failOnExistingEntity{m.db})
+	ep.Register(&hooks.SetEntityID{})
+	ep.Register(&setEntityNumber{m})
+	ep.Register(&hooks.SetEntitySecret{m.crypto})
+	ep.Register(&hooks.SaveEntity{m.db})
 
-	// Ok, they don't exist so we'll make them exist now
-	newEntity := &pb.Entity{
-		ID:     &ID,
-		Number: &number,
-		Secret: &secret,
-		Meta:   &pb.EntityMeta{},
-	}
-
-	// Save the entity
-	if err := m.db.SaveEntity(newEntity); err != nil {
-		return err
-	}
-
-	// Now we set the entity secret, this could be inlined, but
-	// having it in the separate function makes resetting the
-	// secret trivial.
-	if err := m.SetEntitySecretByID(ID, secret); err != nil {
-		return err
-	}
-
-	// Successfully created we now return no errors
-	log.Printf("Created entity '%s'", ID)
-
-	return nil
+	_, err := ep.Run()
+	return err
 }
 
 // nextUIDNumber computes the next available number to be assigned.
@@ -172,6 +184,10 @@ func (m *Manager) setEntityCapability(e *pb.Entity, c string) error {
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
+
+	if e.Meta == nil {
+		e.Meta = &pb.EntityMeta{}
+	}
 
 	for _, a := range e.Meta.Capabilities {
 		if a == cap {
@@ -303,6 +319,10 @@ func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
 
 func (m *Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
 	// get the existing metadata
+	if e.Meta == nil {
+		e.Meta = &pb.EntityMeta{}
+	}
+
 	meta := e.GetMeta()
 
 	// some fields must not be merged in, so we make sure that
@@ -338,6 +358,10 @@ func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]s
 	// Normalize the type and the mode
 	mode = strings.ToUpper(mode)
 	keyType = strings.ToUpper(keyType)
+
+	if e.Meta == nil {
+		e.Meta = &pb.EntityMeta{}
+	}
 
 	switch mode {
 	case "LIST":
@@ -375,6 +399,10 @@ func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]
 		return nil, err
 	}
 
+	if e.Meta == nil {
+		e.Meta = &pb.EntityMeta{}
+	}
+
 	// Patch the KV slice
 	tmp := patchKeyValueSlice(e.GetMeta().UntypedMeta, mode, key, value)
 
@@ -398,6 +426,10 @@ func (m *Manager) setEntityLockState(entityID string, locked bool) error {
 	e, err := m.db.LoadEntity(entityID)
 	if err != nil {
 		return err
+	}
+
+	if e.Meta == nil {
+		e.Meta = &pb.EntityMeta{}
 	}
 
 	// update state

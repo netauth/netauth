@@ -29,4 +29,8 @@ var (
 	// authenticate or change secrets.  They are effectively dead
 	// to the system.
 	ErrEntityLocked = errors.New("this entity is locked")
+
+	// ErrHookExists is returned when a hook attempts to register
+	// for a name that is already registered in the system.
+	ErrHookExists = errors.New("a hook with this name already exists")
 )
