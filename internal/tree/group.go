@@ -25,7 +25,7 @@ func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) er
 
 	if number == -1 {
 		var err error
-		number, err = m.nextGIDNumber()
+		number, err = m.db.NextGroupNumber()
 		if err != nil {
 			return err
 		}
@@ -209,27 +209,4 @@ func (m *Manager) RemoveGroupCapabilityByName(name string, c string) error {
 	}
 
 	return m.removeGroupCapability(g, c)
-}
-
-// Convenience function to get the nextGIDNumber.  This is very
-// inefficient but it only is called when a new group is being
-// created, which is hopefully infrequent.
-func (m *Manager) nextGIDNumber() (int32, error) {
-	var largest int32
-
-	l, err := m.db.DiscoverGroupNames()
-	if err != nil {
-		return 0, err
-	}
-	for _, i := range l {
-		g, err := m.db.LoadGroup(i)
-		if err != nil {
-			return 0, err
-		}
-		if g.GetNumber() > largest {
-			largest = g.GetNumber()
-		}
-	}
-
-	return largest + 1, nil
 }

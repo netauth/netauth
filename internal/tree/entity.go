@@ -13,25 +13,6 @@ import (
 )
 
 
-type setEntityNumber struct {
-	m *Manager
-}
-
-func (*setEntityNumber) Name() string  { return "set-entity-number" }
-func (*setEntityNumber) Priority() int { return 5 }
-func (s *setEntityNumber) Run(e, de *pb.Entity) error {
-	if de.GetNumber() == -1 {
-		n, err := s.m.nextUIDNumber()
-		if err != nil {
-			return err
-		}
-		e.Number = &n
-		return nil
-	}
-	e.Number = de.Number
-	return nil
-}
-
 type failOnExistingEntity struct {
 	db.DB
 }
@@ -64,41 +45,12 @@ func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 
 	ep.Register(&failOnExistingEntity{m.db})
 	ep.Register(&hooks.SetEntityID{})
-	ep.Register(&setEntityNumber{m})
+	ep.Register(&hooks.SetEntityNumber{m.db})
 	ep.Register(&hooks.SetEntitySecret{m.crypto})
 	ep.Register(&hooks.SaveEntity{m.db})
 
 	_, err := ep.Run()
 	return err
-}
-
-// nextUIDNumber computes the next available number to be assigned.
-// This allows a NewEntity request to be made with the number field
-// unset.
-func (m *Manager) nextUIDNumber() (int32, error) {
-	var largest int32
-
-	// Iterate over the entities and return the largest ID found
-	// +1.  This allows them to be in any order or have IDs
-	// missing in the middle and still work.  Though an
-	// inefficient search this is worst case O(N) and happens only
-	// on provisioning a new entry in the database.
-	el, err := m.db.DiscoverEntityIDs()
-	if err != nil {
-		return 0, err
-	}
-
-	for _, en := range el {
-		e, err := m.db.LoadEntity(en)
-		if err != nil {
-			return 0, err
-		}
-		if e.GetNumber() > largest {
-			largest = e.GetNumber()
-		}
-	}
-
-	return largest + 1, nil
 }
 
 // MakeBootstrap is a function that can be called during the startup

@@ -83,6 +83,41 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 	}
 }
 
+func TestNextEntityNumber(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := []struct {
+		ID            string
+		number        int32
+		nextUIDNumber int32
+	}{
+		{"foo", 1, 2},
+		{"bar", 2, 3},
+		{"baz", 65, 66}, // Numbers may be missing in the middle
+		{"fuu", 23, 66}, // Later additions shouldn't alter max
+	}
+
+	for _, c := range s {
+		//  Make sure the entity actually gets added
+		e := &pb.Entity{ID: proto.String(c.ID), Number: proto.Int32(c.number)}
+		if err := x.SaveEntity(e); err != nil {
+			t.Error(err)
+		}
+
+		// Validate that after a given mutation the number is
+		// still what we expect it to be.
+		next, err := x.NextEntityNumber()
+		if err != nil {
+			t.Error(err)
+		}
+		if next != c.nextUIDNumber {
+			t.Errorf("Wrong next number; got: %v want %v", next, c.nextUIDNumber)
+		}
+	}
+}
+
 func TestDiscoverGroups(t *testing.T) {
 	x, err := New()
 	if err != nil {
@@ -175,6 +210,40 @@ func TestDeleteGroupUnknown(t *testing.T) {
 
 	if err := x.DeleteGroup("unknown-group"); err != db.ErrUnknownGroup {
 		t.Error(err)
+	}
+}
+
+func TestNextGroupNumber(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := []struct {
+		name   string
+		number int32
+		want   int32
+	}{
+		{"foo", 1, 2},
+		{"bar", 2, 3},
+		{"baz", 65, 66}, // Numbers may be missing in the middle
+		{"fuu", 23, 66}, // Later additions shouldn't alter max
+	}
+
+	for _, c := range s {
+		g := &pb.Group{Name: proto.String(c.name), Number: proto.Int32(c.number)}
+		if err := x.SaveGroup(g); err != nil {
+			t.Error(err)
+		}
+
+		// Validate that after a given mutation the number is
+		// still what we expect it to be.
+		next, err := x.NextGroupNumber()
+		if err != nil {
+			t.Error(err)
+		}
+		if next != c.want {
+			t.Errorf("Wrong next number; got: %v want %v", next, c.want)
+		}
 	}
 }
 

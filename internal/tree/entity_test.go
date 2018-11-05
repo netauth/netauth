@@ -11,40 +11,6 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-func TestNextUIDNumber(t *testing.T) {
-	em := getNewEntityManager(t)
-
-	s := []struct {
-		ID            string
-		number        int32
-		secret        string
-		nextUIDNumber int32
-	}{
-		{"foo", 1, "", 2},
-		{"bar", 2, "", 3},
-		{"baz", 65, "", 66}, // Numbers may be missing in the middle
-		{"fuu", 23, "", 66}, // Later additions shouldn't alter max
-	}
-
-	for _, c := range s {
-		//  Make sure the entity actually gets added
-		if err := em.NewEntity(c.ID, c.number, c.secret); err != nil {
-			t.Error(err)
-		}
-
-		// Validate that after a given mutation the number is
-		// still what we expect it to be.
-		next, err := em.nextUIDNumber()
-		if err != nil {
-			t.Error(err)
-		}
-		if next != c.nextUIDNumber {
-			t.Errorf("Wrong next number; got: %v want %v", next, c.nextUIDNumber)
-		}
-	}
-
-}
-
 func TestAddDuplicateID(t *testing.T) {
 	em := getNewEntityManager(t)
 

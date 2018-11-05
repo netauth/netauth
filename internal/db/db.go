@@ -14,12 +14,14 @@ type DB interface {
 	LoadEntity(string) (*pb.Entity, error)
 	SaveEntity(*pb.Entity) error
 	DeleteEntity(string) error
+	NextEntityNumber() (int32, error)
 
 	// Group handling
 	DiscoverGroupNames() ([]string, error)
 	LoadGroup(string) (*pb.Group, error)
 	SaveGroup(*pb.Group) error
 	DeleteGroup(string) error
+	NextGroupNumber() (int32, error)
 }
 
 // Factory defines the function which can be used to register new

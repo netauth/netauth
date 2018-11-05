@@ -133,6 +133,33 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 	return nil
 }
 
+// NextEntityNumber computes and return the next entity number.
+func (pdb *ProtoDB) NextEntityNumber() (int32, error) {
+	var largest int32
+
+	// Iterate over the entities and return the largest ID found
+	// +1.  This allows them to be in any order or have IDs
+	// missing in the middle and still work.  Though an
+	// inefficient search this is worst case O(N) and happens only
+	// on provisioning a new entry in the database.
+	el, err := pdb.DiscoverEntityIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	for _, en := range el {
+		e, err := pdb.LoadEntity(en)
+		if err != nil {
+			return 0, err
+		}
+		if e.GetNumber() > largest {
+			largest = e.GetNumber()
+		}
+	}
+
+	return largest + 1, nil
+}
+
 // DiscoverGroupNames returns a list of group names that this loader
 // can retrieve by globbing the group directory of the data_root.
 // This is not foolproof, but assuming that the data_root is not
@@ -208,6 +235,29 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	}
 
 	return nil
+}
+
+// NextGroupNumber computes the next available group number.  This is
+// very inefficient but it only is called when a new group is being
+// created, which is hopefully infrequent.
+func (pdb *ProtoDB) NextGroupNumber() (int32, error) {
+	var largest int32
+
+	l, err := pdb.DiscoverGroupNames()
+	if err != nil {
+		return 0, err
+	}
+	for _, i := range l {
+		g, err := pdb.LoadGroup(i)
+		if err != nil {
+			return 0, err
+		}
+		if g.GetNumber() > largest {
+			largest = g.GetNumber()
+		}
+	}
+
+	return largest + 1, nil
 }
 
 // ensureDataDirectory is called during initialization of this backend

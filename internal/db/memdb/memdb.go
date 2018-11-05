@@ -66,6 +66,33 @@ func (m *MemDB) DeleteEntity(ID string) error {
 	return nil
 }
 
+// NextEntityNumber computes and return the next entity number.
+func (m *MemDB) NextEntityNumber() (int32, error) {
+	var largest int32
+
+	// Iterate over the entities and return the largest ID found
+	// +1.  This allows them to be in any order or have IDs
+	// missing in the middle and still work.  Though an
+	// inefficient search this is worst case O(N) and happens only
+	// on provisioning a new entry in the database.
+	el, err := m.DiscoverEntityIDs()
+	if err != nil {
+		return 0, err
+	}
+
+	for _, en := range el {
+		e, err := m.LoadEntity(en)
+		if err != nil {
+			return 0, err
+		}
+		if e.GetNumber() > largest {
+			largest = e.GetNumber()
+		}
+	}
+
+	return largest + 1, nil
+}
+
 // DiscoverGroupNames returns  a slice  of strings  that can  be later
 // used to load groups.
 func (m *MemDB) DiscoverGroupNames() ([]string, error) {
@@ -99,6 +126,29 @@ func (m *MemDB) DeleteGroup(name string) error {
 
 	delete(m.gMap, name)
 	return nil
+}
+
+// NextGroupNumber computes the next available group number.  This is
+// very inefficient but it only is called when a new group is being
+// created, which is hopefully infrequent.
+func (m *MemDB) NextGroupNumber() (int32, error) {
+	var largest int32
+
+	l, err := m.DiscoverGroupNames()
+	if err != nil {
+		return 0, err
+	}
+	for _, i := range l {
+		g, err := m.LoadGroup(i)
+		if err != nil {
+			return 0, err
+		}
+		if g.GetNumber() > largest {
+			largest = g.GetNumber()
+		}
+	}
+
+	return largest + 1, nil
 }
 
 func (m *MemDB) healthCheck() health.SubsystemStatus {
