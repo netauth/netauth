@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -15,7 +16,7 @@ import (
 func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) error {
 	if _, err := m.GetGroupByName(name); err == nil {
 		log.Printf("Group '%s' already exists!", name)
-		return ErrDuplicateGroupName
+		return tree.ErrDuplicateGroupName
 	}
 
 	// Verify that the managing group exists.
@@ -139,7 +140,7 @@ func (m *Manager) ListGroups() ([]*pb.Group, error) {
 func (m *Manager) setGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return ErrUnknownCapability
+		return tree.ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -166,7 +167,7 @@ func (m *Manager) setGroupCapability(g *pb.Group, c string) error {
 func (m *Manager) removeGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return ErrUnknownCapability
+		return tree.ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])

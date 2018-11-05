@@ -5,27 +5,13 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/tree/hooks"
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-
-type failOnExistingEntity struct {
-	db.DB
-}
-
-func (*failOnExistingEntity) Name() string  { return "fail-on-missing" }
-func (*failOnExistingEntity) Priority() int { return 0 }
-func (l *failOnExistingEntity) Run(e, de *pb.Entity) error {
-	_, err := l.LoadEntity(de.GetID())
-	if err == nil {
-		return ErrDuplicateEntityID
-	}
-	return nil
-}
 
 // NewEntity creates a new entity given an ID, number, and secret.
 // Its not necessary to set the secret upon creation and it can be set
@@ -43,7 +29,7 @@ func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 		},
 	}
 
-	ep.Register(&failOnExistingEntity{m.db})
+	ep.Register(&hooks.FailOnExistingEntity{m.db})
 	ep.Register(&hooks.SetEntityID{})
 	ep.Register(&hooks.SetEntityNumber{m.db})
 	ep.Register(&hooks.SetEntitySecret{m.crypto})
@@ -116,7 +102,7 @@ func (m *Manager) DisableBootstrap() {
 // DeleteEntityByID deletes the named entity.  This function will
 // delete the entity in a non-atomic way, but will ensure that the
 // entity cannot be authenticated with before returning.  If the named
-// ID does not exist the function will return errors.E_NO_ENTITY, in
+// ID does not exist the function will return tree.E_NO_ENTITY, in
 // all other cases nil is returned.
 func (m *Manager) DeleteEntityByID(ID string) error {
 	if err := m.db.DeleteEntity(ID); err != nil {
@@ -132,7 +118,7 @@ func (m *Manager) DeleteEntityByID(ID string) error {
 func (m *Manager) setEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return ErrUnknownCapability
+		return tree.ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -163,7 +149,7 @@ func (m *Manager) setEntityCapability(e *pb.Entity, c string) error {
 func (m *Manager) removeEntityCapability(e *pb.Entity, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return ErrUnknownCapability
+		return tree.ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -240,7 +226,7 @@ func (m *Manager) ValidateSecret(ID string, secret string) error {
 
 	// Locked entities can't validate.
 	if e.GetMeta().GetLocked() {
-		return ErrEntityLocked
+		return tree.ErrEntityLocked
 	}
 
 	err = m.crypto.VerifySecret(secret, *e.Secret)

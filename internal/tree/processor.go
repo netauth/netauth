@@ -3,6 +3,8 @@ package tree
 import (
 	"sort"
 
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -25,7 +27,7 @@ func (ep *EntityProcessor) Register(h EntityProcessorHook) error {
 
 	if _, ok := m[h.Name()]; ok {
 		// Already registered, can't have two of the same hook
-		return ErrHookExists
+		return tree.ErrHookExists
 	}
 
 	ep.hooks = append(ep.hooks, h)

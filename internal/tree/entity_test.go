@@ -7,6 +7,7 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -21,7 +22,7 @@ func TestAddDuplicateID(t *testing.T) {
 		err    error
 	}{
 		{"foo", 1, "", nil},
-		{"foo", 2, "", ErrDuplicateEntityID},
+		{"foo", 2, "", tree.ErrDuplicateEntityID},
 	}
 
 	for _, c := range s {
@@ -108,7 +109,7 @@ func TestBootstrapLockedEntity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ValidateSecret("foo", "foo"); err != ErrEntityLocked {
+	if err := em.ValidateSecret("foo", "foo"); err != tree.ErrEntityLocked {
 		t.Fatal(err)
 	}
 
@@ -215,7 +216,7 @@ func TestSetCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetEntityCapabilityByID("foo", ""); err != ErrUnknownCapability {
+	if err := em.SetEntityCapabilityByID("foo", ""); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -266,7 +267,7 @@ func TestRemoveCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveEntityCapabilityByID("foo", ""); err != ErrUnknownCapability {
+	if err := em.RemoveEntityCapabilityByID("foo", ""); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -488,7 +489,7 @@ func TestLockUnlockEntity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.ValidateSecret("foo", "bar"); err != ErrEntityLocked {
+	if err := em.ValidateSecret("foo", "bar"); err != tree.ErrEntityLocked {
 		t.Fatal(err)
 	}
 

@@ -6,6 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -20,7 +21,7 @@ func TestNewGroup(t *testing.T) {
 		wantErr     error
 	}{
 		{"fooGroup", "", 1, nil},
-		{"fooGroup", "", 1, ErrDuplicateGroupName},
+		{"fooGroup", "", 1, tree.ErrDuplicateGroupName},
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
@@ -166,7 +167,7 @@ func TestSetGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetGroupCapabilityByName("foo", ""); err != ErrUnknownCapability {
+	if err := em.SetGroupCapabilityByName("foo", ""); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -217,7 +218,7 @@ func TestRemoveGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveGroupCapabilityByName("foo", ""); err != ErrUnknownCapability {
+	if err := em.RemoveGroupCapabilityByName("foo", ""); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }
