@@ -76,6 +76,12 @@ func TestMakeBootstrapExtantEntity(t *testing.T) {
 
 	gRoot := pb.Capability(pb.Capability_value["GLOBAL_ROOT"])
 
+	caps := e.GetMeta().GetCapabilities()
+	if len(caps) != 1 {
+		t.Log(caps)
+		t.Fatal("Wrong number of capabilities")
+	}
+
 	if e.GetMeta().GetCapabilities()[0] != gRoot {
 		t.Fatalf("Unexpected capability: %s", e.GetMeta().GetCapabilities())
 	}
@@ -172,32 +178,6 @@ func TestDeleteEntityAgain(t *testing.T) {
 	}
 }
 
-func TestSetSameCapabilityTwice(t *testing.T) {
-	em := getNewEntityManager(t)
-
-	// Add an entity
-	if err := em.NewEntity("foo", -1, ""); err != nil {
-		t.Error(err)
-	}
-
-	e, err := em.db.LoadEntity("foo")
-	if err != nil {
-		t.Error(err)
-	}
-
-	// Set one capability
-	em.setEntityCapability(e, "GLOBAL_ROOT")
-	if len(e.Meta.Capabilities) != 1 {
-		t.Error("Wrong number of capabilities set!")
-	}
-
-	// Set it again and make sure its still only listed once.
-	em.setEntityCapability(e, "GLOBAL_ROOT")
-	if len(e.Meta.Capabilities) != 1 {
-		t.Error("Wrong number of capabilities set!")
-	}
-}
-
 func TestSetCapabilityBogusEntity(t *testing.T) {
 	em := getNewEntityManager(t)
 
@@ -221,36 +201,36 @@ func TestSetCapabilityNoCap(t *testing.T) {
 	}
 }
 
-func TestRemoveCapability(t *testing.T) {
-	em := getNewEntityManager(t)
+// func TestRemoveCapability(t *testing.T) {
+// 	em := getNewEntityManager(t)
 
-	// Add an entity
-	if err := em.NewEntity("foo", -1, ""); err != nil {
-		t.Error(err)
-	}
+// 	// Add an entity
+// 	if err := em.NewEntity("foo", -1, ""); err != nil {
+// 		t.Error(err)
+// 	}
 
-	e, err := em.db.LoadEntity("foo")
-	if err != nil {
-		t.Error(err)
-	}
+// 	e, err := em.db.LoadEntity("foo")
+// 	if err != nil {
+// 		t.Error(err)
+// 	}
 
-	// Set one capability
-	em.setEntityCapability(e, "GLOBAL_ROOT")
-	if len(e.Meta.Capabilities) != 1 {
-		t.Error("Wrong number of capabilities set!")
-	}
-	// Set another capability
-	em.setEntityCapability(e, "MODIFY_ENTITY_META")
-	if len(e.Meta.Capabilities) != 2 {
-		t.Error("Wrong number of capabilities set!")
-	}
+// 	// Set one capability
+// 	em.setEntityCapability(e, "GLOBAL_ROOT")
+// 	if len(e.Meta.Capabilities) != 1 {
+// 		t.Error("Wrong number of capabilities set!")
+// 	}
+// 	// Set another capability
+// 	em.setEntityCapability(e, "MODIFY_ENTITY_META")
+// 	if len(e.Meta.Capabilities) != 2 {
+// 		t.Error("Wrong number of capabilities set!")
+// 	}
 
-	// Remove it and make sure its gone
-	em.removeEntityCapability(e, "GLOBAL_ROOT")
-	if len(e.Meta.Capabilities) != 1 {
-		t.Error("Wrong number of capabilities set!")
-	}
-}
+// 	// Remove it and make sure its gone
+// 	em.removeEntityCapability(e, "GLOBAL_ROOT")
+// 	if len(e.Meta.Capabilities) != 1 {
+// 		t.Error("Wrong number of capabilities set!")
+// 	}
+// }
 
 func TestRemoveCapabilityBogusEntity(t *testing.T) {
 	em := getNewEntityManager(t)
@@ -384,6 +364,10 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	em.UpdateEntityMeta(e.GetID(), fullMeta)
 
 	// Verify that the update above took
+	e, err = em.GetEntity(e.GetID())
+	if err != nil {
+		t.Fatal(err)
+	}
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
 		t.Error("Field set mismatch!")
 	}
@@ -396,12 +380,18 @@ func TestUpdateEntityMetaInternal(t *testing.T) {
 	}
 	em.UpdateEntityMeta(e.GetID(), badMeta)
 
+	e, err = em.GetEntity(e.GetID())
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	// The update from badMeta should not have gone through, and
 	// the old value should still be present.
-	if e.GetMeta().Groups != nil {
+	if len(e.GetMeta().GetGroups()) != 0 {
 		t.Errorf("badMeta was merged! (%v)", e.GetMeta().GetGroups())
 	}
 	if e.GetMeta().GetLegalName() != "Foobert McMillan" {
+		t.Log(e.GetMeta().GetLegalName())
 		t.Error("Update overwrote unset value!")
 	}
 }
@@ -498,14 +488,6 @@ func TestLockUnlockEntity(t *testing.T) {
 	}
 
 	if err := em.ValidateSecret("foo", "bar"); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestSetEntityLockState(t *testing.T) {
-	em := getNewEntityManager(t)
-
-	if err := em.setEntityLockState("does-not-exist", true); err != db.ErrUnknownEntity {
 		t.Fatal(err)
 	}
 }

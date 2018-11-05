@@ -10,7 +10,7 @@ type SaveEntity struct {
 	db.DB
 }
 
-func (*SaveEntity) Name() string  { return "Save-entity" }
+func (*SaveEntity) Name() string  { return "save-entity" }
 func (*SaveEntity) Priority() int { return 99 }
 func (s *SaveEntity) Run(e, de *pb.Entity) error {
 	return s.SaveEntity(e)

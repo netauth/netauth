@@ -5,13 +5,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/tree/hooks"
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
+	"github.com/NetAuth/NetAuth/internal/tree/hooks"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
-
 
 // NewEntity creates a new entity given an ID, number, and secret.
 // Its not necessary to set the secret upon creation and it can be set
@@ -50,45 +49,30 @@ func (m *Manager) MakeBootstrap(ID string, secret string) {
 		return
 	}
 
-	// In some cases if there is an existing system that has no
-	// admin, it is necessary to confer bootstrap powers to an
-	// existing user.  In that case they are just selected and
-	// then provided the GLOBAL_ROOT capability.
-	e, err := m.db.LoadEntity(ID)
-	if err != nil {
-		log.Printf("No entity with ID '%s' exists!  Creating...", ID)
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID:     &ID,
+			Secret: &secret,
+			Meta: &pb.EntityMeta{
+				Capabilities: []pb.Capability{pb.Capability_GLOBAL_ROOT},
+			},
+		},
 	}
 
-	// We need to force unlock an entity here in the event that
-	// the global bootstrap user somehow got locked.
-	if e.GetMeta().GetLocked() {
-		log.Println("Unlocking Entity")
-		e.Meta.Locked = proto.Bool(false)
-		if err := m.db.SaveEntity(e); err != nil {
-			log.Printf("Could not unlock bootstrap entity: %s", err)
-		}
-	}
+	ep.Register(&hooks.CreateEntityIfMissing{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.UnlockEntity{})
+	ep.Register(&hooks.SetEntityCapability{})
+	ep.Register(&hooks.SaveEntity{m.db})
 
-	// This is not a normal Go way of doing this, but this
-	// function has two possible success cases, the flow may jump
-	// in here and return if there is an existing entity to get
-	// root powers.
-	if e != nil {
-		m.setEntityCapability(e, "GLOBAL_ROOT")
-		m.bootstrapDone = true
-		return
-	}
-
-	// Even in the bootstrap case its still possible this can
-	// fail, in that case its useful to have the error.
-	if err := m.NewEntity(ID, -1, secret); err != nil {
-		log.Printf("Could not create bootstrap user! (%s)", err)
-	}
-	if err := m.SetEntityCapabilityByID(ID, "GLOBAL_ROOT"); err != nil {
-		log.Printf("Couldn't provide root authority! (%s)", err)
-	}
-
+	_, err := ep.Run()
 	m.bootstrapDone = true
+
+	if err != nil {
+		log.Println("Bootstrap FAILED:")
+		log.Println(err)
+	}
 }
 
 // DisableBootstrap disables the ability to bootstrap after the
@@ -105,146 +89,126 @@ func (m *Manager) DisableBootstrap() {
 // ID does not exist the function will return tree.E_NO_ENTITY, in
 // all other cases nil is returned.
 func (m *Manager) DeleteEntityByID(ID string) error {
-	if err := m.db.DeleteEntity(ID); err != nil {
-		return err
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+		},
 	}
-	log.Printf("Deleted entity '%s'", ID)
 
-	return nil
+	ep.Register(&hooks.DestroyEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
-// SetCapability sets a capability on an entity.  The set operation is
-// idempotent.
-func (m *Manager) setEntityCapability(e *pb.Entity, c string) error {
-	// If no capability was supplied, bail out.
-	if len(c) == 0 {
-		return tree.ErrUnknownCapability
-	}
-
-	cap := pb.Capability(pb.Capability_value[c])
-
-	if e.Meta == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
-	for _, a := range e.Meta.Capabilities {
-		if a == cap {
-			// The entity already has this capability
-			// directly, don't add it again.
-			return nil
-		}
-	}
-
-	e.Meta.Capabilities = append(e.Meta.Capabilities, cap)
-
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-
-	log.Printf("Set capability %s on entity '%s'", c, e.GetID())
-	return nil
-}
-
-// removeCapability removes a capability on an entity
-func (m *Manager) removeEntityCapability(e *pb.Entity, c string) error {
-	// If no capability was supplied, bail out.
-	if len(c) == 0 {
-		return tree.ErrUnknownCapability
-	}
-
-	cap := pb.Capability(pb.Capability_value[c])
-	var ncaps []pb.Capability
-
-	for _, a := range e.Meta.Capabilities {
-		if a == cap {
-			continue
-		}
-		ncaps = append(ncaps, a)
-	}
-
-	e.Meta.Capabilities = ncaps
-
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-
-	log.Printf("Removed capability %s on entity '%s'", c, e.GetID())
-	return nil
-}
-
-// SetEntityCapabilityByID is a convenience function to get the entity
-// and hand it off to the actual setEntityCapability function
+// SetEntityCapabilityByID adds a capability to an entry directly.
 func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
-	e, err := m.db.LoadEntity(ID)
-	if err != nil {
-		return err
+	capIndex, ok := pb.Capability_value[c]
+	if !ok {
+		return tree.ErrUnknownCapability
 	}
 
-	return m.setEntityCapability(e, c)
+	ep := EntityProcessor{
+		Entity: &pb.Entity{
+			ID: &ID,
+		},
+		RequestData: &pb.Entity{
+			Meta: &pb.EntityMeta{
+				Capabilities: []pb.Capability{pb.Capability(capIndex)},
+			},
+		},
+	}
+
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.SetEntityCapability{})
+	ep.Register(&hooks.SaveEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
 // RemoveEntityCapabilityByID is a convenience function to get the entity
 // and hand it off to the actual removeEntityCapability function
 func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
-	e, err := m.db.LoadEntity(ID)
-	if err != nil {
-		return err
+	capIndex, ok := pb.Capability_value[c]
+	if !ok {
+		return tree.ErrUnknownCapability
 	}
 
-	return m.removeEntityCapability(e, c)
+	ep := EntityProcessor{
+		Entity: &pb.Entity{
+			ID: &ID,
+		},
+		RequestData: &pb.Entity{
+			Meta: &pb.EntityMeta{
+				Capabilities: []pb.Capability{pb.Capability(capIndex)},
+			},
+		},
+	}
+
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.RemoveEntityCapability{})
+	ep.Register(&hooks.SaveEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // crypto interface.
 func (m *Manager) SetEntitySecretByID(ID string, secret string) error {
-	e, err := m.db.LoadEntity(ID)
-	if err != nil {
-		return err
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID:     &ID,
+			Secret: &secret,
+		},
 	}
 
-	ssecret, err := m.crypto.SecureSecret(secret)
-	if err != nil {
-		return err
-	}
-	e.Secret = &ssecret
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.SetEntitySecret{m.crypto})
+	ep.Register(&hooks.SaveEntity{m.db})
 
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-
-	log.Printf("Secret set for '%s'", e.GetID())
-	return nil
+	_, err := ep.Run()
+	return err
 }
 
 // ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
 func (m *Manager) ValidateSecret(ID string, secret string) error {
-	e, err := m.db.LoadEntity(ID)
-	if err != nil {
-		return err
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID:     &ID,
+			Secret: &secret,
+		},
 	}
 
-	// Locked entities can't validate.
-	if e.GetMeta().GetLocked() {
-		return tree.ErrEntityLocked
-	}
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.ValidateEntityUnlocked{})
+	ep.Register(&hooks.ValidateEntitySecret{m.crypto})
+	ep.Register(&hooks.SaveEntity{m.db})
 
-	err = m.crypto.VerifySecret(secret, *e.Secret)
-	if err != nil {
-		log.Printf("Failed to authenticate '%s'", e.GetID())
-		return err
-	}
-	log.Printf("Successfully authenticated '%s'", e.GetID())
-
-	return nil
+	_, err := ep.Run()
+	return err
 }
 
 // GetEntity returns an entity to the caller after first making a safe
 // copy of it to remove secure fields.
 func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
-	// e will be the direct internal copy, we can't give this back
-	// though since it has secrets embedded.
-	e, err := m.db.LoadEntity(ID)
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+		},
+	}
+
+	ep.Register(&hooks.LoadEntity{m.db})
+
+	e, err := ep.Run()
 	if err != nil {
 		return nil, err
 	}
@@ -255,38 +219,24 @@ func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
 	return safeCopyEntity(e), nil
 }
 
-func (m *Manager) updateEntityMeta(e *pb.Entity, newMeta *pb.EntityMeta) error {
-	// get the existing metadata
-	if e.Meta == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
-	meta := e.GetMeta()
-
-	// some fields must not be merged in, so we make sure that
-	// they're nulled out here
-	newMeta.Capabilities = nil
-	newMeta.Groups = nil
-	newMeta.Keys = nil
-
-	// Merge all changes, and then overwrite the original keys
-	// with the ones from newMeta since that is a rewrite style
-	// update.
-	proto.Merge(meta, newMeta)
-
-	// Save changes
-	return m.db.SaveEntity(e)
-}
-
 // UpdateEntityMeta drives the internal version by obtaining the
 // entity from the database based on the ID.
-func (m *Manager) UpdateEntityMeta(entityID string, newMeta *pb.EntityMeta) error {
-	e, err := m.db.LoadEntity(entityID)
-	if err != nil {
-		return err
+func (m *Manager) UpdateEntityMeta(ID string, newMeta *pb.EntityMeta) error {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID:   &ID,
+			Meta: newMeta,
+		},
 	}
 
-	return m.updateEntityMeta(e, newMeta)
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.MergeEntityMeta{})
+	ep.Register(&hooks.SaveEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
 // updateEntityKeys performs an update on keys to allow the client to
@@ -357,39 +307,42 @@ func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]
 	return nil, nil
 }
 
-// setEntityLockState is a convenience function to handle the setting
-// of an entity's lock state.
-func (m *Manager) setEntityLockState(entityID string, locked bool) error {
-	// Load Entity
-	e, err := m.db.LoadEntity(entityID)
-	if err != nil {
-		return err
-	}
-
-	if e.Meta == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
-	// update state
-	e.Meta.Locked = &locked
-
-	// Save changes
-	if err := m.db.SaveEntity(e); err != nil {
-		return err
-	}
-	return nil
-}
-
 // LockEntity allows external callers to lock entities directly.
 // Internal users can just set the value directly.
-func (m *Manager) LockEntity(entityID string) error {
-	return m.setEntityLockState(entityID, true)
+func (m *Manager) LockEntity(ID string) error {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+		},
+	}
+
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.LockEntity{})
+	ep.Register(&hooks.SaveEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
 // UnlockEntity allows external callers to lock entities directly.
 // Internal users can just set the value directly.
-func (m *Manager) UnlockEntity(entityID string) error {
-	return m.setEntityLockState(entityID, false)
+func (m *Manager) UnlockEntity(ID string) error {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+		},
+	}
+
+	ep.Register(&hooks.LoadEntity{m.db})
+	ep.Register(&hooks.EnsureEntityMeta{})
+	ep.Register(&hooks.UnlockEntity{})
+	ep.Register(&hooks.SaveEntity{m.db})
+
+	_, err := ep.Run()
+	return err
 }
 
 // safeCopyEntity makes a copy of the entity provided but removes

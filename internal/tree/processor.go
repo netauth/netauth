@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"log"
 	"sort"
 
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
@@ -11,9 +12,11 @@ import (
 // Run handles entity processor pipelines
 func (ep *EntityProcessor) Run() (*pb.Entity, error) {
 	for _, h := range ep.hooks {
+		log.Println(h.Name(), ep.Entity)
 		if err := h.Run(ep.Entity, ep.RequestData); err != nil {
 			return nil, err
 		}
+		log.Println(h.Name(), ep.Entity)
 	}
 	return ep.Entity, nil
 }
