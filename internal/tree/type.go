@@ -25,6 +25,8 @@ type Manager struct {
 	crypto crypto.EMCrypto
 
 	processors map[string]EntityProcessor
+
+	entityProcesses map[string][]EntityProcessorHook
 }
 
 // An EntityProcessor is a chain of functions that modify entities in

@@ -33,4 +33,13 @@ var (
 	// ErrHookExists is returned when a hook attempts to register
 	// for a name that is already registered in the system.
 	ErrHookExists = errors.New("a hook with this name already exists")
+
+	// ErrUnknownHookChain is returned when a processor attempts
+	// to grab hooks from an unknown chain.
+	ErrUnknownHookChain = errors.New("no chain with that ID exists")
+
+	// ErrEmptyHookChain is returned when a chain was successfully
+	// aquired, but it was empty.  In theory this shouldn't ever
+	// happen, but its possible.
+	ErrEmptyHookChain = errors.New("the specified chain is empty")
 )

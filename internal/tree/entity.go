@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
-	"github.com/NetAuth/NetAuth/internal/tree/hooks"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -28,12 +27,9 @@ func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 		},
 	}
 
-	ep.Register(&hooks.FailOnExistingEntity{m.db})
-	ep.Register(&hooks.SetEntityID{})
-	ep.Register(&hooks.SetEntityNumber{m.db})
-	ep.Register(&hooks.SetEntitySecret{m.crypto})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("CREATE", m.entityProcesses); err != nil {
+		return err
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -60,18 +56,15 @@ func (m *Manager) MakeBootstrap(ID string, secret string) {
 		},
 	}
 
-	ep.Register(&hooks.CreateEntityIfMissing{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.UnlockEntity{})
-	ep.Register(&hooks.SetEntityCapability{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("BOOTSTRAP-SERVER", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	m.bootstrapDone = true
 
 	if err != nil {
 		log.Println("Bootstrap FAILED:")
-		log.Println(err)
+		log.Fatal(err)
 	}
 }
 
@@ -96,8 +89,9 @@ func (m *Manager) DeleteEntityByID(ID string) error {
 		},
 	}
 
-	ep.Register(&hooks.DestroyEntity{m.db})
-
+	if err := ep.FetchHooks("DESTROY", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -120,11 +114,9 @@ func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.SetEntityCapability{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("SET-CAPABILITY", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -148,11 +140,9 @@ func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.RemoveEntityCapability{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("DROP-CAPABILITY", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -168,10 +158,9 @@ func (m *Manager) SetEntitySecretByID(ID string, secret string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.SetEntitySecret{m.crypto})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("SET-SECRET", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -187,11 +176,9 @@ func (m *Manager) ValidateSecret(ID string, secret string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.ValidateEntityUnlocked{})
-	ep.Register(&hooks.ValidateEntitySecret{m.crypto})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("VALIDATE-IDENTITY", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -206,8 +193,9 @@ func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-
+	if err := ep.FetchHooks("FETCH", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	e, err := ep.Run()
 	if err != nil {
 		return nil, err
@@ -230,11 +218,9 @@ func (m *Manager) UpdateEntityMeta(ID string, newMeta *pb.EntityMeta) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.MergeEntityMeta{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("MERGE-METADATA", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -317,11 +303,9 @@ func (m *Manager) LockEntity(ID string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.LockEntity{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("LOCK", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
@@ -336,11 +320,9 @@ func (m *Manager) UnlockEntity(ID string) error {
 		},
 	}
 
-	ep.Register(&hooks.LoadEntity{m.db})
-	ep.Register(&hooks.EnsureEntityMeta{})
-	ep.Register(&hooks.UnlockEntity{})
-	ep.Register(&hooks.SaveEntity{m.db})
-
+	if err := ep.FetchHooks("UNLOCK", m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
 	_, err := ep.Run()
 	return err
 }
