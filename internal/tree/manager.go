@@ -72,5 +72,15 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x.EntityHookMustRegister("UNLOCK", &hooks.UnlockEntity{})
 	x.EntityHookMustRegister("UNLOCK", &hooks.SaveEntity{db})
 
+	x.EntityHookMustRegister("ADD-KEY", &hooks.LoadEntity{db})
+	x.EntityHookMustRegister("ADD-KEY", &hooks.EnsureEntityMeta{})
+	x.EntityHookMustRegister("ADD-KEY", &hooks.AddEntityKey{})
+	x.EntityHookMustRegister("ADD-KEY", &hooks.SaveEntity{db})
+
+	x.EntityHookMustRegister("DEL-KEY", &hooks.LoadEntity{db})
+	x.EntityHookMustRegister("DEL-KEY", &hooks.EnsureEntityMeta{})
+	x.EntityHookMustRegister("DEL-KEY", &hooks.DelEntityKey{})
+	x.EntityHookMustRegister("DEL-KEY", &hooks.SaveEntity{db})
+	
 	return &x
 }

@@ -5,6 +5,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/tree/util"
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
 	"github.com/golang/protobuf/proto"
 
@@ -225,42 +226,49 @@ func (m *Manager) UpdateEntityMeta(ID string, newMeta *pb.EntityMeta) error {
 	return err
 }
 
-// updateEntityKeys performs an update on keys to allow the client to
-// be simpler, and to account for proto.Merge() merging list contents
-// rather than overwriting.
-func (m *Manager) updateEntityKeys(e *pb.Entity, mode, keyType, key string) ([]string, error) {
-	// Normalize the type and the mode
+// UpdateEntityKeys manages entity public keys.  Additional setup
+// occurs to select the correct processing chain based on what action
+// was requested.
+func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, error) {
 	mode = strings.ToUpper(mode)
-	keyType = strings.ToUpper(keyType)
+	keytype = strings.ToUpper(keytype)
 
-	if e.Meta == nil {
-		e.Meta = &pb.EntityMeta{}
+	// Configure request data.
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+			Meta: &pb.EntityMeta{
+				Keys: []string{fmt.Sprintf("%s:%s", keytype, key)},
+			},
+		},
 	}
 
+	// Select chain based on mode, or coerce to 'LIST'
+	chain := "FETCH"
 	switch mode {
-	case "LIST":
-		return e.GetMeta().GetKeys(), nil
 	case "ADD":
-		e.Meta.Keys = patchStringSlice(e.Meta.Keys, fmt.Sprintf("%s:%s", keyType, key), true, true)
+		chain = "ADD-KEY"
 	case "DEL":
-		e.Meta.Keys = patchStringSlice(e.Meta.Keys, key, false, false)
+		chain = "DEL-KEY"
+	default:
+		mode = "LIST"
 	}
 
-	// Save changes
-	if err := m.db.SaveEntity(e); err != nil {
-		return nil, err
+	// Execute the transaction.
+	if err := ep.FetchHooks(chain, m.entityProcesses); err != nil {
+		log.Fatal(err)
 	}
-	return nil, nil
-}
-
-// UpdateEntityKeys is the exported version of updateEntityKeys
-func (m *Manager) UpdateEntityKeys(entityID, mode, keytype, key string) ([]string, error) {
-	e, err := m.db.LoadEntity(entityID)
+	e, err := ep.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	return m.updateEntityKeys(e, mode, keytype, key)
+	// If this was just a read request, return the data.
+	if mode == "LIST" {
+		return e.GetMeta().GetKeys(), nil
+	}
+	return nil, nil
 }
 
 // ManageUntypedEntityMeta handles the things that may be annotated
@@ -278,7 +286,7 @@ func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]
 	}
 
 	// Patch the KV slice
-	tmp := patchKeyValueSlice(e.GetMeta().UntypedMeta, mode, key, value)
+	tmp := util.PatchKeyValueSlice(e.GetMeta().UntypedMeta, mode, key, value)
 
 	// If this was a read, bail out now with whatever was read
 	if strings.ToUpper(mode) == "READ" {

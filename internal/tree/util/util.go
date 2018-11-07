@@ -1,4 +1,4 @@
-package tree
+package util
 
 import (
 	"fmt"
@@ -7,11 +7,11 @@ import (
 	"strings"
 )
 
-// patchStringSlice patches a string into or out of a slice of other
+// PatchStringSlice patches a string into or out of a slice of other
 // strings.  It also ensures that the strings are unique within the
 // slice.  When insert is false, the action of the function is to
 // remove the provided patch string from the input slice.
-func patchStringSlice(in []string, patch string, insert bool, matchExact bool) []string {
+func PatchStringSlice(in []string, patch string, insert bool, matchExact bool) []string {
 	var retSlice []string
 	inserted := false
 	for _, s := range in {
@@ -37,10 +37,10 @@ func patchStringSlice(in []string, patch string, insert bool, matchExact bool) [
 	return dedupStringSlice(retSlice)
 }
 
-// patchKeyValueSlice patches slices that use key/value pairs.  Its
+// PatchKeyValueSlice patches slices that use key/value pairs.  Its
 // designed with more advanced functionality around exact key
 // matching, fuzzy and exact clearing, and OpenLDAP-style Z-Ordering.
-func patchKeyValueSlice(slice []string, mode, key, value string) []string {
+func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 	mode = strings.ToUpper(mode)
 
 	switch mode {

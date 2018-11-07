@@ -28,11 +28,11 @@ func (ep *EntityProcessor) FetchHooks(chain string, hookmap map[string][]EntityP
 // Run handles entity processor pipelines
 func (ep *EntityProcessor) Run() (*pb.Entity, error) {
 	for _, h := range ep.hooks {
-		log.Println(h.Name(), ep.Entity)
+		//log.Println(h.Name(), ep.Entity)
 		if err := h.Run(ep.Entity, ep.RequestData); err != nil {
 			return nil, err
 		}
-		log.Println(h.Name(), ep.Entity)
+		//log.Println(h.Name(), ep.Entity)
 	}
 	return ep.Entity, nil
 }

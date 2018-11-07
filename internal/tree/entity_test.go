@@ -201,37 +201,6 @@ func TestSetCapabilityNoCap(t *testing.T) {
 	}
 }
 
-// func TestRemoveCapability(t *testing.T) {
-// 	em := getNewEntityManager(t)
-
-// 	// Add an entity
-// 	if err := em.NewEntity("foo", -1, ""); err != nil {
-// 		t.Error(err)
-// 	}
-
-// 	e, err := em.db.LoadEntity("foo")
-// 	if err != nil {
-// 		t.Error(err)
-// 	}
-
-// 	// Set one capability
-// 	em.setEntityCapability(e, "GLOBAL_ROOT")
-// 	if len(e.Meta.Capabilities) != 1 {
-// 		t.Error("Wrong number of capabilities set!")
-// 	}
-// 	// Set another capability
-// 	em.setEntityCapability(e, "MODIFY_ENTITY_META")
-// 	if len(e.Meta.Capabilities) != 2 {
-// 		t.Error("Wrong number of capabilities set!")
-// 	}
-
-// 	// Remove it and make sure its gone
-// 	em.removeEntityCapability(e, "GLOBAL_ROOT")
-// 	if len(e.Meta.Capabilities) != 1 {
-// 		t.Error("Wrong number of capabilities set!")
-// 	}
-// }
-
 func TestRemoveCapabilityBogusEntity(t *testing.T) {
 	em := getNewEntityManager(t)
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
+	"github.com/NetAuth/NetAuth/internal/tree/util"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -102,7 +103,7 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 	}
 
 	// Patch the KV slice
-	tmp := patchKeyValueSlice(g.GetUntypedMeta(), mode, key, value)
+	tmp := util.PatchKeyValueSlice(g.GetUntypedMeta(), mode, key, value)
 
 	// If this was a read, bail out now with whatever was read
 	if strings.ToUpper(mode) == "READ" {

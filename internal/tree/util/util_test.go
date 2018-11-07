@@ -1,9 +1,4 @@
-package tree
-
-import (
-	"sort"
-	"testing"
-)
+package util
 
 func TestPatchStringSlice(t *testing.T) {
 	cases := []struct {
@@ -22,7 +17,7 @@ func TestPatchStringSlice(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		got := patchStringSlice(c.in, c.patch, c.insert, c.matchExact)
+		got := PatchStringSlice(c.in, c.patch, c.insert, c.matchExact)
 		if !slicesAreEqual(got, c.want) {
 			t.Errorf("%d: Got %v; Want %v", i, got, c.want)
 		}
@@ -59,7 +54,7 @@ func TestPatchKeyValueSlice(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		got := patchKeyValueSlice(c.slice, c.mode, c.key, c.value)
+		got := PatchKeyValueSlice(c.slice, c.mode, c.key, c.value)
 		if !slicesAreEqual(got, c.want) {
 			t.Errorf("%d: Got %v; Want %v", i, got, c.want)
 		}
