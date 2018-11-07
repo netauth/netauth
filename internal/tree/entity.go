@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/tree/util"
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
+	"github.com/NetAuth/NetAuth/internal/tree/util"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
@@ -274,29 +274,42 @@ func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, err
 // ManageUntypedEntityMeta handles the things that may be annotated
 // onto an entity.  These annotations should be used sparingly as they
 // incur a non-trivial lookup cost on the server.
-func (m *Manager) ManageUntypedEntityMeta(entityID, mode, key, value string) ([]string, error) {
-	// Load Entity
-	e, err := m.db.LoadEntity(entityID)
+func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string, error) {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &ID,
+			Meta: &pb.EntityMeta{
+				UntypedMeta: []string{fmt.Sprintf("%s:%s", key, value)},
+			},
+		},
+	}
+
+	// Mode switch and select appropriate processor chain.
+	chain := "FETCH"
+	switch strings.ToUpper(mode) {
+	case "UPSERT":
+		chain = "UEM-UPSERT"
+	case "CLEARFUZZY":
+		chain = "UEM-CLEARFUZZY"
+	case "CLEAREXACT":
+		chain = "UEM-CLEAREXACT"
+	default:
+		mode = "READ"
+	}
+
+	// Process transaction
+	if err := ep.FetchHooks(chain, m.entityProcesses); err != nil {
+		log.Fatal(err)
+	}
+	e, err := ep.Run()
 	if err != nil {
 		return nil, err
 	}
 
-	if e.Meta == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
-	// Patch the KV slice
-	tmp := util.PatchKeyValueSlice(e.GetMeta().UntypedMeta, mode, key, value)
-
 	// If this was a read, bail out now with whatever was read
 	if strings.ToUpper(mode) == "READ" {
-		return tmp, nil
-	}
-
-	// Save changes
-	e.Meta.UntypedMeta = tmp
-	if err := m.db.SaveEntity(e); err != nil {
-		return nil, err
+		return util.PatchKeyValueSlice(e.GetMeta().UntypedMeta, "READ", key, ""), nil
 	}
 	return nil, nil
 }

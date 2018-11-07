@@ -81,6 +81,21 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x.EntityHookMustRegister("DEL-KEY", &hooks.EnsureEntityMeta{})
 	x.EntityHookMustRegister("DEL-KEY", &hooks.DelEntityKey{})
 	x.EntityHookMustRegister("DEL-KEY", &hooks.SaveEntity{db})
-	
+
+	x.EntityHookMustRegister("UEM-UPSERT", &hooks.LoadEntity{db})
+	x.EntityHookMustRegister("UEM-UPSERT", &hooks.EnsureEntityMeta{})
+	x.EntityHookMustRegister("UEM-UPSERT", &hooks.AddEntityUM{})
+	x.EntityHookMustRegister("UEM-UPSERT", &hooks.SaveEntity{db})
+
+	x.EntityHookMustRegister("UEM-CLEARFUZZY", &hooks.LoadEntity{db})
+	x.EntityHookMustRegister("UEM-CLEARFUZZY", &hooks.EnsureEntityMeta{})
+	x.EntityHookMustRegister("UEM-CLEARFUZZY", &hooks.DelFuzzyEntityUM{})
+	x.EntityHookMustRegister("UEM-CLEARFUZZY", &hooks.SaveEntity{db})
+
+	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.LoadEntity{db})
+	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.EnsureEntityMeta{})
+	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.DelExactEntityUM{})
+	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.SaveEntity{db})
+
 	return &x
 }
