@@ -16,7 +16,6 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x.bootstrapDone = false
 	x.db = db
 	x.crypto = crypto
-	x.processors = make(map[string]EntityProcessor)
 
 	x.entityProcesses = make(map[string][]EntityProcessorHook)
 
@@ -97,5 +96,15 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.DelExactEntityUM{})
 	x.EntityHookMustRegister("UEM-CLEAREXACT", &hooks.SaveEntity{db})
 
+
+	// Now the groups
+	x.groupProcesses = make(map[string][]GroupProcessorHook)
+
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.FailOnExistingGroup{db})
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupName{})
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetManagingGroup{db})
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupDisplayName{})
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupNumber{db})
+	x.GroupHookMustRegister("CREATE-GROUP", &hooks.SaveGroup{db})
 	return &x
 }

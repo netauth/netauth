@@ -24,9 +24,9 @@ type Manager struct {
 	// engines
 	crypto crypto.EMCrypto
 
-	processors map[string]EntityProcessor
-
+	// Maintain chains of hooks that can be used by processors.
 	entityProcesses map[string][]EntityProcessorHook
+	groupProcesses map[string][]GroupProcessorHook
 }
 
 // An EntityProcessor is a chain of functions that modify entities in
@@ -43,4 +43,20 @@ type EntityProcessorHook interface {
 	Priority() int
 	Name() string
 	Run(*pb.Entity, *pb.Entity) error
+}
+
+// A GroupProcessor is a chain of functions that performs mutations on
+// a group.
+type GroupProcessor struct {
+	Group *pb.Group
+	RequestData *pb.Group
+	hooks []GroupProcessorHook
+}
+
+// A GroupProcessorHook is a function that transforms a group as part
+// of a GroupProcessor Pipeline.
+type GroupProcessorHook interface {
+	Priority() int
+	Name() string
+	Run(*pb.Group, *pb.Group) error
 }

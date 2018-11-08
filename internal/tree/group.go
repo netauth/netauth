@@ -4,9 +4,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/NetAuth/NetAuth/internal/tree/errors"
 	"github.com/NetAuth/NetAuth/internal/tree/util"
+	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -15,38 +15,21 @@ import (
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
 func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) error {
-	if _, err := m.GetGroupByName(name); err == nil {
-		log.Printf("Group '%s' already exists!", name)
-		return tree.ErrDuplicateGroupName
+	gp := GroupProcessor{
+		Group: &pb.Group{},
+		RequestData: &pb.Group{
+			Name:        &name,
+			DisplayName: &displayName,
+			ManagedBy:   &managedBy,
+			Number:      &number,
+		},
 	}
 
-	// Verify that the managing group exists.
-	if _, err := m.GetGroupByName(managedBy); managedBy != "" && managedBy != name && err != nil {
-		return err
+	if err := gp.FetchHooks("CREATE-GROUP", m.groupProcesses); err != nil {
+		log.Fatal(err)
 	}
-
-	if number == -1 {
-		var err error
-		number, err = m.db.NextGroupNumber()
-		if err != nil {
-			return err
-		}
-	}
-
-	newGroup := &pb.Group{
-		Name:        &name,
-		DisplayName: &displayName,
-		Number:      &number,
-		ManagedBy:   &managedBy,
-	}
-
-	// Save the group
-	if err := m.db.SaveGroup(newGroup); err != nil {
-		return err
-	}
-
-	log.Printf("Allocated new group '%s'", name)
-	return nil
+	_, err := gp.Run()
+	return err
 }
 
 // GetGroupByName fetches a group by name and returns a pointer to the
