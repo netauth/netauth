@@ -4,7 +4,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -3,8 +3,6 @@ package tree
 import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-
-	pb "github.com/NetAuth/Protocol"
 )
 
 // The Manager binds all methods for managing a tree of entities with
@@ -24,39 +22,18 @@ type Manager struct {
 	// engines
 	crypto crypto.EMCrypto
 
+	// Maintain maps of hooks that have been initialized.
+	entityProcessorHooks map[string]EntityProcessorHook
+	groupProcessorHooks  map[string]GroupProcessorHook
+
 	// Maintain chains of hooks that can be used by processors.
 	entityProcesses map[string][]EntityProcessorHook
-	groupProcesses map[string][]GroupProcessorHook
+	groupProcesses  map[string][]GroupProcessorHook
 }
 
-// An EntityProcessor is a chain of functions that modify entities in
-// some way.
-type EntityProcessor struct {
-	Entity      *pb.Entity
-	RequestData *pb.Entity
-	hooks       []EntityProcessorHook
-}
-
-// An EntityProcessorHook is a function that transforms an entity as
-// part of an EntityProcessor pipeline.
-type EntityProcessorHook interface {
-	Priority() int
-	Name() string
-	Run(*pb.Entity, *pb.Entity) error
-}
-
-// A GroupProcessor is a chain of functions that performs mutations on
-// a group.
-type GroupProcessor struct {
-	Group *pb.Group
-	RequestData *pb.Group
-	hooks []GroupProcessorHook
-}
-
-// A GroupProcessorHook is a function that transforms a group as part
-// of a GroupProcessor Pipeline.
-type GroupProcessorHook interface {
-	Priority() int
-	Name() string
-	Run(*pb.Group, *pb.Group) error
+// A RefContext is a container of references that are needed to
+// bootstrap the tree manager and associated plugins.
+type RefContext struct {
+	DB     db.DB
+	crypto crypto.EMCrypto
 }
