@@ -4,8 +4,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
-
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -30,11 +28,11 @@ type GroupProcessorHook interface {
 func (ep *GroupProcessor) FetchHooks(chain string, hookmap map[string][]GroupProcessorHook) error {
 	hookChain, ok := hookmap[chain]
 	if !ok {
-		return tree.ErrUnknownHookChain
+		return ErrUnknownHookChain
 	}
 
 	if len(hookChain) == 0 {
-		return tree.ErrEmptyHookChain
+		return ErrEmptyHookChain
 	}
 
 	ep.hooks = hookChain
@@ -62,7 +60,7 @@ func (ep *GroupProcessor) Register(h GroupProcessorHook) error {
 
 	if _, ok := m[h.Name()]; ok {
 		// Already registered, can't have two of the same hook
-		return tree.ErrHookExists
+		return ErrHookExists
 	}
 
 	ep.hooks = append(ep.hooks, h)

@@ -2,17 +2,17 @@ package hooks
 
 import (
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 type LoadEntity struct {
+	tree.BaseHook
 	db.DB
 }
 
-func (*LoadEntity) Name() string  { return "load-entity" }
-func (*LoadEntity) Priority() int { return 5 }
 func (l *LoadEntity) Run(e, de *pb.Entity) error {
 	// This is a bit odd because we only get an address for e, not
 	// the ability to point it somewhere else, so anything we want
@@ -26,4 +26,12 @@ func (l *LoadEntity) Run(e, de *pb.Entity) error {
 	proto.Merge(e, le)
 
 	return nil
+}
+
+func init() {
+	tree.RegisterEntityHookConstructor("load-entity", NewLoadEntity)
+}
+
+func NewLoadEntity(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &LoadEntity{tree.NewBaseHook("load-entity", 0), c.DB}, nil
 }

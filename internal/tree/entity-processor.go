@@ -4,8 +4,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
-
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -39,9 +37,58 @@ func init() {
 	eHookConstructors = make(map[string]EntityHookConstructor)
 }
 
+// RegisterEntityHookConstructor registers the entity hook
+// constructors to be called during the initialization of the main
+// tree manager.
+func RegisterEntityHookConstructor(name string, c EntityHookConstructor) {
+	if _, ok := eHookConstructors[name]; ok {
+		// Already registered
+		log.Printf("A constructor for %s is already registered", name)
+		return
+	}
+	eHookConstructors[name] = c
+}
+
 // InitializeEntityHooks runs all the EntityHookConstructors and
 // registers the resulting hooks by name into m.entityProcessorHooks
 func (m *Manager) InitializeEntityHooks() {
+	log.Println("Executing EntityHookConstructor callbacks")
+	for _, v := range eHookConstructors {
+		hook, err := v(m.refContext)
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+		m.entityProcessorHooks[hook.Name()] = hook
+	}
+	log.Printf("The following (entity) hooks are loaded:")
+	for name := range m.entityProcessorHooks {
+		log.Printf("  %s", name)
+	}
+}
+
+// InitializeEntityChains initializes the map of chains stored on the
+// manager.  It is expected that any merging of an external
+// configuration has happened before this function is called.
+func (m *Manager) InitializeEntityChains(c ChainConfig) error {
+	for chain, hooks := range c {
+		log.Printf("Initializing chain '%s'", chain)
+		for _, h := range hooks {
+			eph, ok := m.entityProcessorHooks[h]
+			if !ok {
+				log.Printf("There is no hook named '%s'", h)
+				return ErrUnknownHook
+			}
+			m.entityProcesses[chain] = append(m.entityProcesses[chain], eph)
+		}
+		sort.Slice(m.entityProcesses[chain], func(i, j int) bool {
+			return m.entityProcesses[chain][i].Priority() < m.entityProcesses[chain][j].Priority()
+		})
+		for _, hook := range m.entityProcesses[chain] {
+			log.Printf("  %s", hook.Name())
+		}
+	}
+	return nil
 }
 
 // FetchHooks configures an EntityProcessor with hook chains from an
@@ -49,11 +96,11 @@ func (m *Manager) InitializeEntityHooks() {
 func (ep *EntityProcessor) FetchHooks(chain string, hookmap map[string][]EntityProcessorHook) error {
 	hookChain, ok := hookmap[chain]
 	if !ok {
-		return tree.ErrUnknownHookChain
+		return ErrUnknownHookChain
 	}
 
 	if len(hookChain) == 0 {
-		return tree.ErrEmptyHookChain
+		return ErrEmptyHookChain
 	}
 
 	ep.hooks = hookChain
@@ -71,46 +118,3 @@ func (ep *EntityProcessor) Run() (*pb.Entity, error) {
 	}
 	return ep.Entity, nil
 }
-
-// Register adds a new hook to the processing pipeline
-func (ep *EntityProcessor) Register(h EntityProcessorHook) error {
-	m := make(map[string]bool)
-	for _, rh := range ep.hooks {
-		m[rh.Name()] = true
-	}
-
-	if _, ok := m[h.Name()]; ok {
-		// Already registered, can't have two of the same hook
-		return tree.ErrHookExists
-	}
-
-	ep.hooks = append(ep.hooks, h)
-
-	sort.Slice(ep.hooks, func(i, j int) bool {
-		return ep.hooks[i].Priority() < ep.hooks[j].Priority()
-	})
-
-	return nil
-}
-
-// EntityHookMustRegister registers hooks to named chains, and is
-// intended to be used during startup to register changes or abort the
-// service process.
-func (m *Manager) EntityHookMustRegister(chain string, hook EntityProcessorHook) {
-	mp := make(map[string]bool)
-	for _, rh := range m.entityProcesses[chain] {
-		mp[rh.Name()] = true
-	}
-
-	if _, ok := mp[hook.Name()]; ok {
-		// Already registered, can't have two of the same hook
-		log.Fatalf("Hook %s already exists in chain %s", hook.Name(), chain)
-	}
-
-	m.entityProcesses[chain] = append(m.entityProcesses[chain], hook)
-
-	sort.Slice(m.entityProcesses[chain], func(i, j int) bool {
-		return m.entityProcesses[chain][i].Priority() < m.entityProcesses[chain][j].Priority()
-	})
-}
-

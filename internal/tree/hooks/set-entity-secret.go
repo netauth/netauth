@@ -2,16 +2,16 @@ package hooks
 
 import (
 	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/NetAuth/NetAuth/internal/tree"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 type SetEntitySecret struct {
+	tree.BaseHook
 	crypto.EMCrypto
 }
 
-func (*SetEntitySecret) Name() string  { return "set-entity-secret" }
-func (*SetEntitySecret) Priority() int { return 50 }
 func (s *SetEntitySecret) Run(e, de *pb.Entity) error {
 	ssecret, err := s.SecureSecret(de.GetSecret())
 	if err != nil {
@@ -19,4 +19,12 @@ func (s *SetEntitySecret) Run(e, de *pb.Entity) error {
 	}
 	e.Secret = &ssecret
 	return nil
+}
+
+func init() {
+	tree.RegisterEntityHookConstructor("set-entity-secret", NewSetEntitySecret)
+}
+
+func NewSetEntitySecret(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &SetEntitySecret{tree.NewBaseHook("set-entity-secret", 50), c.Crypto}, nil
 }

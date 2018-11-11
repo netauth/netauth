@@ -16,6 +16,7 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/rpc"
 	"github.com/NetAuth/NetAuth/internal/tree"
+	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

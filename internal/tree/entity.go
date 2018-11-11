@@ -5,7 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
 	"github.com/NetAuth/NetAuth/internal/tree/util"
 	"github.com/golang/protobuf/proto"
 
@@ -101,7 +100,7 @@ func (m *Manager) DeleteEntityByID(ID string) error {
 func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
-		return tree.ErrUnknownCapability
+		return ErrUnknownCapability
 	}
 
 	ep := EntityProcessor{
@@ -127,7 +126,7 @@ func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
-		return tree.ErrUnknownCapability
+		return ErrUnknownCapability
 	}
 
 	ep := EntityProcessor{

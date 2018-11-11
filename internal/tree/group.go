@@ -4,7 +4,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
 	"github.com/NetAuth/NetAuth/internal/tree/util"
 	"github.com/golang/protobuf/proto"
 
@@ -124,7 +123,7 @@ func (m *Manager) ListGroups() ([]*pb.Group, error) {
 func (m *Manager) setGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return tree.ErrUnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])
@@ -151,7 +150,7 @@ func (m *Manager) setGroupCapability(g *pb.Group, c string) error {
 func (m *Manager) removeGroupCapability(g *pb.Group, c string) error {
 	// If no capability was supplied, bail out.
 	if len(c) == 0 {
-		return tree.ErrUnknownCapability
+		return ErrUnknownCapability
 	}
 
 	cap := pb.Capability(pb.Capability_value[c])

@@ -22,6 +22,10 @@ type Manager struct {
 	// engines
 	crypto crypto.EMCrypto
 
+	// A refContext maintains pointers to all referenced
+	// subsystems required by a tree manager.
+	refContext RefContext
+
 	// Maintain maps of hooks that have been initialized.
 	entityProcessorHooks map[string]EntityProcessorHook
 	groupProcessorHooks  map[string]GroupProcessorHook
@@ -35,5 +39,11 @@ type Manager struct {
 // bootstrap the tree manager and associated plugins.
 type RefContext struct {
 	DB     db.DB
-	crypto crypto.EMCrypto
+	Crypto crypto.EMCrypto
 }
+
+// The ChainConfig type maps from chain name to a list of hooks that
+// should be in this chain.  The same type is used for entities and
+// groups, but as these each have seperate chains, different configs
+// must be created and loaded for each.
+type ChainConfig map[string][]string

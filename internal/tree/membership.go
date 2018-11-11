@@ -5,8 +5,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
-
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -254,7 +252,7 @@ func (m *Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 func (m *Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
 	for _, exp := range g.GetExpansions() {
 		if strings.Contains(exp, candidate) {
-			return tree.ErrExistingExpansion
+			return ErrExistingExpansion
 		}
 	}
 	return nil
@@ -308,7 +306,7 @@ func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionM
 	}
 
 	if m.checkGroupCycles(c, p.GetName()) && mode != pb.ExpansionMode_DROP {
-		return tree.ErrExistingExpansion
+		return ErrExistingExpansion
 	}
 
 	// Either add the include, add the exclude, or drop the old

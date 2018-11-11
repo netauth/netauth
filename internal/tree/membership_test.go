@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -463,7 +462,7 @@ func TestModifyExpansionDuplicate(t *testing.T) {
 	}
 
 	// This shouldn't
-	if err := em.ModifyGroupExpansions("grp1", "grp2", pb.ExpansionMode_INCLUDE); err != tree.ErrExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp1", "grp2", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
 	}
 }
@@ -489,7 +488,7 @@ func TestModifyExpansionCycle(t *testing.T) {
 	}
 
 	// This one creates the cycle and should fail
-	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != tree.ErrExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
 	}
 }
@@ -519,7 +518,7 @@ func TestCheckGroupCyclesCorruptDB(t *testing.T) {
 
 	// This should bomb out now because there's a cycle check
 	// problem loading the group that was deleted.
-	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != tree.ErrExistingExpansion {
+	if err := em.ModifyGroupExpansions("grp3", "grp1", pb.ExpansionMode_INCLUDE); err != ErrExistingExpansion {
 		t.Fatal(err)
 	}
 }

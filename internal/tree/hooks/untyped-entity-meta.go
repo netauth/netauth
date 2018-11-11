@@ -3,43 +3,21 @@ package hooks
 import (
 	"strings"
 
+	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/tree/util"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-type AddEntityUM struct{}
-
-func (*AddEntityUM) Name() string  { return "add-untyped-metadata" }
-func (*AddEntityUM) Priority() int { return 50 }
-func (*AddEntityUM) Run(e, de *pb.Entity) error {
-	for _, m := range de.Meta.UntypedMeta {
-		key, value := splitKeyValue(m)
-		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, "UPSERT", key, value)
-	}
-	return nil
+type ManageEntityUM struct {
+	tree.BaseHook
+	mode string
 }
 
-type DelFuzzyEntityUM struct{}
-
-func (*DelFuzzyEntityUM) Name() string  { return "del-untyped-metadata-fuzzy" }
-func (*DelFuzzyEntityUM) Priority() int { return 50 }
-func (*DelFuzzyEntityUM) Run(e, de *pb.Entity) error {
+func (mm *ManageEntityUM) Run(e, de *pb.Entity) error {
 	for _, m := range de.Meta.UntypedMeta {
 		key, value := splitKeyValue(m)
-		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, "CLEARFUZZY", key, value)
-	}
-	return nil
-}
-
-type DelExactEntityUM struct{}
-
-func (*DelExactEntityUM) Name() string  { return "del-untyped-metadata-strict" }
-func (*DelExactEntityUM) Priority() int { return 50 }
-func (*DelExactEntityUM) Run(e, de *pb.Entity) error {
-	for _, m := range de.Meta.UntypedMeta {
-		key, value := splitKeyValue(m)
-		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, "CLEAREXACT", key, value)
+		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, mm.mode, key, value)
 	}
 	return nil
 }
@@ -47,4 +25,22 @@ func (*DelExactEntityUM) Run(e, de *pb.Entity) error {
 func splitKeyValue(s string) (string, string) {
 	parts := strings.SplitN(s, ":", 2)
 	return parts[0], parts[1]
+}
+
+func init() {
+	tree.RegisterEntityHookConstructor("add-untyped-metadata", NewAddEntityUM)
+	tree.RegisterEntityHookConstructor("del-untyped-metadata-fuzzy", NewDelFuzzyEntityUM)
+	tree.RegisterEntityHookConstructor("del-untyped-metadata-exact", NewDelExactEntityUM)
+}
+
+func NewAddEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &ManageEntityUM{tree.NewBaseHook("add-untyped-metadata", 50), "UPSERT"}, nil
+}
+
+func NewDelFuzzyEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
+}
+
+func NewDelExactEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "UPSERT"}, nil
 }

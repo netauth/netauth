@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
+	"github.com/NetAuth/NetAuth/internal/tree"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"

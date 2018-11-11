@@ -1,15 +1,16 @@
 package hooks
 
 import (
+	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-type MergeEntityMeta struct{}
+type MergeEntityMeta struct {
+	tree.BaseHook
+}
 
-func (*MergeEntityMeta) Name() string  { return "merge-entity-meta" }
-func (*MergeEntityMeta) Priority() int { return 50 }
 func (*MergeEntityMeta) Run(e, de *pb.Entity) error {
 	// There's a few fields that can't be set by merging the
 	// metadata this way, so we null those out here.
@@ -20,4 +21,12 @@ func (*MergeEntityMeta) Run(e, de *pb.Entity) error {
 
 	proto.Merge(e, de)
 	return nil
+}
+
+func init() {
+	tree.RegisterEntityHookConstructor("merge-entity-meta", NewMergeEntityMeta)
+}
+
+func NewMergeEntityMeta(c tree.RefContext) (tree.EntityProcessorHook, error) {
+	return &MergeEntityMeta{tree.NewBaseHook("merge-entity-meta", 50)}, nil
 }

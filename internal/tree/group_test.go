@@ -6,7 +6,6 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/tree/errors"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -21,7 +20,7 @@ func TestNewGroup(t *testing.T) {
 		wantErr     error
 	}{
 		{"fooGroup", "", 1, nil},
-		{"fooGroup", "", 1, tree.ErrDuplicateGroupName},
+		{"fooGroup", "", 1, ErrDuplicateGroupName},
 		{"barGroup", "", -1, nil},
 	}
 	for _, c := range s {
@@ -96,7 +95,7 @@ func TestUpdateGroupMetaInternal(t *testing.T) {
 func TestManageUntypedGroupMeta(t *testing.T) {
 	em := getNewEntityManager(t)
 
-	if err := em.NewGroup("g1","g1", "", -1); err != nil {
+	if err := em.NewGroup("g1", "g1", "", -1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -167,7 +166,7 @@ func TestSetGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.SetGroupCapabilityByName("foo", ""); err != tree.ErrUnknownCapability {
+	if err := em.SetGroupCapabilityByName("foo", ""); err != ErrUnknownCapability {
 		t.Error(err)
 	}
 }
@@ -218,7 +217,7 @@ func TestRemoveGroupCapabilityNoCap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := em.RemoveGroupCapabilityByName("foo", ""); err != tree.ErrUnknownCapability {
+	if err := em.RemoveGroupCapabilityByName("foo", ""); err != ErrUnknownCapability {
 		t.Error(err)
 	}
 }
