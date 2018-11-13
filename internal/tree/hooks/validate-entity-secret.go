@@ -7,22 +7,23 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+// ValidateEntitySecret passes the secret to the crypto engine for
+// validation.
 type ValidateEntitySecret struct {
 	tree.BaseHook
 	crypto.EMCrypto
 }
 
+// Run calls VerifySecret to compare de.Secret with the secured copy from e.Secret.
 func (v *ValidateEntitySecret) Run(e, de *pb.Entity) error {
-	if err := v.VerifySecret(de.GetSecret(), e.GetSecret()); err != nil {
-		return err
-	}
-	return nil
+	return v.VerifySecret(de.GetSecret(), e.GetSecret())
 }
 
 func init() {
 	tree.RegisterEntityHookConstructor("validate-entity-secret", NewValidateEntitySecret)
 }
 
+// NewValidateEntitySecret returns an initialized hook ready for use.
 func NewValidateEntitySecret(c tree.RefContext) (tree.EntityProcessorHook, error) {
 	return &ValidateEntitySecret{tree.NewBaseHook("validate-entity-secret", 50), c.Crypto}, nil
 }
