@@ -24,7 +24,7 @@ func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) er
 		},
 	}
 
-	if err := gp.FetchHooks("CREATE-GROUP", m.groupProcesses); err != nil {
+	if err := gp.FetchHooks("CREATE", m.groupProcesses); err != nil {
 		log.Fatal(err)
 	}
 	_, err := gp.Run()

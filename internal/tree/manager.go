@@ -19,23 +19,23 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 		Crypto: crypto,
 	}
 
+	// Initialize all entity hooks and bind to names.
 	x.entityProcessorHooks = make(map[string]EntityProcessorHook)
 	x.InitializeEntityHooks()
 
+	// Construct entity chains out of the bound plugins.
 	x.entityProcesses = make(map[string][]EntityProcessorHook)
 	x.InitializeEntityChains(defaultEntityChains)
 
+	// Initialize all group hooks and bind to names.
+	x.groupProcessorHooks = make(map[string]GroupProcessorHook)
+	x.InitializeGroupHooks()
+
+	// Construct group chains out of the bound plugins.
+	x.groupProcesses = make(map[string][]GroupProcessorHook)
+	x.InitializeGroupChains(defaultGroupChains)
+
 	log.Println("Initialized new Entity Manager")
-
-	// // Now the groups
-	// x.groupProcesses = make(map[string][]GroupProcessorHook)
-
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.FailOnExistingGroup{db})
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupName{})
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetManagingGroup{db})
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupDisplayName{})
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.SetGroupNumber{db})
-	// x.GroupHookMustRegister("CREATE-GROUP", &hooks.SaveGroup{db})
 
 	return &x
 }

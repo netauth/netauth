@@ -94,4 +94,15 @@ var (
 			"save-entity",
 		},
 	}
+
+	defaultGroupChains = map[string][]string{
+		"CREATE": []string{
+			"fail-on-existing-group",
+			"set-group-name",
+			"set-managing-group",
+			"set-group-displayname",
+			"set-group-number",
+			"save-group",
+		},
+	}
 )
