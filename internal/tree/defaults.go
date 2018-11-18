@@ -93,6 +93,18 @@ var (
 			"del-untyped-metadata-exact",
 			"save-entity",
 		},
+		"GROUP-ADD": []string{
+			"load-entity",
+			"ensure-entity-meta",
+			"add-direct-group",
+			"save-entity",
+		},
+		"GROUP-DEL": []string{
+			"load-entity",
+			"ensure-entity-meta",
+			"del-direct-group",
+			"save-entity",
+		},
 	}
 
 	defaultGroupChains = map[string][]string{

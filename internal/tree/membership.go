@@ -11,38 +11,41 @@ import (
 // AddEntityToGroup is the same as the internal function, but takes an
 // entity ID rather than a pointer
 func (m *Manager) AddEntityToGroup(entityID, groupName string) error {
-	e, err := m.db.LoadEntity(entityID)
-	if err != nil {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &entityID,
+			Meta: &pb.EntityMeta{
+				Groups: []string{groupName},
+			},
+		},
+	}
+
+	if err := ep.FetchHooks("GROUP-ADD", m.entityProcesses); err != nil {
 		return err
 	}
-	return m.addEntityToGroup(e, groupName)
+	_, err := ep.Run()
+	return err
 }
 
-// addEntityToGroup adds an entity to a group by name, if the entity
-// was already in the group the function will return with a nil error.
-func (m *Manager) addEntityToGroup(e *pb.Entity, groupName string) error {
-	if _, err := m.db.LoadGroup(groupName); err != nil {
+// RemoveEntityFromGroup performs the same function as the internal
+// variant, but does so by name rather than by entity pointer.
+func (m *Manager) RemoveEntityFromGroup(entityID, groupName string) error {
+	ep := EntityProcessor{
+		Entity: &pb.Entity{},
+		RequestData: &pb.Entity{
+			ID: &entityID,
+			Meta: &pb.EntityMeta{
+				Groups: []string{groupName},
+			},
+		},
+	}
+
+	if err := ep.FetchHooks("GROUP-DEL", m.entityProcesses); err != nil {
 		return err
 	}
-
-	if e.GetMeta() == nil {
-		e.Meta = &pb.EntityMeta{}
-	}
-
-	// First we check if the entity is a member of the group
-	// directly.
-	groupNames := e.GetMeta().GetGroups()
-	for _, g := range groupNames {
-		if g == groupName {
-			return nil
-		}
-	}
-
-	// At this point we can be reasonably certain that the entity
-	// is not in the named group via direct membership.
-	e.Meta.Groups = append(e.Meta.Groups, groupName)
-
-	return m.db.SaveEntity(e)
+	_, err := ep.Run()
+	return err
 }
 
 // GetMemberships returns all groups the entity is a member of,
@@ -111,37 +114,6 @@ func (m *Manager) getDirectGroups(e *pb.Entity) []string {
 	}
 
 	return e.GetMeta().GetGroups()
-}
-
-// RemoveEntityFromGroup performs the same function as the internal
-// variant, but does so by name rather than by entity pointer.
-func (m *Manager) RemoveEntityFromGroup(entityID, groupName string) error {
-	e, err := m.db.LoadEntity(entityID)
-	if err != nil {
-		return err
-	}
-	m.removeEntityFromGroup(e, groupName)
-	return nil
-}
-
-// removeEntityFromGroup removes an entity from the named group.  If
-// the entity was not in the group to begin with then nil will be
-// returned as the error.
-func (m *Manager) removeEntityFromGroup(e *pb.Entity, groupName string) error {
-	if e.GetMeta() == nil {
-		return nil
-	}
-
-	newGroups := []string{}
-	for _, g := range e.GetMeta().GetGroups() {
-		if g == groupName {
-			continue
-		}
-		newGroups = append(newGroups, g)
-	}
-	e.Meta.Groups = newGroups
-
-	return m.db.SaveEntity(e)
 }
 
 // allEntities is a convenient way to return all the entities
