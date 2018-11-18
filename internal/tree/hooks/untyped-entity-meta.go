@@ -1,8 +1,6 @@
 package hooks
 
 import (
-	"strings"
-
 	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/tree/util"
 
@@ -26,11 +24,6 @@ func (mm *ManageEntityUM) Run(e, de *pb.Entity) error {
 		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, mm.mode, key, value)
 	}
 	return nil
-}
-
-func splitKeyValue(s string) (string, string) {
-	parts := strings.SplitN(s, ":", 2)
-	return parts[0], parts[1]
 }
 
 func init() {
