@@ -22,46 +22,13 @@ func (mec *ManageEntityCapabilities) Run(e, de *pb.Entity) error {
 	for _, cap := range de.Meta.Capabilities {
 		if mec.mode {
 			// Add mode
-			e.Meta.Capabilities = mec.addCapability(cap, e.Meta.Capabilities)
+			e.Meta.Capabilities = addCapability(cap, e.Meta.Capabilities)
 		} else {
 			// Del mode
-			e.Meta.Capabilities = mec.delCapability(cap, e.Meta.Capabilities)
+			e.Meta.Capabilities = delCapability(cap, e.Meta.Capabilities)
 		}
 	}
 	return nil
-}
-
-// addCapability is an internal convenience function to add
-// capabilities if they do not already exist in a capability slice.
-func (mec *ManageEntityCapabilities) addCapability(cap pb.Capability, caps []pb.Capability) []pb.Capability {
-	var ncaps []pb.Capability
-
-	// Check to make sure that the capability isn't already set
-	for _, a := range caps {
-		if a == cap {
-			return caps
-		}
-		ncaps = append(ncaps, a)
-	}
-
-	// Add the new capability to the list.
-	ncaps = append(ncaps, cap)
-
-	return ncaps
-}
-
-// delCapability is an internal convenience function to remove
-// capabilities that exist in a slice.
-func (mec *ManageEntityCapabilities) delCapability(cap pb.Capability, caps []pb.Capability) []pb.Capability {
-	var ncaps []pb.Capability
-	for _, a := range caps {
-		if a == cap {
-			// Don't copy the same capability
-			continue
-		}
-		ncaps = append(ncaps, a)
-	}
-	return ncaps
 }
 
 func init() {

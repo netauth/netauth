@@ -8,7 +8,7 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-func TestAddCapabilities(t *testing.T) {
+func TestAddEntityCapabilities(t *testing.T) {
 	hook, err := NewSetEntityCapability(tree.RefContext{})
 	if err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func TestAddCapabilities(t *testing.T) {
 	}
 }
 
-func TestRemoveCapabilities(t *testing.T) {
+func TestRemoveEntityCapabilities(t *testing.T) {
 	hook, err := NewRemoveEntityCapability(tree.RefContext{})
 	if err != nil {
 		t.Fatal(err)
