@@ -104,5 +104,41 @@ var (
 			"set-group-number",
 			"save-group",
 		},
+		"DESTROY": []string{
+			"destroy-group",
+		},
+		"FETCH": []string{
+			"load-group",
+		},
+		"MERGE-METADATA": []string{
+			"load-group",
+			"merge-group-meta",
+			"save-group",
+		},
+		"SET-CAPABILITY": []string{
+			"load-group",
+			"set-group-capability",
+			"save-group",
+		},
+		"DROP-CAPABILITY": []string{
+			"load-group",
+			"remove-group-capability",
+			"save-group",
+		},
+		"UGM-UPSERT": []string{
+			"load-group",
+			"add-untyped-metadata",
+			"save-group",
+		},
+		"UGM-CLEARFUZZY": []string{
+			"load-group",
+			"del-untyped-metadata-fuzzy",
+			"save-group",
+		},
+		"UGM-CLEAREXACT": []string{
+			"load-group",
+			"del-untyped-metadata-exact",
+			"save-group",
+		},
 	}
 )
