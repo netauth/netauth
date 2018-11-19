@@ -236,12 +236,6 @@ func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionM
 	_, err := gp.Run()
 	return err
 
-	// // Make sure the child exists...
-	// c, err := m.GetGroupByName(child)
-	// if err != nil {
-	// 	return err
-	// }
-
 	// // Either add the include, add the exclude, or drop the old
 	// // record.
 	// switch mode {
