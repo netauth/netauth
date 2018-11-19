@@ -230,34 +230,24 @@ func (m *Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) er
 	return nil
 }
 
-// checkGroupCycles recurses down the group tree and tries to find the
-// candidate group somewhere on the tree below the entry point.  The
-// general usage would be to push in the target of the expansion as
-// the group and then hunt for the parent group as the candidate.
-func (m *Manager) checkGroupCycles(g *pb.Group, candidate string) bool {
-	for _, exp := range g.GetExpansions() {
-		parts := strings.Split(exp, ":")
-		log.Println(parts[1], candidate)
-		if parts[1] == candidate {
-			return true
-		}
-		g, err := m.GetGroupByName(parts[1])
-		if err != nil {
-			// Play it safe, if we can't get the group
-			// something may already be wrong.  Returning
-			// true here can prevent further damage to the
-			// tree.
-			return true
-		}
-		return m.checkGroupCycles(g, candidate)
-	}
-	return false
-}
-
 // ModifyGroupExpansions handles changing the expansions on a group.
 // This can include adding an INCLUDE or EXCLUDE type expansion, or
 // using the special expansion type DROP, removing an existing one.
 func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMode) error {
+	gp := GroupProcessor{
+		Group: &pb.Group{
+			Name: &parent,
+		},
+		RequestData: &pb.Group{
+			Expansions: []string{fmt.Sprintf("%s:%s", mode, child)},
+		},
+	}
+	if err := gp.FetchHooks("MODIFY-EXPANSIONS", m.groupProcesses); err != nil {
+		log.Fatal(err)
+	}
+	_, err := gp.Run()
+	return err
+
 	p, err := m.GetGroupByName(parent)
 	if err != nil {
 		return err
@@ -275,10 +265,6 @@ func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionM
 	c, err := m.GetGroupByName(child)
 	if err != nil {
 		return err
-	}
-
-	if m.checkGroupCycles(c, p.GetName()) && mode != pb.ExpansionMode_DROP {
-		return ErrExistingExpansion
 	}
 
 	// Either add the include, add the exclude, or drop the old
