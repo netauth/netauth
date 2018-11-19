@@ -218,18 +218,6 @@ func (m *Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 	return safeMembers, nil
 }
 
-// checkExistingGroupExpansions verifies that there is no expansion
-// already directly on this group that conflicts with the proposed
-// group expansion.
-func (m *Manager) checkExistingGroupExpansions(g *pb.Group, candidate string) error {
-	for _, exp := range g.GetExpansions() {
-		if strings.Contains(exp, candidate) {
-			return ErrExistingExpansion
-		}
-	}
-	return nil
-}
-
 // ModifyGroupExpansions handles changing the expansions on a group.
 // This can include adding an INCLUDE or EXCLUDE type expansion, or
 // using the special expansion type DROP, removing an existing one.
@@ -248,45 +236,30 @@ func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionM
 	_, err := gp.Run()
 	return err
 
-	p, err := m.GetGroupByName(parent)
-	if err != nil {
-		return err
-	}
+	// // Make sure the child exists...
+	// c, err := m.GetGroupByName(child)
+	// if err != nil {
+	// 	return err
+	// }
 
-	// Check if there are any conflicting direct expansions on
-	// this group.  Expansions on children are fine if they
-	// conflict, that will just be confusing, but a conflicting
-	// expansion here could cause undefined behavior.
-	if err := m.checkExistingGroupExpansions(p, child); err != nil && mode != pb.ExpansionMode_DROP {
-		return err
-	}
-
-	// Make sure the child exists...
-	c, err := m.GetGroupByName(child)
-	if err != nil {
-		return err
-	}
-
-	// Either add the include, add the exclude, or drop the old
-	// record.
-	switch mode {
-	case pb.ExpansionMode_INCLUDE:
-		p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
-	case pb.ExpansionMode_EXCLUDE:
-		p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
-	case pb.ExpansionMode_DROP:
-		old := p.GetExpansions()
-		new := []string{}
-		for _, oldMembership := range old {
-			if strings.Contains(oldMembership, child) {
-				continue
-			}
-			new = append(new, oldMembership)
-		}
-		p.Expansions = new
-	}
-
-	return m.db.SaveGroup(p)
+	// // Either add the include, add the exclude, or drop the old
+	// // record.
+	// switch mode {
+	// case pb.ExpansionMode_INCLUDE:
+	// 	p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
+	// case pb.ExpansionMode_EXCLUDE:
+	// 	p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
+	// case pb.ExpansionMode_DROP:
+	// 	old := p.GetExpansions()
+	// 	new := []string{}
+	// 	for _, oldMembership := range old {
+	// 		if strings.Contains(oldMembership, child) {
+	// 			continue
+	// 		}
+	// 		new = append(new, oldMembership)
+	// 	}
+	// 	p.Expansions = new
+	// }
 }
 
 // dedupEntityList takes in a list of entities and deduplicates them
