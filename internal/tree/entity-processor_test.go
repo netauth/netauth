@@ -7,14 +7,7 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-func resetConstructorMap() {
-	eHookConstructors = make(map[string]EntityHookConstructor)
-}
-
 func TestEPRegisterAndInitialize(t *testing.T) {
-	resetConstructorMap()
-	defer resetConstructorMap()
-
 	RegisterEntityHookConstructor("null-hook", goodEntityConstructor)
 	RegisterEntityHookConstructor("null-hook", goodEntityConstructor)
 
@@ -39,9 +32,6 @@ func TestEPRegisterAndInitialize(t *testing.T) {
 }
 
 func TestEPInitializeChainsOK(t *testing.T) {
-	resetConstructorMap()
-	defer resetConstructorMap()
-
 	RegisterEntityHookConstructor("null-hook", goodEntityConstructor)
 	RegisterEntityHookConstructor("null-hook2", goodEntityConstructor2)
 	em := Manager{
@@ -60,9 +50,6 @@ func TestEPInitializeChainsOK(t *testing.T) {
 }
 
 func TestEPInitializeBadHook(t *testing.T) {
-	resetConstructorMap()
-	defer resetConstructorMap()
-
 	em := Manager{
 		entityProcessorHooks: make(map[string]EntityProcessorHook),
 		entityProcesses:      make(map[string][]EntityProcessorHook),

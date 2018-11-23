@@ -7,14 +7,7 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-func resetGConstructorMap() {
-	gHookConstructors = make(map[string]GroupHookConstructor)
-}
-
 func TestGPRegisterAndInitialize(t *testing.T) {
-	resetGConstructorMap()
-	defer resetGConstructorMap()
-
 	RegisterGroupHookConstructor("null-hook", goodGroupConstructor)
 	RegisterGroupHookConstructor("null-hook", goodGroupConstructor)
 
@@ -39,9 +32,6 @@ func TestGPRegisterAndInitialize(t *testing.T) {
 }
 
 func TestGPInitializeChainsOK(t *testing.T) {
-	resetGConstructorMap()
-	defer resetGConstructorMap()
-
 	RegisterGroupHookConstructor("null-hook", goodGroupConstructor)
 	RegisterGroupHookConstructor("null-hook2", goodGroupConstructor2)
 	em := Manager{
@@ -60,9 +50,6 @@ func TestGPInitializeChainsOK(t *testing.T) {
 }
 
 func TestGPInitializeBadHook(t *testing.T) {
-	resetGConstructorMap()
-	defer resetGConstructorMap()
-
 	em := Manager{
 		groupProcessorHooks: make(map[string]GroupProcessorHook),
 		groupProcesses:      make(map[string][]GroupProcessorHook),
