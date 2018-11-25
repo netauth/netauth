@@ -33,12 +33,12 @@ func init() {
 
 // NewAddDirectGroup returns a DirectGroupManager initialized in add
 // mode.
-func NewAddDirectGroup(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewAddDirectGroup(c tree.RefContext) (tree.EntityHook, error) {
 	return &DirectGroupManager{tree.NewBaseHook("add-direct-group", 50), true}, nil
 }
 
 // NewDelDirectGroup returns a DirectGroupManager initialized in
 // delete mode.
-func NewDelDirectGroup(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewDelDirectGroup(c tree.RefContext) (tree.EntityHook, error) {
 	return &DirectGroupManager{tree.NewBaseHook("del-direct-group", 50), false}, nil
 }

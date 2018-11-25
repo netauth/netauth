@@ -1,5 +1,10 @@
 package util
 
+import (
+	"testing"
+	"sort"
+)
+
 func TestPatchStringSlice(t *testing.T) {
 	cases := []struct {
 		in         []string

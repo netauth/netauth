@@ -25,6 +25,6 @@ func init() {
 }
 
 // NewSaveEntity returns an initialized hook ready for use.
-func NewSaveEntity(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewSaveEntity(c tree.RefContext) (tree.EntityHook, error) {
 	return &SaveEntity{tree.NewBaseHook("save-entity", 99), c.DB}, nil
 }

@@ -33,16 +33,16 @@ func init() {
 }
 
 // NewAddEntityUM returns a configured hook in UPSERT mode.
-func NewAddEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewAddEntityUM(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityUM{tree.NewBaseHook("add-untyped-metadata", 50), "UPSERT"}, nil
 }
 
 // NewDelFuzzyEntityUM returns a configured hook in CLEARFUZZY mode.
-func NewDelFuzzyEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewDelFuzzyEntityUM(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
 }
 
 // NewDelExactentityUM returns a configured hook in CLEAREXACT mode.
-func NewDelExactEntityUM(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewDelExactEntityUM(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
 }

@@ -27,11 +27,11 @@ func init() {
 }
 
 // NewELMLock returns a configured hook in LOCK mode.
-func NewELMLock(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewELMLock(c tree.RefContext) (tree.EntityHook, error) {
 	return &EntityLockManager{tree.NewBaseHook("lock-entity", 40), true}, nil
 }
 
 // NewELMUnlock returns a configured hook in UNLOCK mode.
-func NewELMUnlock(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewELMUnlock(c tree.RefContext) (tree.EntityHook, error) {
 	return &EntityLockManager{tree.NewBaseHook("unlock-entity", 40), false}, nil
 }

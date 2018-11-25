@@ -32,6 +32,6 @@ func init() {
 
 // NewFailOnExistingEntity will return an initialized hook ready for
 // use.
-func NewFailOnExistingEntity(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewFailOnExistingEntity(c tree.RefContext) (tree.EntityHook, error) {
 	return &FailOnExistingEntity{tree.NewBaseHook("fail-on-existing-entity", 0), c.DB}, nil
 }

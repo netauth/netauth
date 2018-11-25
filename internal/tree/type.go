@@ -27,11 +27,11 @@ type Manager struct {
 	refContext RefContext
 
 	// Maintain maps of hooks that have been initialized.
-	entityProcessorHooks map[string]EntityProcessorHook
+	entityProcessorHooks map[string]EntityHook
 	groupProcessorHooks  map[string]GroupProcessorHook
 
 	// Maintain chains of hooks that can be used by processors.
-	entityProcesses map[string][]EntityProcessorHook
+	entityProcesses map[string][]EntityHook
 	groupProcesses  map[string][]GroupProcessorHook
 }
 

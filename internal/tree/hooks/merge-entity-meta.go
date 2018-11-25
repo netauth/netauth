@@ -34,6 +34,6 @@ func init() {
 
 // NewMergeEntityMeta returns a MergeEntityMeta hook configured and
 // ready for use.
-func NewMergeEntityMeta(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewMergeEntityMeta(c tree.RefContext) (tree.EntityHook, error) {
 	return &MergeEntityMeta{tree.NewBaseHook("merge-entity-meta", 50)}, nil
 }

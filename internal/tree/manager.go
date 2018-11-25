@@ -2,9 +2,14 @@ package tree
 
 import (
 	"log"
+	"flag"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
+)
+
+var (
+	debugChains = flag.Bool("verbose_chains", false, "Print verbose chain startup information")
 )
 
 // New returns an initialized tree.Manager on to which all other
@@ -20,13 +25,17 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	}
 
 	// Initialize all entity hooks and bind to names.
-	x.entityProcessorHooks = make(map[string]EntityProcessorHook)
+	x.entityProcessorHooks = make(map[string]EntityHook)
 	x.InitializeEntityHooks()
 
 	// Construct entity chains out of the bound plugins.
-	x.entityProcesses = make(map[string][]EntityProcessorHook)
+	x.entityProcesses = make(map[string][]EntityHook)
 	x.InitializeEntityChains(defaultEntityChains)
 
+	// Check that required chains are loaded, bailing out if they
+	// aren't.
+	x.CheckRequiredEntityChains()
+	
 	// Initialize all group hooks and bind to names.
 	x.groupProcessorHooks = make(map[string]GroupProcessorHook)
 	x.InitializeGroupHooks()

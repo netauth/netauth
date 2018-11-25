@@ -30,6 +30,6 @@ func init() {
 }
 
 // NewSetEntitySecret returns an initialized hook for use.
-func NewSetEntitySecret(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewSetEntitySecret(c tree.RefContext) (tree.EntityHook, error) {
 	return &SetEntitySecret{tree.NewBaseHook("set-entity-secret", 50), c.Crypto}, nil
 }

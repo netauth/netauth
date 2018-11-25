@@ -1,0 +1,14 @@
+Somehow hooks need to be able to request chains be inserted into the
+current execution run.  This likely needs to result in a change to the
+hook datatype to allow them to return a chain name along with the
+error, and then the executor will need to grab those chain members and
+run them.
+
+Putting this on the hook side means needing to feed hook
+configuration back into the hooks, which creates a worse problem than
+already exists with the tests.
+
+At the same time as this change, references to the entity processor
+should be dropped, things are now EntityHookChains and
+GroupHookChains.  Names should be cleaned up as this change goes
+through.

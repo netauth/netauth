@@ -18,19 +18,13 @@ import (
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
 func (m *Manager) NewEntity(ID string, number int32, secret string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID:     &ID,
-			Number: &number,
-			Secret: &secret,
-		},
+	de := &pb.Entity{
+		ID:     &ID,
+		Number: &number,
+		Secret: &secret,
 	}
 
-	if err := ep.FetchHooks("CREATE", m.entityProcesses); err != nil {
-		return err
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("CREATE", de)
 	return err
 }
 
@@ -45,22 +39,16 @@ func (m *Manager) MakeBootstrap(ID string, secret string) {
 		return
 	}
 
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID:     &ID,
-			Secret: &secret,
-			Meta: &pb.EntityMeta{
-				Capabilities: []pb.Capability{pb.Capability_GLOBAL_ROOT},
-			},
+	de := &pb.Entity{
+		ID:     &ID,
+		Secret: &secret,
+		Meta: &pb.EntityMeta{
+			Capabilities: []pb.Capability{pb.Capability_GLOBAL_ROOT},
 		},
 	}
 
-	if err := ep.FetchHooks("BOOTSTRAP-SERVER", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
-	m.bootstrapDone = true
+	_, err := m.RunEntityChain("BOOTSTRAP-SERVER", de)
+	m.DisableBootstrap()
 
 	if err != nil {
 		log.Println("Bootstrap FAILED:")
@@ -82,17 +70,11 @@ func (m *Manager) DisableBootstrap() {
 // ID does not exist the function will return tree.E_NO_ENTITY, in
 // all other cases nil is returned.
 func (m *Manager) DeleteEntityByID(ID string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-		},
+	de := &pb.Entity{
+		ID: &ID,
 	}
 
-	if err := ep.FetchHooks("DESTROY", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("DESTROY", de)
 	return err
 }
 
@@ -103,21 +85,14 @@ func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 		return ErrUnknownCapability
 	}
 
-	ep := EntityProcessor{
-		Entity: &pb.Entity{
-			ID: &ID,
-		},
-		RequestData: &pb.Entity{
-			Meta: &pb.EntityMeta{
-				Capabilities: []pb.Capability{pb.Capability(capIndex)},
-			},
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			Capabilities: []pb.Capability{pb.Capability(capIndex)},
 		},
 	}
 
-	if err := ep.FetchHooks("SET-CAPABILITY", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("SET-CAPABILITY", de)
 	return err
 }
 
@@ -129,74 +104,49 @@ func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 		return ErrUnknownCapability
 	}
 
-	ep := EntityProcessor{
-		Entity: &pb.Entity{
-			ID: &ID,
-		},
-		RequestData: &pb.Entity{
-			Meta: &pb.EntityMeta{
-				Capabilities: []pb.Capability{pb.Capability(capIndex)},
-			},
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			Capabilities: []pb.Capability{pb.Capability(capIndex)},
 		},
 	}
 
-	if err := ep.FetchHooks("DROP-CAPABILITY", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("DROP-CAPABILITY", de)
 	return err
 }
 
 // SetEntitySecretByID sets the secret on a given entity using the
 // crypto interface.
 func (m *Manager) SetEntitySecretByID(ID string, secret string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID:     &ID,
-			Secret: &secret,
-		},
+	de := &pb.Entity{
+		ID:     &ID,
+		Secret: &secret,
 	}
 
-	if err := ep.FetchHooks("SET-SECRET", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("SET-SECRET", de)
 	return err
 }
 
 // ValidateSecret validates the identity of an entity by
 // validating the authenticating entity with the secret.
 func (m *Manager) ValidateSecret(ID string, secret string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID:     &ID,
-			Secret: &secret,
-		},
+	de := &pb.Entity{
+		ID:     &ID,
+		Secret: &secret,
 	}
 
-	if err := ep.FetchHooks("VALIDATE-IDENTITY", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("VALIDATE-IDENTITY", de)
 	return err
 }
 
 // GetEntity returns an entity to the caller after first making a safe
 // copy of it to remove secure fields.
 func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-		},
+	de := &pb.Entity{
+		ID: &ID,
 	}
 
-	if err := ep.FetchHooks("FETCH", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	e, err := ep.Run()
+	e, err := m.RunEntityChain("FETCH", de)
 	if err != nil {
 		return nil, err
 	}
@@ -210,18 +160,12 @@ func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
 // UpdateEntityMeta drives the internal version by obtaining the
 // entity from the database based on the ID.
 func (m *Manager) UpdateEntityMeta(ID string, newMeta *pb.EntityMeta) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID:   &ID,
-			Meta: newMeta,
-		},
+	de := &pb.Entity{
+		ID:   &ID,
+		Meta: newMeta,
 	}
 
-	if err := ep.FetchHooks("MERGE-METADATA", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("MERGE-METADATA", de)
 	return err
 }
 
@@ -233,13 +177,10 @@ func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, err
 	keytype = strings.ToUpper(keytype)
 
 	// Configure request data.
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-			Meta: &pb.EntityMeta{
-				Keys: []string{fmt.Sprintf("%s:%s", keytype, key)},
-			},
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			Keys: []string{fmt.Sprintf("%s:%s", keytype, key)},
 		},
 	}
 
@@ -255,10 +196,7 @@ func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, err
 	}
 
 	// Execute the transaction.
-	if err := ep.FetchHooks(chain, m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	e, err := ep.Run()
+	e, err := m.RunEntityChain(chain, de)
 	if err != nil {
 		return nil, err
 	}
@@ -274,13 +212,10 @@ func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, err
 // onto an entity.  These annotations should be used sparingly as they
 // incur a non-trivial lookup cost on the server.
 func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string, error) {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-			Meta: &pb.EntityMeta{
-				UntypedMeta: []string{fmt.Sprintf("%s:%s", key, value)},
-			},
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			UntypedMeta: []string{fmt.Sprintf("%s:%s", key, value)},
 		},
 	}
 
@@ -298,10 +233,7 @@ func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string
 	}
 
 	// Process transaction
-	if err := ep.FetchHooks(chain, m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	e, err := ep.Run()
+	e, err := m.RunEntityChain(chain, de)
 	if err != nil {
 		return nil, err
 	}
@@ -316,34 +248,22 @@ func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string
 // LockEntity allows external callers to lock entities directly.
 // Internal users can just set the value directly.
 func (m *Manager) LockEntity(ID string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-		},
+	de := &pb.Entity{
+		ID: &ID,
 	}
 
-	if err := ep.FetchHooks("LOCK", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("LOCK", de)
 	return err
 }
 
 // UnlockEntity allows external callers to lock entities directly.
 // Internal users can just set the value directly.
 func (m *Manager) UnlockEntity(ID string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &ID,
-		},
+	de := &pb.Entity{
+		ID: &ID,
 	}
 
-	if err := ep.FetchHooks("UNLOCK", m.entityProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("UNLOCK", de)
 	return err
 }
 

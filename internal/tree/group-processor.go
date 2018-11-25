@@ -52,7 +52,9 @@ func RegisterGroupHookConstructor(name string, c GroupHookConstructor) {
 // InitializeGroupHooks runs all the GroupHookConstructors and
 // registers the resulting hooks by name into m.entityProcessorHooks
 func (m *Manager) InitializeGroupHooks() {
-	log.Println("Executing GroupHookConstructor callbacks")
+	if *debugChains {
+		log.Println("Executing GroupHookConstructor callbacks")
+	}
 	for _, v := range gHookConstructors {
 		hook, err := v(m.refContext)
 		if err != nil {
@@ -61,9 +63,12 @@ func (m *Manager) InitializeGroupHooks() {
 		}
 		m.groupProcessorHooks[hook.Name()] = hook
 	}
-	log.Printf("The following (group) hooks are loaded:")
-	for name := range m.groupProcessorHooks {
-		log.Printf("  %s", name)
+
+	if *debugChains {
+		log.Printf("The following (group) hooks are loaded:")
+		for name := range m.groupProcessorHooks {
+			log.Printf("  %s", name)
+		}
 	}
 }
 
@@ -72,7 +77,9 @@ func (m *Manager) InitializeGroupHooks() {
 // configuration has happened before this function is called.
 func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 	for chain, hooks := range c {
-		log.Printf("Initializing chain '%s'", chain)
+		if *debugChains {
+			log.Printf("Initializing chain '%s'", chain)
+		}
 		for _, h := range hooks {
 			gph, ok := m.groupProcessorHooks[h]
 			if !ok {
@@ -84,8 +91,10 @@ func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 		sort.Slice(m.groupProcesses[chain], func(i, j int) bool {
 			return m.groupProcesses[chain][i].Priority() < m.groupProcesses[chain][j].Priority()
 		})
-		for _, hook := range m.groupProcesses[chain] {
-			log.Printf("  %s", hook.Name())
+		if *debugChains {
+			for _, hook := range m.groupProcesses[chain] {
+				log.Printf("  %s", hook.Name())
+			}
 		}
 	}
 	return nil

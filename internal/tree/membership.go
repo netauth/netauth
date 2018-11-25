@@ -11,40 +11,28 @@ import (
 // AddEntityToGroup is the same as the internal function, but takes an
 // entity ID rather than a pointer
 func (m *Manager) AddEntityToGroup(entityID, groupName string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &entityID,
-			Meta: &pb.EntityMeta{
-				Groups: []string{groupName},
-			},
+	de := &pb.Entity{
+		ID: &entityID,
+		Meta: &pb.EntityMeta{
+			Groups: []string{groupName},
 		},
 	}
 
-	if err := ep.FetchHooks("GROUP-ADD", m.entityProcesses); err != nil {
-		return err
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("GROUP-ADD", de)
 	return err
 }
 
 // RemoveEntityFromGroup performs the same function as the internal
 // variant, but does so by name rather than by entity pointer.
 func (m *Manager) RemoveEntityFromGroup(entityID, groupName string) error {
-	ep := EntityProcessor{
-		Entity: &pb.Entity{},
-		RequestData: &pb.Entity{
-			ID: &entityID,
-			Meta: &pb.EntityMeta{
-				Groups: []string{groupName},
-			},
+	de := &pb.Entity{
+		ID: &entityID,
+		Meta: &pb.EntityMeta{
+			Groups: []string{groupName},
 		},
 	}
 
-	if err := ep.FetchHooks("GROUP-DEL", m.entityProcesses); err != nil {
-		return err
-	}
-	_, err := ep.Run()
+	_, err := m.RunEntityChain("GROUP-DEL", de)
 	return err
 }
 

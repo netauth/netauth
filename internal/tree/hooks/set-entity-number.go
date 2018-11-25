@@ -39,6 +39,6 @@ func init() {
 }
 
 // NewSetEntityNumber returns a SetEntityNumber hook ready for use.
-func NewSetEntityNumber(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewSetEntityNumber(c tree.RefContext) (tree.EntityHook, error) {
 	return &SetEntityNumber{tree.NewBaseHook("set-entity-number", 50), c.DB}, nil
 }

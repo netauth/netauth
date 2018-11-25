@@ -24,6 +24,6 @@ func init() {
 }
 
 // NewValidateEntitySecret returns an initialized hook ready for use.
-func NewValidateEntitySecret(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewValidateEntitySecret(c tree.RefContext) (tree.EntityHook, error) {
 	return &ValidateEntitySecret{tree.NewBaseHook("validate-entity-secret", 50), c.Crypto}, nil
 }

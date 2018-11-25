@@ -30,6 +30,6 @@ func init() {
 }
 
 // NewDestroyEntity returns an initialized DestroyEntity hook for use.
-func NewDestroyEntity(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewDestroyEntity(c tree.RefContext) (tree.EntityHook, error) {
 	return &DestroyEntity{tree.NewBaseHook("destroy-entity", 99), c.DB}, nil
 }

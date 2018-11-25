@@ -25,6 +25,6 @@ func init() {
 }
 
 // NewValidateEntityUnlocked returns an initialized hook.
-func NewValidateEntityUnlocked(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewValidateEntityUnlocked(c tree.RefContext) (tree.EntityHook, error) {
 	return &ValidateEntityUnlocked{tree.NewBaseHook("validate-entity-unlocked", 20)}, nil
 }

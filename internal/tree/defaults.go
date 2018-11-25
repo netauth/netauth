@@ -19,6 +19,7 @@ var (
 			"create-entity-if-missing",
 			"ensure-entity-meta",
 			"unlock-entity",
+			"set-entity-secret",
 			"set-entity-capability",
 			"save-entity",
 		},
@@ -150,6 +151,14 @@ var (
 		"UGM-CLEAREXACT": []string{
 			"load-group",
 			"del-untyped-metadata-exact",
+			"save-group",
+		},
+		"MODIFY-EXPANSIONS": []string{
+			"load-group",
+			"check-immediate-expansions",
+			"check-expansion-cycles",
+			"check-expansion-targets",
+			"patch-group-expansions",
 			"save-group",
 		},
 	}

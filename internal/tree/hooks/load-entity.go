@@ -37,6 +37,6 @@ func init() {
 }
 
 // NewLoadEntity returns an initialized hook ready for use.
-func NewLoadEntity(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewLoadEntity(c tree.RefContext) (tree.EntityHook, error) {
 	return &LoadEntity{tree.NewBaseHook("load-entity", 0), c.DB}, nil
 }

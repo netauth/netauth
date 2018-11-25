@@ -5,6 +5,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db/memdb"
 	"github.com/NetAuth/NetAuth/internal/tree"
 
@@ -53,8 +54,14 @@ func TestCreateNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	crypto, err := nocrypto.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	ctx := tree.RefContext{
-		DB: mdb,
+		DB:     mdb,
+		Crypto: crypto,
 	}
 
 	hook, err := NewCreateEntityIfMissing(ctx)
@@ -64,7 +71,8 @@ func TestCreateNew(t *testing.T) {
 
 	e := &pb.Entity{}
 	de := &pb.Entity{
-		ID: proto.String("foo"),
+		ID:     proto.String("foo"),
+		Secret: proto.String("foo"),
 	}
 
 	if err := hook.Run(e, de); err != nil {
@@ -72,5 +80,11 @@ func TestCreateNew(t *testing.T) {
 	}
 	if e.GetID() != "foo" {
 		t.Fatal("Bad Entity")
+	}
+	
+	// This check only works because we're using nocrypto which
+	// stores plaintext secrets.
+	if e.GetSecret() != "foo" {
+		t.Fatal("Secret not set")
 	}
 }

@@ -38,12 +38,12 @@ func init() {
 
 // NewSetEntityCapability returns a ManageEntityCapability hook
 // pre-configured into the additive mode.
-func NewSetEntityCapability(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewSetEntityCapability(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityCapabilities{tree.NewBaseHook("set-entity-capability", 50), true}, nil
 }
 
 // NewRemoveEntityCapability returns a ManageEntityCapability hook
 // pre-configured into the subtractive mode.s
-func NewRemoveEntityCapability(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewRemoveEntityCapability(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityCapabilities{tree.NewBaseHook("remove-entity-capability", 50), false}, nil
 }

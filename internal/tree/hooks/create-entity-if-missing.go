@@ -1,14 +1,16 @@
 package hooks
 
 import (
+	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/tree"
+
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-// CreateEntityIfMissing is an EntityProcessor hook that will ensure
+// CreateEntityIfMissing is an Entity hook that will ensure
 // that e exists and is populated before returning.  This hook is
 // primarily used for bootstrap actions where an entity needs to
 // either exist or be created and it isn't important which of these
@@ -16,6 +18,7 @@ import (
 type CreateEntityIfMissing struct {
 	tree.BaseHook
 	db.DB
+	crypto.EMCrypto
 }
 
 // Run will attempt to load the entity from an external source.  If
@@ -29,13 +32,29 @@ func (c *CreateEntityIfMissing) Run(e, de *pb.Entity) error {
 		proto.Merge(e, le)
 		return err
 	case db.ErrUnknownEntity:
+		// Strictly this should subchain into CREATE-ENTITY
+		// but we need to avoid policy hoops that can prevent
+		// the server from bootstrapping, so we just create
+		// the minimum entity in here.
 		break
 	default:
 		return err
 	}
 
+	n, err := c.NextEntityNumber()
+	if err != nil {
+		return err
+	}
+
+	secret, err := c.SecureSecret(de.GetSecret())
+	if err != nil {
+		return err
+	}
+
 	ce := &pb.Entity{
-		ID: de.ID,
+		ID:     de.ID,
+		Number: &n,
+		Secret: &secret,
 	}
 	proto.Merge(e, ce)
 	return nil
@@ -47,6 +66,6 @@ func init() {
 
 // NewCreateEntityIfMissing returns an initalized hook for use during
 // tree initialization.
-func NewCreateEntityIfMissing(c tree.RefContext) (tree.EntityProcessorHook, error) {
-	return &CreateEntityIfMissing{tree.NewBaseHook("create-entity-if-missing", 1), c.DB}, nil
+func NewCreateEntityIfMissing(c tree.RefContext) (tree.EntityHook, error) {
+	return &CreateEntityIfMissing{tree.NewBaseHook("create-entity-if-missing", 1), c.DB, c.Crypto}, nil
 }

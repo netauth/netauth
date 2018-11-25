@@ -28,11 +28,11 @@ func init() {
 }
 
 // NewAddEntityKey returns a hook initialized for adding keys.
-func NewAddEntityKey(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewAddEntityKey(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityKeys{tree.NewBaseHook("add-entity-key", 50), true}, nil
 }
 
 // NewDelEntityKey returns a hook initialized for removing keys.
-func NewDelEntityKey(c tree.RefContext) (tree.EntityProcessorHook, error) {
+func NewDelEntityKey(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityKeys{tree.NewBaseHook("del-entity-key", 50), false}, nil
 }
