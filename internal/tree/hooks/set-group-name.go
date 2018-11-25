@@ -23,6 +23,6 @@ func init() {
 }
 
 // NewSetGroupName returns an initialized hook.
-func NewSetGroupName(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSetGroupName(c tree.RefContext) (tree.GroupHook, error) {
 	return &SetGroupName{tree.NewBaseHook("set-group-name", 50)}, nil
 }

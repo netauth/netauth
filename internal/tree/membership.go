@@ -210,38 +210,12 @@ func (m *Manager) ListMembers(groupID string) ([]*pb.Entity, error) {
 // This can include adding an INCLUDE or EXCLUDE type expansion, or
 // using the special expansion type DROP, removing an existing one.
 func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionMode) error {
-	gp := GroupProcessor{
-		Group: &pb.Group{
-			Name: &parent,
-		},
-		RequestData: &pb.Group{
-			Expansions: []string{fmt.Sprintf("%s:%s", mode, child)},
-		},
+	rg := &pb.Group{
+		Name:       &parent,
+		Expansions: []string{fmt.Sprintf("%s:%s", mode, child)},
 	}
-	if err := gp.FetchHooks("MODIFY-EXPANSIONS", m.groupProcesses); err != nil {
-		log.Fatal(err)
-	}
-	_, err := gp.Run()
+	_, err := m.RunGroupChain("MODIFY-EXPANSIONS", rg)
 	return err
-
-	// // Either add the include, add the exclude, or drop the old
-	// // record.
-	// switch mode {
-	// case pb.ExpansionMode_INCLUDE:
-	// 	p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
-	// case pb.ExpansionMode_EXCLUDE:
-	// 	p.Expansions = append(p.Expansions, fmt.Sprintf("%s:%s", mode, c.GetName()))
-	// case pb.ExpansionMode_DROP:
-	// 	old := p.GetExpansions()
-	// 	new := []string{}
-	// 	for _, oldMembership := range old {
-	// 		if strings.Contains(oldMembership, child) {
-	// 			continue
-	// 		}
-	// 		new = append(new, oldMembership)
-	// 	}
-	// 	p.Expansions = new
-	// }
 }
 
 // dedupEntityList takes in a list of entities and deduplicates them

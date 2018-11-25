@@ -50,6 +50,6 @@ func init() {
 }
 
 // NewSetManagingGroup returns a hook initialized for use.
-func NewSetManagingGroup(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSetManagingGroup(c tree.RefContext) (tree.GroupHook, error) {
 	return &SetManagingGroup{tree.NewBaseHook("set-managing-group", 10), c.DB}, nil
 }

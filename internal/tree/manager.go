@@ -1,8 +1,8 @@
 package tree
 
 import (
-	"log"
 	"flag"
+	"log"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -35,14 +35,17 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	// Check that required chains are loaded, bailing out if they
 	// aren't.
 	x.CheckRequiredEntityChains()
-	
+
 	// Initialize all group hooks and bind to names.
-	x.groupProcessorHooks = make(map[string]GroupProcessorHook)
+	x.groupProcessorHooks = make(map[string]GroupHook)
 	x.InitializeGroupHooks()
 
 	// Construct group chains out of the bound plugins.
-	x.groupProcesses = make(map[string][]GroupProcessorHook)
+	x.groupProcesses = make(map[string][]GroupHook)
 	x.InitializeGroupChains(defaultGroupChains)
+
+	// Check that required chains are loaded, bailing out if they aren't.
+	x.CheckRequiredGroupChains()
 
 	log.Println("Initialized new Entity Manager")
 

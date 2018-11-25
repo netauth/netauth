@@ -29,6 +29,6 @@ func init() {
 }
 
 // NewFailOnExistingGroup returns an initialized hook ready for use.
-func NewFailOnExistingGroup(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewFailOnExistingGroup(c tree.RefContext) (tree.GroupHook, error) {
 	return &FailOnExistingGroup{tree.NewBaseHook("fail-on-existing-group", 0), c.DB}, nil
 }

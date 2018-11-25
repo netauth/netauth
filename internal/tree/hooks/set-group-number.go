@@ -39,6 +39,6 @@ func init() {
 }
 
 // NewSetGroupNumber returns a hook initialized and ready for use.
-func NewSetGroupNumber(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSetGroupNumber(c tree.RefContext) (tree.GroupHook, error) {
 	return &SetGroupNumber{tree.NewBaseHook("set-group-number", 50), c.DB}, nil
 }

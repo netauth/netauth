@@ -32,6 +32,6 @@ func init() {
 
 // NewMergeGroupMeta returns a MergeGroupMeta hook configured and
 // ready for use.
-func NewMergeGroupMeta(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewMergeGroupMeta(c tree.RefContext) (tree.GroupHook, error) {
 	return &MergeGroupMeta{tree.NewBaseHook("merge-group-meta", 50)}, nil
 }

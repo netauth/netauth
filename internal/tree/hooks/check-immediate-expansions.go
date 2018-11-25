@@ -41,6 +41,6 @@ func init() {
 }
 
 // NewCheckImmediateExpansions returns a configured hook for use.
-func NewCheckImmediateExpansions(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewCheckImmediateExpansions(c tree.RefContext) (tree.GroupHook, error) {
 	return &CheckImmediateExpansions{tree.NewBaseHook("check-immediate-expansions", 40)}, nil
 }

@@ -69,6 +69,6 @@ func init() {
 }
 
 // NewCheckExpansionCycles returns a configured hook ready for use.
-func NewCheckExpansionCycles(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewCheckExpansionCycles(c tree.RefContext) (tree.GroupHook, error) {
 	return &CheckExpansionCycles{tree.NewBaseHook("check-expansion-cycles", 40), c.DB}, nil
 }

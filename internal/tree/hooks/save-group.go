@@ -25,6 +25,6 @@ func init() {
 }
 
 // NewSaveGroup returns a configured hook for use.
-func NewSaveGroup(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSaveGroup(c tree.RefContext) (tree.GroupHook, error) {
 	return &SaveGroup{tree.NewBaseHook("save-group", 99), c.DB}, nil
 }

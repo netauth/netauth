@@ -33,16 +33,16 @@ func init() {
 }
 
 // NewAddGroupUM returns a configured hook in UPSERT mode.
-func NewAddGroupUM(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewAddGroupUM(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupUM{tree.NewBaseHook("add-untyped-metadata", 50), "UPSERT"}, nil
 }
 
 // NewDelFuzzyGroupUM returns a configured hook in CLEARFUZZY mode.
-func NewDelFuzzyGroupUM(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewDelFuzzyGroupUM(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
 }
 
 // NewDelExactentityUM returns a configured hook in CLEAREXACT mode.
-func NewDelExactGroupUM(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewDelExactGroupUM(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
 }

@@ -43,6 +43,6 @@ func init() {
 }
 
 // NewPatchGroupExpansions returns an initialized hook for use.
-func NewPatchGroupExpansions(tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewPatchGroupExpansions(tree.RefContext) (tree.GroupHook, error) {
 	return &PatchGroupExpansions{tree.NewBaseHook("patch-group-expansions", 50)}, nil
 }

@@ -40,6 +40,6 @@ func init() {
 }
 
 // NewCheckExpansionTargets returns a configured hook, ready for use.
-func NewCheckExpansionTargets(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewCheckExpansionTargets(c tree.RefContext) (tree.GroupHook, error) {
 	return &CheckExpansionTargets{tree.NewBaseHook("check-expansion-targets", 40), c.DB}, nil
 }

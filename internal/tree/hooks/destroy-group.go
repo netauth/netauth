@@ -30,6 +30,6 @@ func init() {
 }
 
 // NewDestroyGroup returns an initialized DestroyGroup hook for use.
-func NewDestroyGroup(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewDestroyGroup(c tree.RefContext) (tree.GroupHook, error) {
 	return &DestroyGroup{tree.NewBaseHook("destroy-group", 99), c.DB}, nil
 }

@@ -7,23 +7,15 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// GroupHookConstructor functions construct GroupProcessorHook
+// GroupHookConstructor functions construct GroupHook
 // instances and return the hooks for registration into the map of
 // hooks.  This allows the hooks to notify the module of thier
 // presence and defer construction until a RefContext can be prepared.
-type GroupHookConstructor func(RefContext) (GroupProcessorHook, error)
+type GroupHookConstructor func(RefContext) (GroupHook, error)
 
-// A GroupProcessor is a chain of functions that performs mutations on
-// a group.
-type GroupProcessor struct {
-	Group       *pb.Group
-	RequestData *pb.Group
-	hooks       []GroupProcessorHook
-}
-
-// A GroupProcessorHook is a function that transforms a group as part
-// of a GroupProcessor Pipeline.
-type GroupProcessorHook interface {
+// A GroupHook is a function that transforms a group as part
+// of a Group Pipeline.
+type GroupHook interface {
 	Priority() int
 	Name() string
 	Run(*pb.Group, *pb.Group) error
@@ -100,30 +92,31 @@ func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 	return nil
 }
 
-// FetchHooks configures an GroupProcessor with hook chains from an
-// external map.
-func (ep *GroupProcessor) FetchHooks(chain string, hookmap map[string][]GroupProcessorHook) error {
-	hookChain, ok := hookmap[chain]
-	if !ok {
-		return ErrUnknownHookChain
+// CheckRequiredGroupChains searches for all chains in the default
+// chains list and logs a fatal error if one isn't found in the
+// configured list.  This allows the system to later assert the
+// presence of chains without checking, since they cannot be modified
+// after loading.
+func (m *Manager) CheckRequiredGroupChains() {
+	for k := range defaultGroupChains {
+		if _, ok := m.groupProcesses[k]; !ok {
+			log.Fatalf("Required chain %s is not loaded", k)
+		}
+		if len(m.groupProcesses[k]) == 0 {
+			log.Fatalf("Required chain %s is empty", k)
+		}
 	}
-
-	if len(hookChain) == 0 {
-		return ErrEmptyHookChain
-	}
-
-	ep.hooks = hookChain
-	return nil
 }
 
-// Run handles entity processor pipelines
-func (ep *GroupProcessor) Run() (*pb.Group, error) {
-	for _, h := range ep.hooks {
-		//log.Println(h.Name(), ep.Group)
-		if err := h.Run(ep.Group, ep.RequestData); err != nil {
+// RunGroupChain runs the specified chain with de specifying values
+// to be consumed by the chain.
+func (m *Manager) RunGroupChain(chain string, de *pb.Group) (*pb.Group, error) {
+	e := new(pb.Group)
+	hookChain := m.groupProcesses[chain]
+	for _, h := range hookChain {
+		if err := h.Run(e, de); err != nil {
 			return nil, err
 		}
-		//log.Println(h.Name(), ep.Group)
 	}
-	return ep.Group, nil
+	return e, nil
 }

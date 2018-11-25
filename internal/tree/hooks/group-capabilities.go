@@ -38,12 +38,12 @@ func init() {
 
 // NewSetGroupCapability returns a ManageGroupCapability hook
 // pre-configured into the additive mode.
-func NewSetGroupCapability(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSetGroupCapability(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupCapabilities{tree.NewBaseHook("set-group-capability", 50), true}, nil
 }
 
 // NewRemoveGroupCapability returns a ManageGroupCapability hook
 // pre-configured into the subtractive mode.s
-func NewRemoveGroupCapability(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewRemoveGroupCapability(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupCapabilities{tree.NewBaseHook("remove-group-capability", 50), false}, nil
 }

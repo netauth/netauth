@@ -22,6 +22,6 @@ func init() {
 }
 
 // NewSetGroupDisplayName returns an initialized hook ready for use.
-func NewSetGroupDisplayName(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewSetGroupDisplayName(c tree.RefContext) (tree.GroupHook, error) {
 	return &SetGroupDisplayName{tree.NewBaseHook("set-group-displayname", 50)}, nil
 }

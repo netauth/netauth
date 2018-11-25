@@ -37,6 +37,6 @@ func init() {
 }
 
 // NewLoadGroup returns an initialized hook ready for use.
-func NewLoadGroup(c tree.RefContext) (tree.GroupProcessorHook, error) {
+func NewLoadGroup(c tree.RefContext) (tree.GroupHook, error) {
 	return &LoadGroup{tree.NewBaseHook("load-group", 0), c.DB}, nil
 }
