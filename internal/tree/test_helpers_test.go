@@ -19,7 +19,11 @@ func getNewEntityManager(t *testing.T) *Manager {
 		t.Fatal(err)
 	}
 
-	return New(db, crypto)
+	m, err := New(db, crypto)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return m
 }
 
 func slicesAreEqual(left, right []string) bool {

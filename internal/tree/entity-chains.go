@@ -53,11 +53,11 @@ func (m *Manager) InitializeEntityHooks() {
 			log.Println(err)
 			continue
 		}
-		m.entityProcessorHooks[hook.Name()] = hook
+		m.entityHooks[hook.Name()] = hook
 	}
 	if *debugChains {
 		log.Printf("The following (entity) hooks are loaded:")
-		for name := range m.entityProcessorHooks {
+		for name := range m.entityHooks {
 			log.Printf("  %s", name)
 		}
 	}
@@ -73,7 +73,7 @@ func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 
 		}
 		for _, h := range hooks {
-			eph, ok := m.entityProcessorHooks[h]
+			eph, ok := m.entityHooks[h]
 			if !ok {
 				log.Printf("There is no hook named '%s'", h)
 				return ErrUnknownHook
@@ -97,15 +97,16 @@ func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 // configured list.  This allows the system to later assert the
 // presence of chains without checking, since they cannot be modified
 // after loading.
-func (m *Manager) CheckRequiredEntityChains() {
+func (m *Manager) CheckRequiredEntityChains() error {
 	for k := range defaultEntityChains {
 		if _, ok := m.entityProcesses[k]; !ok {
-			log.Fatalf("Required chain %s is not loaded", k)
+			return ErrUnknownHookChain
 		}
 		if len(m.entityProcesses[k]) == 0 {
-			log.Fatalf("Required chain %s is empty", k)
+			return ErrEmptyHookChain
 		}
 	}
+	return nil
 }
 
 // RunEntityChain runs the specified chain with de specifying values

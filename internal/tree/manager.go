@@ -14,7 +14,7 @@ var (
 
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
-func New(db db.DB, crypto crypto.EMCrypto) *Manager {
+func New(db db.DB, crypto crypto.EMCrypto) (*Manager, error) {
 	x := Manager{}
 	x.bootstrapDone = false
 	x.db = db
@@ -25,7 +25,7 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	}
 
 	// Initialize all entity hooks and bind to names.
-	x.entityProcessorHooks = make(map[string]EntityHook)
+	x.entityHooks = make(map[string]EntityHook)
 	x.InitializeEntityHooks()
 
 	// Construct entity chains out of the bound plugins.
@@ -34,10 +34,12 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 
 	// Check that required chains are loaded, bailing out if they
 	// aren't.
-	x.CheckRequiredEntityChains()
+	if err := x.CheckRequiredEntityChains(); err != nil {
+		return nil, err
+	}
 
 	// Initialize all group hooks and bind to names.
-	x.groupProcessorHooks = make(map[string]GroupHook)
+	x.groupHooks = make(map[string]GroupHook)
 	x.InitializeGroupHooks()
 
 	// Construct group chains out of the bound plugins.
@@ -45,9 +47,11 @@ func New(db db.DB, crypto crypto.EMCrypto) *Manager {
 	x.InitializeGroupChains(defaultGroupChains)
 
 	// Check that required chains are loaded, bailing out if they aren't.
-	x.CheckRequiredGroupChains()
+	if err := x.CheckRequiredGroupChains(); err != nil {
+		return nil, err
+	}
 
 	log.Println("Initialized new Entity Manager")
 
-	return &x
+	return &x, nil
 }

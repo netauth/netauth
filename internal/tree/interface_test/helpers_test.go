@@ -29,7 +29,10 @@ func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {
 		Crypto: crypto,
 	}
 
-	em := tree.New(ctx.DB, ctx.Crypto)
+	em, err := tree.New(ctx.DB, ctx.Crypto)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	return em, ctx
 }

@@ -53,12 +53,12 @@ func (m *Manager) InitializeGroupHooks() {
 			log.Println(err)
 			continue
 		}
-		m.groupProcessorHooks[hook.Name()] = hook
+		m.groupHooks[hook.Name()] = hook
 	}
 
 	if *debugChains {
 		log.Printf("The following (group) hooks are loaded:")
-		for name := range m.groupProcessorHooks {
+		for name := range m.groupHooks {
 			log.Printf("  %s", name)
 		}
 	}
@@ -73,7 +73,7 @@ func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 			log.Printf("Initializing chain '%s'", chain)
 		}
 		for _, h := range hooks {
-			gph, ok := m.groupProcessorHooks[h]
+			gph, ok := m.groupHooks[h]
 			if !ok {
 				log.Printf("There is no hook named '%s'", h)
 				return ErrUnknownHook
@@ -97,15 +97,16 @@ func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 // configured list.  This allows the system to later assert the
 // presence of chains without checking, since they cannot be modified
 // after loading.
-func (m *Manager) CheckRequiredGroupChains() {
+func (m *Manager) CheckRequiredGroupChains() error {
 	for k := range defaultGroupChains {
 		if _, ok := m.groupProcesses[k]; !ok {
-			log.Fatalf("Required chain %s is not loaded", k)
+			return ErrUnknownHookChain
 		}
 		if len(m.groupProcesses[k]) == 0 {
-			log.Fatalf("Required chain %s is empty", k)
+			return ErrEmptyHookChain
 		}
 	}
+	return nil
 }
 
 // RunGroupChain runs the specified chain with de specifying values
