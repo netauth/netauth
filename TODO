@@ -1,14 +1,7 @@
-Somehow hooks need to be able to request chains be inserted into the
-current execution run.  This likely needs to result in a change to the
-hook datatype to allow them to return a chain name along with the
-error, and then the executor will need to grab those chain members and
-run them.
+The ListGroups function needs to move down into the database.
+ListGroups should actually become SearchGroups, and should have a
+SearchEntities companion.  These functions should be implemented in a
+"polyfil" class so that memdb and protodb don't need to implement the
+same shims.
 
-Putting this on the hook side means needing to feed hook
-configuration back into the hooks, which creates a worse problem than
-already exists with the tests.
-
-At the same time as this change, references to the entity processor
-should be dropped, things are now EntityHookChains and
-GroupHookChains.  Names should be cleaned up as this change goes
-through.
+Next*Number also needs to move into the polyfill.

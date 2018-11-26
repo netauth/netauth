@@ -21,3 +21,20 @@ func (m *Manager) ListGroups() ([]*pb.Group, error) {
 	}
 	return groups, nil
 }
+
+// allEntities is a convenient way to return all the entities
+func (m *Manager) allEntities() ([]*pb.Entity, error) {
+	var entities []*pb.Entity
+	el, err := m.db.DiscoverEntityIDs()
+	if err != nil {
+		return nil, err
+	}
+	for _, en := range el {
+		e, err := m.db.LoadEntity(en)
+		if err != nil {
+			return nil, err
+		}
+		entities = append(entities, e)
+	}
+	return entities, nil
+}

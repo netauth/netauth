@@ -104,23 +104,6 @@ func (m *Manager) getDirectGroups(e *pb.Entity) []string {
 	return e.GetMeta().GetGroups()
 }
 
-// allEntities is a convenient way to return all the entities
-func (m *Manager) allEntities() ([]*pb.Entity, error) {
-	var entities []*pb.Entity
-	el, err := m.db.DiscoverEntityIDs()
-	if err != nil {
-		return nil, err
-	}
-	for _, en := range el {
-		e, err := m.db.LoadEntity(en)
-		if err != nil {
-			return nil, err
-		}
-		entities = append(entities, e)
-	}
-	return entities, nil
-}
-
 // listMembers takes a group ID in and returns a slice of entities
 // that are in that group.
 func (m *Manager) listMembers(groupID string) ([]*pb.Entity, error) {
