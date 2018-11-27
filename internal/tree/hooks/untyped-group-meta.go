@@ -42,7 +42,7 @@ func NewDelFuzzyGroupUM(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
 }
 
-// NewDelExactentityUM returns a configured hook in CLEAREXACT mode.
+// NewDelExactGroupUM returns a configured hook in CLEAREXACT mode.
 func NewDelExactGroupUM(c tree.RefContext) (tree.GroupHook, error) {
 	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
 }
