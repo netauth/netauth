@@ -42,7 +42,7 @@ func NewDelFuzzyEntityUM(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
 }
 
-// NewDelExactentityUM returns a configured hook in CLEAREXACT mode.
+// NewDelExactEntityUM returns a configured hook in CLEAREXACT mode.
 func NewDelExactEntityUM(c tree.RefContext) (tree.EntityHook, error) {
 	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
 }
