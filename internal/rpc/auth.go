@@ -54,7 +54,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	}
 
 	// Get the full fledged entity
-	e, err := s.Tree.GetEntity(e.GetID())
+	e, err := s.Tree.FetchEntity(e.GetID())
 	if err != nil {
 		log.Println("Entity Vanished!")
 		return nil, toWireError(ErrInternalError)
@@ -74,7 +74,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	// queries.
 	groupNames := s.Tree.GetMemberships(e, true)
 	for _, name := range groupNames {
-		g, err := s.Tree.GetGroupByName(name)
+		g, err := s.Tree.FetchGroup(name)
 		if err != nil {
 			log.Printf("Error loading group: %s", err)
 			continue
@@ -162,7 +162,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	// proceed
 	err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret())
 	if modself && err == nil {
-		err := s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret())
+		err := s.Tree.SetSecret(me.GetID(), me.GetSecret())
 		if err != nil {
 			return nil, toWireError(err)
 		}
@@ -190,7 +190,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 
 	// Change the secret per what was specified in the
 	// modification entity struct.
-	if err = s.Tree.SetEntitySecretByID(me.GetID(), me.GetSecret()); err != nil {
+	if err = s.Tree.SetSecret(me.GetID(), me.GetSecret()); err != nil {
 		return nil, toWireError(err)
 	}
 
@@ -231,14 +231,14 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	if entity != nil {
 		switch mode {
 		case "ADD":
-			if err := s.Tree.SetEntityCapabilityByID(entity.GetID(), cap); err != nil {
+			if err := s.Tree.SetEntityCapability(entity.GetID(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while adding capability"),
 				}, toWireError(err)
 			}
 		case "REMOVE":
-			if err := s.Tree.RemoveEntityCapabilityByID(entity.GetID(), cap); err != nil {
+			if err := s.Tree.DropEntityCapability(entity.GetID(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while removing capability"),
@@ -253,14 +253,14 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	} else if group != nil {
 		switch mode {
 		case "ADD":
-			if err := s.Tree.SetGroupCapabilityByName(group.GetName(), cap); err != nil {
+			if err := s.Tree.SetGroupCapability(group.GetName(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while adding capability"),
 				}, toWireError(err)
 			}
 		case "REMOVE":
-			if err := s.Tree.RemoveGroupCapabilityByName(group.GetName(), cap); err != nil {
+			if err := s.Tree.DropGroupCapability(group.GetName(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
 					Msg:     proto.String("Error while removing capability"),
@@ -305,7 +305,7 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	if err := s.Tree.LockEntity(e.GetID()); err != nil {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
-			Msg: proto.String("An error occured while locking"),
+			Msg:     proto.String("An error occured while locking"),
 		}, toWireError(err)
 	}
 
@@ -317,7 +317,7 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
-		Msg: proto.String("Entity is now locked"),
+		Msg:     proto.String("Entity is now locked"),
 	}, toWireError(nil)
 }
 
@@ -340,7 +340,7 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 	if err := s.Tree.UnlockEntity(e.GetID()); err != nil {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
-			Msg: proto.String("An error occured while locking"),
+			Msg:     proto.String("An error occured while locking"),
 		}, toWireError(err)
 	}
 
@@ -352,6 +352,6 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
-		Msg: proto.String("Entity is now unlocked"),
+		Msg:     proto.String("Entity is now unlocked"),
 	}, toWireError(nil)
 }

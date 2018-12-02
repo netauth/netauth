@@ -29,7 +29,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
-	if err := s.Tree.NewEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err != nil {
+	if err := s.Tree.CreateEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err != nil {
 		return nil, toWireError(err)
 	}
 
@@ -63,7 +63,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
-	if err := s.Tree.DeleteEntityByID(e.GetID()); err != nil {
+	if err := s.Tree.DestroyEntity(e.GetID()); err != nil {
 		return nil, toWireError(err)
 	}
 
@@ -92,7 +92,7 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 		client.GetService(),
 		client.GetID())
 
-	e, err := s.Tree.GetEntity(e.GetID())
+	e, err := s.Tree.FetchEntity(e.GetID())
 	return e, toWireError(err)
 }
 

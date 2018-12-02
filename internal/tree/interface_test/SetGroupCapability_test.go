@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/NetAuth/NetAuth/internal/tree"
-	
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -13,7 +13,7 @@ func TestSetGroupCapability(t *testing.T) {
 
 	addGroup(t, ctx)
 
-	if err := m.SetGroupCapabilityByName("group1", "GLOBAL_ROOT"); err != nil {
+	if err := m.SetGroupCapability("group1", "GLOBAL_ROOT"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -30,7 +30,7 @@ func TestSetGroupCapability(t *testing.T) {
 func TestSetGroupCapabilityBadCap(t *testing.T) {
 	m, _ := newTreeManager(t)
 
-	if err := m.SetGroupCapabilityByName("group1", "UNKNOWN"); err != tree.ErrUnknownCapability {
+	if err := m.SetGroupCapability("group1", "UNKNOWN"); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }

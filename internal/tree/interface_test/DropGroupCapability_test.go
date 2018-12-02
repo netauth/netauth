@@ -26,7 +26,7 @@ func TestDropGroupCapability(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := m.RemoveGroupCapabilityByName("group1", "CREATE_GROUP"); err != nil {
+	if err := m.DropGroupCapability("group1", "CREATE_GROUP"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,7 +43,7 @@ func TestDropGroupCapability(t *testing.T) {
 func TestDropGroupCapabilityBadCap(t *testing.T) {
 	m, _ := newTreeManager(t)
 
-	if err := m.RemoveGroupCapabilityByName("group1", "UNKNOWN"); err != tree.ErrUnknownCapability {
+	if err := m.DropGroupCapability("group1", "UNKNOWN"); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }

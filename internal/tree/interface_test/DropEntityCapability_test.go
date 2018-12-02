@@ -27,7 +27,7 @@ func TestDropEntityCapability(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := m.RemoveEntityCapabilityByID("entity1", "GLOBAL_ROOT"); err != nil {
+	if err := m.DropEntityCapability("entity1", "GLOBAL_ROOT"); err != nil {
 		t.Error(err)
 	}
 
@@ -45,7 +45,7 @@ func TestDropEntityCapability(t *testing.T) {
 func TestDropEntityCapabilityUnknownCapability(t *testing.T) {
 	m, _ := newTreeManager(t)
 
-	if err := m.RemoveEntityCapabilityByID("entity1", "UNKNOWN"); err != tree.ErrUnknownCapability {
+	if err := m.DropEntityCapability("entity1", "UNKNOWN"); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }

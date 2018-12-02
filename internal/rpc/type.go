@@ -1,68 +1,46 @@
 package rpc
 
 import (
-	"errors"
-
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-var (
-	// ErrRequestorUnqualified is returned when a caller has
-	// attempted to perform some action that requires
-	// authorization and the caller is either not authorized, was
-	// unable to present a token, or the token did not contain
-	// sufficient capabilities.
-	ErrRequestorUnqualified = errors.New("the requestor is not qualified to perform that action")
-
-	// ErrMalformedRequest is returned when a caller makes some
-	// request to the server but has failed to provide a complete
-	// request, or has provided a request that is in conflict with
-	// itself.
-	ErrMalformedRequest = errors.New("the request is malformed and cannot be processed")
-
-	// ErrInternalError is a catchall for errors that are
-	// otherwise unidentified and unrecoverable in the server.
-	ErrInternalError = errors.New("An internal error has occurred")
-)
-
 // An EntityTree is a mechanism for storing entities and information
 // about them.
 type EntityTree interface {
-	GetEntity(string) (*pb.Entity, error)
-	ValidateSecret(string, string) error
-	MakeBootstrap(string, string)
+	Bootstrap(string, string)
 	DisableBootstrap()
-	SetEntitySecretByID(string, string) error
 
+	CreateEntity(string, int32, string) error
+	FetchEntity(string) (*pb.Entity, error)
+	SearchEntities() ([]*pb.Entity, error)
+	ValidateSecret(string, string) error
+	SetSecret(string, string) error
 	LockEntity(string) error
 	UnlockEntity(string) error
-
-	NewEntity(string, int32, string) error
-	DeleteEntityByID(string) error
 	UpdateEntityMeta(string, *pb.EntityMeta) error
 	UpdateEntityKeys(string, string, string, string) ([]string, error)
 	ManageUntypedEntityMeta(string, string, string, string) ([]string, error)
+	DestroyEntity(string) error
 
-	NewGroup(string, string, string, int32) error
-	DeleteGroup(string) error
-	ListGroups() ([]*pb.Group, error)
-	GetGroupByName(string) (*pb.Group, error)
+	CreateGroup(string, string, string, int32) error
+	FetchGroup(string) (*pb.Group, error)
+	SearchGroups() ([]*pb.Group, error)
 	UpdateGroupMeta(string, *pb.Group) error
 	ManageUntypedGroupMeta(string, string, string, string) ([]string, error)
-	GetMemberships(*pb.Entity, bool) []string
+	DestroyGroup(string) error
 
 	AddEntityToGroup(string, string) error
 	RemoveEntityFromGroup(string, string) error
 	ListMembers(string) ([]*pb.Entity, error)
-
+	GetMemberships(*pb.Entity, bool) []string
 	ModifyGroupExpansions(string, string, pb.ExpansionMode) error
 
-	SetEntityCapabilityByID(string, string) error
-	RemoveEntityCapabilityByID(string, string) error
-	SetGroupCapabilityByName(string, string) error
-	RemoveGroupCapabilityByName(string, string) error
+	SetEntityCapability(string, string) error
+	DropEntityCapability(string, string) error
+	SetGroupCapability(string, string) error
+	DropGroupCapability(string, string) error
 }
 
 // A NetAuthServer is a collection of methods that satisfy the

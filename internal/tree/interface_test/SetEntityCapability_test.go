@@ -13,7 +13,7 @@ func TestSetEntityCapability(t *testing.T) {
 
 	addEntity(t, ctx)
 
-	if err := m.SetEntityCapabilityByID("entity1", "GLOBAL_ROOT"); err != nil {
+	if err := m.SetEntityCapability("entity1", "GLOBAL_ROOT"); err != nil {
 		t.Error(err)
 	}
 
@@ -30,7 +30,7 @@ func TestSetEntityCapability(t *testing.T) {
 func TestSetEntityCapabilityUnknownCapability(t *testing.T) {
 	m, _ := newTreeManager(t)
 
-	if err := m.SetEntityCapabilityByID("entity1", "UNKNOWN"); err != tree.ErrUnknownCapability {
+	if err := m.SetEntityCapability("entity1", "UNKNOWN"); err != tree.ErrUnknownCapability {
 		t.Error(err)
 	}
 }

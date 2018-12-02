@@ -8,7 +8,7 @@ type BaseHook struct {
 }
 
 // Name returns the name of a hook.  Names should be kabob case.
-func (h *BaseHook) Name() string  { return h.name }
+func (h *BaseHook) Name() string { return h.name }
 
 // Priority returns the priority of a hook.  Priorities are banded as follows:
 // 0-10:

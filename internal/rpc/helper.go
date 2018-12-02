@@ -11,7 +11,7 @@ import (
 )
 
 func (s *NetAuthServer) manageByMembership(entityID, groupName string) bool {
-	g, err := s.Tree.GetGroupByName(groupName)
+	g, err := s.Tree.FetchGroup(groupName)
 	if err != nil {
 		// If the group can't be summoned, pessimistically
 		// return false
@@ -28,7 +28,7 @@ func (s *NetAuthServer) manageByMembership(entityID, groupName string) bool {
 	}
 
 	// Get the entity itself for a group check
-	e, err := s.Tree.GetEntity(entityID)
+	e, err := s.Tree.FetchEntity(entityID)
 	if err != nil {
 		return false
 	}

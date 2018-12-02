@@ -8,12 +8,12 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db"
 )
 
-func TestGetEntity(t *testing.T) {
+func TestFetchEntity(t *testing.T) {
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
 
-	e, err := m.GetEntity("entity1")
+	e, err := m.FetchEntity("entity1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,9 +32,9 @@ func TestGetEntity(t *testing.T) {
 	}
 }
 
-func TestGetEntityNonExistant(t *testing.T) {
+func TestFetchEntityNonExistant(t *testing.T) {
 	m, _ := newTreeManager(t)
-	if _, err := m.GetEntity("non-existant"); err != db.ErrUnknownEntity {
+	if _, err := m.FetchEntity("non-existant"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }

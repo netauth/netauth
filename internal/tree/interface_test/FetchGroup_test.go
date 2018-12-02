@@ -6,12 +6,12 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-func TestGetGroup(t *testing.T) {
+func TestFetchGroup(t *testing.T) {
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
 
-	g, err := m.GetGroupByName("group1")
+	g, err := m.FetchGroup("group1")
 	if err != nil {
 		t.Fatal(err)
 	}

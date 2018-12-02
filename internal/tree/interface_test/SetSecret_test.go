@@ -9,8 +9,8 @@ func TestSetSecret(t *testing.T) {
 
 	addEntity(t, ctx)
 
-	em.SetEntitySecretByID("entity1", "secret1")
-	
+	em.SetSecret("entity1", "secret1")
+
 	e, err := ctx.DB.LoadEntity("entity1")
 	if err != nil {
 		t.Fatal(err)

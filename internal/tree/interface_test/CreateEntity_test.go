@@ -2,13 +2,12 @@ package interface_test
 
 import (
 	"testing"
-
 )
 
 func TestNewEntity(t *testing.T) {
 	em, ctx := newTreeManager(t)
 
-	if err := em.NewEntity("foo", -1, "foo"); err != nil {
+	if err := em.CreateEntity("foo", -1, "foo"); err != nil {
 		t.Fatal(err)
 	}
 

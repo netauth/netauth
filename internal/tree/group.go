@@ -9,10 +9,10 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// NewGroup adds a group to the datastore if it does not currently
+// CreateGroup adds a group to the datastore if it does not currently
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
-func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) error {
+func (m *Manager) CreateGroup(name, displayName, managedBy string, number int32) error {
 	rg := &pb.Group{
 		Name:        &name,
 		DisplayName: &displayName,
@@ -24,11 +24,11 @@ func (m *Manager) NewGroup(name, displayName, managedBy string, number int32) er
 	return err
 }
 
-// GetGroupByName fetches a group by name and returns a pointer to the
+// FetchGroup fetches a group by name and returns a pointer to the
 // group and a nil error.  If the group cannot be loaded the error
 // will explain why.  This is very thin since it just obtains a value
 // from the storage layer.
-func (m *Manager) GetGroupByName(name string) (*pb.Group, error) {
+func (m *Manager) FetchGroup(name string) (*pb.Group, error) {
 	rg := &pb.Group{
 		Name: &name,
 	}
@@ -36,9 +36,9 @@ func (m *Manager) GetGroupByName(name string) (*pb.Group, error) {
 	return m.RunGroupChain("FETCH", rg)
 }
 
-// DeleteGroup unsurprisingly deletes a group.  There's no real logic
+// DestroyGroup unsurprisingly deletes a group.  There's no real logic
 // here, it just passes the delete call through to the storage layer.
-func (m *Manager) DeleteGroup(name string) error {
+func (m *Manager) DestroyGroup(name string) error {
 	rg := &pb.Group{
 		Name: &name,
 	}
@@ -90,9 +90,10 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 	return nil, nil
 }
 
-// SetGroupCapabilityByName is a convenience function to get the group
-// and hand it off to the actual setGroupCapability function
-func (m *Manager) SetGroupCapabilityByName(name string, c string) error {
+// SetGroupCapability adds a capability to an existing group.  It
+// should be preferred to add capabilities to groups rather than to
+// entities directly.
+func (m *Manager) SetGroupCapability(name string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
 		return ErrUnknownCapability
@@ -107,9 +108,10 @@ func (m *Manager) SetGroupCapabilityByName(name string, c string) error {
 	return err
 }
 
-// RemoveGroupCapabilityByName is a convenience function to get the group
-// and hand it off to the actual removeGroupCapability function
-func (m *Manager) RemoveGroupCapabilityByName(name string, c string) error {
+// DropGroupCapability removes capabilities from groups.  It should be
+// preferred  to add/remove  capabilities  to groups,  rather than  to
+// entities directly.
+func (m *Manager) DropGroupCapability(name string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
 		return ErrUnknownCapability

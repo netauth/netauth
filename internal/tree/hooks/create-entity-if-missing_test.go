@@ -81,7 +81,7 @@ func TestCreateNew(t *testing.T) {
 	if e.GetID() != "foo" {
 		t.Fatal("Bad Entity")
 	}
-	
+
 	// This check only works because we're using nocrypto which
 	// stores plaintext secrets.
 	if e.GetSecret() != "foo" {

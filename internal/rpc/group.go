@@ -30,7 +30,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
-	if err := s.Tree.NewGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err != nil {
+	if err := s.Tree.CreateGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err != nil {
 		return nil, toWireError(err)
 	}
 
@@ -68,7 +68,7 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
-	if err := s.Tree.DeleteGroup(g.GetName()); err != nil {
+	if err := s.Tree.DestroyGroup(g.GetName()); err != nil {
 		return nil, toWireError(err)
 	}
 
@@ -90,7 +90,7 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 	client := r.GetInfo()
 	g := r.GetGroup()
 
-	grp, err := s.Tree.GetGroupByName(g.GetName())
+	grp, err := s.Tree.FetchGroup(g.GetName())
 	if err != nil {
 		return nil, toWireError(err)
 	}
@@ -100,7 +100,7 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 		client.GetService(),
 		client.GetID())
 
-	allGroups, err := s.Tree.ListGroups()
+	allGroups, err := s.Tree.SearchGroups()
 	if err != nil {
 		log.Printf("Error summoning groups: %s", err)
 	}

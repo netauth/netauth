@@ -4,8 +4,9 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// ListGroups literally returns a list of groups
-func (m *Manager) ListGroups() ([]*pb.Group, error) {
+// SearchGroups returns a list of groups filtered by the search
+// criteria.
+func (m *Manager) SearchGroups() ([]*pb.Group, error) {
 	names, err := m.db.DiscoverGroupNames()
 	if err != nil {
 		return nil, err
@@ -22,8 +23,9 @@ func (m *Manager) ListGroups() ([]*pb.Group, error) {
 	return groups, nil
 }
 
-// allEntities is a convenient way to return all the entities
-func (m *Manager) allEntities() ([]*pb.Entity, error) {
+// SearchEntities returns a list of entities filtered by the search
+// criteria.
+func (m *Manager) SearchEntities() ([]*pb.Entity, error) {
 	var entities []*pb.Entity
 	el, err := m.db.DiscoverEntityIDs()
 	if err != nil {

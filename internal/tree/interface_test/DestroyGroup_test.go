@@ -11,7 +11,7 @@ func TestDeleteGroup(t *testing.T) {
 
 	addGroup(t, ctx)
 
-	if err := m.DeleteGroup("group1"); err != nil {
+	if err := m.DestroyGroup("group1"); err != nil {
 		t.Fatal(err)
 	}
 

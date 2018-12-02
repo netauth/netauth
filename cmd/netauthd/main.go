@@ -131,7 +131,7 @@ func main() {
 	if len(*bootstrap) != 0 {
 		log.Println("Commencing Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
-		srv.Tree.MakeBootstrap(eParts[0], eParts[1])
+		srv.Tree.Bootstrap(eParts[0], eParts[1])
 		log.Println("Bootstrap phase complete")
 	}
 

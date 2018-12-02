@@ -33,5 +33,5 @@ func TestLockEntity(t *testing.T) {
 
 	if e.GetMeta().GetLocked() {
 		t.Error("Entity not unlocked")
-	}	
+	}
 }

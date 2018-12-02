@@ -102,13 +102,13 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 	if e != nil {
 		// If e is defined then we want the groups for a
 		// specific entity
-		entity, err := s.Tree.GetEntity(e.GetID())
+		entity, err := s.Tree.FetchEntity(e.GetID())
 		if err != nil {
 			return nil, toWireError(err)
 		}
 		groupNames := s.Tree.GetMemberships(entity, inclindr)
 		for _, name := range groupNames {
-			g, err := s.Tree.GetGroupByName(name)
+			g, err := s.Tree.FetchGroup(name)
 			if err != nil {
 				return nil, toWireError(err)
 			}
@@ -117,7 +117,7 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 	} else {
 		// If e is not defined then we want all groups.
 		var err error
-		list, err = s.Tree.ListGroups()
+		list, err = s.Tree.SearchGroups()
 		if err != nil {
 			return nil, toWireError(err)
 		}

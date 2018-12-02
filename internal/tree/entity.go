@@ -11,13 +11,13 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
-// NewEntity creates a new entity given an ID, number, and secret.
+// CreateEntity creates a new entity given an ID, number, and secret.
 // Its not necessary to set the secret upon creation and it can be set
 // later.  If not set on creation then the entity will not be usable.
 // number must be a unique positive integer.  Because these are
 // generally allocated in sequence the special value '-1' may be
 // specified which will select the next available number.
-func (m *Manager) NewEntity(ID string, number int32, secret string) error {
+func (m *Manager) CreateEntity(ID string, number int32, secret string) error {
 	de := &pb.Entity{
 		ID:     &ID,
 		Number: &number,
@@ -28,13 +28,13 @@ func (m *Manager) NewEntity(ID string, number int32, secret string) error {
 	return err
 }
 
-// MakeBootstrap is a function that can be called during the startup
-// of the srever to create an entity that has the appropriate
-// authority to create more entities and otherwise manage the server.
-// This can only be called once during startup, attepts to call it
-// again will result in no change.  The bootstrap user will always get
-// the next available number which in most cases will be 1.
-func (m *Manager) MakeBootstrap(ID string, secret string) {
+// Bootstrap is a function that can be called during the startup of
+// the srever to create an entity that has the appropriate authority
+// to create more entities and otherwise manage the server.  This can
+// only be called once during startup, attepts to call it again will
+// result in no change.  The bootstrap user will always get the next
+// available number which in most cases will be 1.
+func (m *Manager) Bootstrap(ID string, secret string) {
 	if m.bootstrapDone {
 		return
 	}
@@ -64,12 +64,12 @@ func (m *Manager) DisableBootstrap() {
 	log.Println("Bootstrap disabled")
 }
 
-// DeleteEntityByID deletes the named entity.  This function will
+// DestroyEntity deletes the named entity.  This function will
 // delete the entity in a non-atomic way, but will ensure that the
 // entity cannot be authenticated with before returning.  If the named
 // ID does not exist the function will return tree.E_NO_ENTITY, in
 // all other cases nil is returned.
-func (m *Manager) DeleteEntityByID(ID string) error {
+func (m *Manager) DestroyEntity(ID string) error {
 	de := &pb.Entity{
 		ID: &ID,
 	}
@@ -78,8 +78,8 @@ func (m *Manager) DeleteEntityByID(ID string) error {
 	return err
 }
 
-// SetEntityCapabilityByID adds a capability to an entry directly.
-func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
+// SetEntityCapability adds a capability to an entry directly.
+func (m *Manager) SetEntityCapability(ID string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
 		return ErrUnknownCapability
@@ -96,9 +96,9 @@ func (m *Manager) SetEntityCapabilityByID(ID string, c string) error {
 	return err
 }
 
-// RemoveEntityCapabilityByID is a convenience function to get the entity
+// DropEntityCapability is a convenience function to get the entity
 // and hand it off to the actual removeEntityCapability function
-func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
+func (m *Manager) DropEntityCapability(ID string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
 		return ErrUnknownCapability
@@ -115,9 +115,9 @@ func (m *Manager) RemoveEntityCapabilityByID(ID string, c string) error {
 	return err
 }
 
-// SetEntitySecretByID sets the secret on a given entity using the
+// SetSecret sets the secret on a given entity using the
 // crypto interface.
-func (m *Manager) SetEntitySecretByID(ID string, secret string) error {
+func (m *Manager) SetSecret(ID string, secret string) error {
 	de := &pb.Entity{
 		ID:     &ID,
 		Secret: &secret,
@@ -139,9 +139,9 @@ func (m *Manager) ValidateSecret(ID string, secret string) error {
 	return err
 }
 
-// GetEntity returns an entity to the caller after first making a safe
-// copy of it to remove secure fields.
-func (m *Manager) GetEntity(ID string) (*pb.Entity, error) {
+// FetchEntity returns an entity to the caller after first making a
+// safe copy of it to remove secure fields.
+func (m *Manager) FetchEntity(ID string) (*pb.Entity, error) {
 	de := &pb.Entity{
 		ID: &ID,
 	}

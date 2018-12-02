@@ -45,7 +45,7 @@ func (m *Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
 	// Though inneficient, its easier to understand.  We get the
 	// membership of all groups, and evaluate if this entity is a
 	// member of those groups.
-	grps, err := m.ListGroups()
+	grps, err := m.SearchGroups()
 	if err != nil {
 		log.Printf("Error getting group list: %s", grps)
 		return []string{}
@@ -111,7 +111,7 @@ func (m *Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 	// isn't a group that exists in a real sense, it just serves
 	// to return a global list as a convenience.
 	if groupID == "ALL" {
-		return m.allEntities()
+		return m.SearchEntities()
 	}
 
 	// If its not the all group then we check to make sure the
@@ -126,7 +126,7 @@ func (m *Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 	// the members since the membership graph has the arrows going
 	// the other way.
 	var entities []*pb.Entity
-	el, err := m.allEntities()
+	el, err := m.SearchEntities()
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ func TestDeleteEntity(t *testing.T) {
 
 	addEntity(t, ctx)
 
-	if err := m.DeleteEntityByID("entity1"); err != nil {
+	if err := m.DestroyEntity("entity1"); err != nil {
 		t.Fatal(err)
 	}
 

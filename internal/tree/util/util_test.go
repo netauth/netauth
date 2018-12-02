@@ -1,8 +1,8 @@
 package util
 
 import (
-	"testing"
 	"sort"
+	"testing"
 )
 
 func TestPatchStringSlice(t *testing.T) {
