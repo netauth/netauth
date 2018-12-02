@@ -12,10 +12,12 @@ func (*dummyDB) DiscoverEntityIDs() ([]string, error)  { return []string{}, nil 
 func (*dummyDB) LoadEntity(string) (*pb.Entity, error) { return nil, nil }
 func (*dummyDB) SaveEntity(*pb.Entity) error           { return nil }
 func (*dummyDB) DeleteEntity(string) error             { return nil }
+func (*dummyDB) NextEntityNumber() (int32, error)      { return 1, nil }
 func (*dummyDB) DiscoverGroupNames() ([]string, error) { return []string{}, nil }
 func (*dummyDB) LoadGroup(string) (*pb.Group, error)   { return nil, nil }
 func (*dummyDB) SaveGroup(*pb.Group) error             { return nil }
 func (*dummyDB) DeleteGroup(string) error              { return nil }
+func (*dummyDB) NextGroupNumber() (int32, error)       { return 1, nil }
 func newDummyDB() (DB, error)                          { return new(dummyDB), nil }
 
 func TestRegisterDB(t *testing.T) {
