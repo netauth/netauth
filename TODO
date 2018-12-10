@@ -4,8 +4,6 @@ SearchEntities companion.  These functions should be implemented in a
 "polyfil" class so that memdb and protodb don't need to implement the
 same shims.
 
-Next*Number also needs to move into the polyfill.
-
 Current flag configs should be transitioned to Viper.
 
 Google Subcommands should be replaced with cobra commander.
