@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/db/util"
 	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/golang/protobuf/proto"
 
@@ -135,29 +136,7 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 
 // NextEntityNumber computes and return the next entity number.
 func (pdb *ProtoDB) NextEntityNumber() (int32, error) {
-	var largest int32
-
-	// Iterate over the entities and return the largest ID found
-	// +1.  This allows them to be in any order or have IDs
-	// missing in the middle and still work.  Though an
-	// inefficient search this is worst case O(N) and happens only
-	// on provisioning a new entry in the database.
-	el, err := pdb.DiscoverEntityIDs()
-	if err != nil {
-		return 0, err
-	}
-
-	for _, en := range el {
-		e, err := pdb.LoadEntity(en)
-		if err != nil {
-			return 0, err
-		}
-		if e.GetNumber() > largest {
-			largest = e.GetNumber()
-		}
-	}
-
-	return largest + 1, nil
+	return util.NextEntityNumber(pdb.LoadEntity, pdb.DiscoverEntityIDs)
 }
 
 // DiscoverGroupNames returns a list of group names that this loader
@@ -241,23 +220,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 // very inefficient but it only is called when a new group is being
 // created, which is hopefully infrequent.
 func (pdb *ProtoDB) NextGroupNumber() (int32, error) {
-	var largest int32
-
-	l, err := pdb.DiscoverGroupNames()
-	if err != nil {
-		return 0, err
-	}
-	for _, i := range l {
-		g, err := pdb.LoadGroup(i)
-		if err != nil {
-			return 0, err
-		}
-		if g.GetNumber() > largest {
-			largest = g.GetNumber()
-		}
-	}
-
-	return largest + 1, nil
+	return util.NextGroupNumber(pdb.LoadGroup, pdb.DiscoverGroupNames)
 }
 
 // ensureDataDirectory is called during initialization of this backend
