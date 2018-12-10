@@ -1,8 +1,7 @@
-package protodb
-
-// This is one of the simplest databases that just reads and writes
-// protos to the local disk.  It's probably quite usable in
+// Package protodb is one of the simplest databases that just reads
+// and writes protos to the local disk.  It's probably quite usable in
 // environments that don't have high modification rates.
+package protodb
 
 import (
 	"flag"

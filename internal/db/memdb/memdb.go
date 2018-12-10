@@ -1,3 +1,6 @@
+// Package memdb is an entirely in-memory database with no persistence
+// and no concurrency guarantees.  Its function is to provide a full
+// database implementation to tests to run against.
 package memdb
 
 import (
