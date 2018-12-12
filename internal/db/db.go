@@ -3,31 +3,6 @@ package db
 // This package implements a map of interfaces that contain the
 // various database options.
 
-import (
-	pb "github.com/NetAuth/Protocol"
-)
-
-// DB specifies the methods that a DB engine must provide.
-type DB interface {
-	// Entity handling
-	DiscoverEntityIDs() ([]string, error)
-	LoadEntity(string) (*pb.Entity, error)
-	SaveEntity(*pb.Entity) error
-	DeleteEntity(string) error
-	NextEntityNumber() (int32, error)
-
-	// Group handling
-	DiscoverGroupNames() ([]string, error)
-	LoadGroup(string) (*pb.Group, error)
-	SaveGroup(*pb.Group) error
-	DeleteGroup(string) error
-	NextGroupNumber() (int32, error)
-}
-
-// Factory defines the function which can be used to register new
-// implementations.
-type Factory func() (DB, error)
-
 var (
 	backends map[string]Factory
 )

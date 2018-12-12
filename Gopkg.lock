@@ -18,6 +18,22 @@
   revision = "8744c6279991fd7b18d94ae655a3df18990d9f98"
 
 [[projects]]
+  digest = "1:2f60f5ae6749aeae294562cefebcc8ba9c033f74d3088bdc275d1f11b8aabc92"
+  name = "github.com/RoaringBitmap/roaring"
+  packages = ["."]
+  pruneopts = ""
+  revision = "3d677d3262197ee558b85029301eb69b8239f91a"
+  version = "v0.4.16"
+
+[[projects]]
+  branch = "master"
+  digest = "1:6ae849fd4cfda8751fa6332e63cbd6685bfa24027de5309d26b2d06c21003138"
+  name = "github.com/Smerity/govarint"
+  packages = ["."]
+  pruneopts = ""
+  revision = "7265e41f48f15fd61751e16da866af3c704bb3ab"
+
+[[projects]]
   digest = "1:15ceb8ca7a71db4c426d8aef1909ea074f6840efa163490bb2798f475624e4ae"
   name = "github.com/bgentry/speakeasy"
   packages = ["."]
@@ -26,12 +42,109 @@
   version = "v0.1.0"
 
 [[projects]]
+  digest = "1:35b1f0fb65dd639625d24ad63d22b8e802c3ab7ab871ba0113d49dadab8a287e"
+  name = "github.com/blevesearch/bleve"
+  packages = [
+    ".",
+    "analysis",
+    "analysis/analyzer/standard",
+    "analysis/datetime/flexible",
+    "analysis/datetime/optional",
+    "analysis/lang/en",
+    "analysis/token/lowercase",
+    "analysis/token/porter",
+    "analysis/token/stop",
+    "analysis/tokenizer/unicode",
+    "document",
+    "geo",
+    "index",
+    "index/scorch",
+    "index/scorch/mergeplan",
+    "index/scorch/segment",
+    "index/scorch/segment/mem",
+    "index/scorch/segment/zap",
+    "index/store",
+    "index/store/boltdb",
+    "index/store/gtreap",
+    "index/upsidedown",
+    "mapping",
+    "numeric",
+    "registry",
+    "search",
+    "search/collector",
+    "search/facet",
+    "search/highlight",
+    "search/highlight/format/html",
+    "search/highlight/fragmenter/simple",
+    "search/highlight/highlighter/html",
+    "search/highlight/highlighter/simple",
+    "search/query",
+    "search/scorer",
+    "search/searcher",
+  ]
+  pruneopts = ""
+  revision = "1a319cdf5bf77dc8cee35a6b99f908792c2547ef"
+  version = "v0.7.0"
+
+[[projects]]
+  digest = "1:b9a6b4e079fea1e137c0f8caeb65030978a8dee9f37df5a6ffd9fabe98cdd32e"
+  name = "github.com/blevesearch/go-porterstemmer"
+  packages = ["."]
+  pruneopts = ""
+  revision = "b4dd94e38f29620fe0f97ae4b0f6994b0d5d75f0"
+  version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:eb75e36e2b8b6a24e51dd1cd5692bfa0594003aeeb867a774d0ff1159fcb9ff9"
+  name = "github.com/blevesearch/segment"
+  packages = ["."]
+  pruneopts = ""
+  revision = "762005e7a34fd909a84586299f1dd457371d36ee"
+
+[[projects]]
+  digest = "1:ed112122ed4a920d944cc99b9d00b0441c11685939c28462c719488d36fe29aa"
+  name = "github.com/boltdb/bolt"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
+  version = "v1.3.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:21aee7b432ce1298869959e614776826b3a7f7777722589879f027fbee819820"
+  name = "github.com/couchbase/vellum"
+  packages = [
+    ".",
+    "regexp",
+    "utf8",
+  ]
+  pruneopts = ""
+  revision = "dd17fb852690c5b0068b26995fb4e63a2f7cb1c1"
+
+[[projects]]
   digest = "1:6098222470fe0172157ce9bbef5d2200df4edde17ee649c5d6e48330e4afa4c6"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   pruneopts = ""
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:4c4a331124d70560f6da77d5088c10215e28a4b7fc1ee81eb4bc8400c86761cc"
+  name = "github.com/edsrzf/mmap-go"
+  packages = ["."]
+  pruneopts = ""
+  revision = "0bce6a6887123b67a60366d2c9fe2dfb74289d2e"
+
+[[projects]]
+  branch = "master"
+  digest = "1:7e33fce0e76a165d0ab0eaab80af044082d056686ee1abf051e40170bd931fbc"
+  name = "github.com/glycerine/go-unsnap-stream"
+  packages = ["."]
+  pruneopts = ""
+  revision = "9f0cb55181dd3a0a4c168d3dbc72d4aca4853126"
 
 [[projects]]
   branch = "master"
@@ -49,11 +162,59 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:2a5888946cdbc8aa360fd43301f9fc7869d663f60d5eedae7d4e6e5e4f06f2bf"
+  name = "github.com/golang/snappy"
+  packages = ["."]
+  pruneopts = ""
+  revision = "2e65f85255dbc3072edf28d6b5b8efc472979f5a"
+
+[[projects]]
+  branch = "master"
   digest = "1:df265b7f54410945dad5cf5979d91461b9fa7ff9b397ab58d2d577002a8a0e24"
   name = "github.com/google/subcommands"
   packages = ["."]
   pruneopts = ""
   revision = "46f0354f63152e8801bb460d26f5b6c4c878efbb"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2b92866d98297fd59e1ae4eeac721ba59b9015bcf899e5575130481405ac0110"
+  name = "github.com/mschoch/smat"
+  packages = ["."]
+  pruneopts = ""
+  revision = "90eadee771aeab36e8bf796039b8c261bebebe4f"
+
+[[projects]]
+  digest = "1:210286d0cb60ffe28f1ca00b664029e8943009f95d06d8f8c336301b28e1aee5"
+  name = "github.com/philhofer/fwd"
+  packages = ["."]
+  pruneopts = ""
+  revision = "bb6d471dc95d4fe11e432687f8b70ff496cf3136"
+  version = "v1.0.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:49f625590d0a3a4d0db850eb233fd22b110c490aa8123589445924d2d47bbe0a"
+  name = "github.com/steveyen/gtreap"
+  packages = ["."]
+  pruneopts = ""
+  revision = "0abe01ef9be25c4aedc174758ec2d917314d6d70"
+
+[[projects]]
+  digest = "1:cae65c1f3471b1f456a9d8a160440f4824ad50c718a15da4144490fbc3b12e49"
+  name = "github.com/tinylib/msgp"
+  packages = ["msgp"]
+  pruneopts = ""
+  revision = "b2b6a672cf1e5b90748f79b8b81fc8c5cf0571a1"
+  version = "1.0.2"
+
+[[projects]]
+  digest = "1:fcb101cb896bcfb60d004d9c65cdebd597489bb0a25f0ea063513029ac99487e"
+  name = "github.com/willf/bitset"
+  packages = ["."]
+  pruneopts = ""
+  revision = "e553b05586428962bf7058d1044519d87ca72d74"
+  version = "v1.1.9"
 
 [[projects]]
   branch = "master"
@@ -163,6 +324,7 @@
     "github.com/BurntSushi/toml",
     "github.com/NetAuth/Protocol",
     "github.com/bgentry/speakeasy",
+    "github.com/blevesearch/bleve",
     "github.com/dgrijalva/jwt-go",
     "github.com/golang/protobuf/proto",
     "github.com/google/subcommands",
