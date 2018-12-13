@@ -20,4 +20,8 @@ var (
 	// ErrInternalError is used for all other errors that occur
 	// within a database implementation.
 	ErrInternalError = errors.New("The database has encountered an internal error")
+
+	// ErrBadSearch is returned when a search request cannot be
+	// filled for some reason.
+	ErrBadSearch = errors.New("The provided SearchRequest is invalid")
 )

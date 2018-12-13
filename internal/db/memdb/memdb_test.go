@@ -118,6 +118,42 @@ func TestNextEntityNumber(t *testing.T) {
 	}
 }
 
+func TestSearchEntities(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := []struct {
+		ID     string
+		secret string
+	}{
+		{"entity1", "secret1"},
+		{"entity2", "secret2"},
+		{"entity3", "secret3"},
+	}
+	for i := range s {
+		e := pb.Entity{ID: &s[i].ID, Secret: &s[i].secret}
+		if err := x.SaveEntity(&e); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	res, err := x.SearchEntities(db.SearchRequest{})
+	if err != db.ErrBadSearch {
+		t.Fatal(err)
+	}
+	res, err = x.SearchEntities(db.SearchRequest{Expression: "entity1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 1 || res[0].GetID() != "entity1" {
+		t.Log(res)
+		t.Error("Result does not match expected singular value")
+	}
+}
+
 func TestDiscoverGroups(t *testing.T) {
 	x, err := New()
 	if err != nil {
@@ -244,6 +280,42 @@ func TestNextGroupNumber(t *testing.T) {
 		if next != c.want {
 			t.Errorf("Wrong next number; got: %v want %v", next, c.want)
 		}
+	}
+}
+
+func TestSearchGroups(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	s := []struct {
+		Name        string
+		DisplayName string
+	}{
+		{"group1", "One"},
+		{"group2", "Two"},
+		{"group3", "Three"},
+	}
+	for i := range s {
+		e := pb.Group{Name: &s[i].Name, DisplayName: &s[i].DisplayName}
+		if err := x.SaveGroup(&e); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	res, err := x.SearchGroups(db.SearchRequest{})
+	if err != db.ErrBadSearch {
+		t.Fatal(err)
+	}
+	res, err = x.SearchGroups(db.SearchRequest{Expression: "group1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 1 || res[0].GetName() != "group1" {
+		t.Log(res)
+		t.Error("Result does not match expected singular value")
 	}
 }
 

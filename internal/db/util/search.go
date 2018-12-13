@@ -58,6 +58,10 @@ func NewIndex() *SearchIndex {
 // SearchEntities searches the index for entities matching the
 // qualities specified in the request.
 func (s *SearchIndex) SearchEntities(r db.SearchRequest) ([]string, error) {
+	if r.Expression == "" {
+		return nil, db.ErrBadSearch
+	}
+
 	req := createSearchRequest(r)
 
 	// This can only fail if the query is malformed, since the
@@ -71,6 +75,10 @@ func (s *SearchIndex) SearchEntities(r db.SearchRequest) ([]string, error) {
 // SearchGroups searches the index for groups matching the qualities
 // specified in the request.
 func (s *SearchIndex) SearchGroups(r db.SearchRequest) ([]string, error) {
+	if r.Expression == "" {
+		return nil, db.ErrBadSearch
+	}
+
 	req := createSearchRequest(r)
 
 	// This can only fail if the query is malformed, since the

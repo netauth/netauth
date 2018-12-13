@@ -27,7 +27,6 @@ type DB interface {
 // implementations.
 type Factory func() (DB, error)
 
-
 // SearchRequest is an expression that can be interpreted by the
 // default util search system, or translated by a storage layer to
 // provide a more optimized searching experience.

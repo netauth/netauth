@@ -1,12 +1,5 @@
 package util
 
-import (
-	pb "github.com/NetAuth/Protocol"
-)
-
-type loadEntityFunc func(string) (*pb.Entity, error)
-type entityIDsFunc func() ([]string, error)
-
 // NextEntityNumber computes and returns the next unnassigned number
 // in the entity space.
 func NextEntityNumber(l loadEntityFunc, ids entityIDsFunc) (int32, error) {
@@ -34,9 +27,6 @@ func NextEntityNumber(l loadEntityFunc, ids entityIDsFunc) (int32, error) {
 
 	return largest + 1, nil
 }
-
-type loadGroupFunc func(string) (*pb.Group, error)
-type groupNamesFunc func() ([]string, error)
 
 // NextGroupNumber computes the enxt available group number and
 // returns it.

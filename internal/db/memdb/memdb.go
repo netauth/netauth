@@ -19,6 +19,8 @@ func init() {
 // designed really only for supporting the tests of other modules, so
 // keep in mind that it is not safe for concurrent execution.
 type MemDB struct {
+	idx *util.SearchIndex
+
 	eMap map[string]*pb.Entity
 	gMap map[string]*pb.Group
 }
@@ -26,6 +28,7 @@ type MemDB struct {
 // New returns a usable memdb with internal structures initialized.
 func New() (db.DB, error) {
 	x := &MemDB{
+		idx:  util.NewIndex(),
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
 	}
@@ -57,7 +60,7 @@ func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
 // SaveEntity saves an entity to the "database".
 func (m *MemDB) SaveEntity(e *pb.Entity) error {
 	m.eMap[e.GetID()] = e
-	return nil
+	return m.idx.IndexEntity(e)
 }
 
 // DeleteEntity deletes an entity from the "database".
@@ -73,6 +76,15 @@ func (m *MemDB) DeleteEntity(ID string) error {
 // NextEntityNumber fetches out the next unassigned entity number.
 func (m *MemDB) NextEntityNumber() (int32, error) {
 	return util.NextEntityNumber(m.LoadEntity, m.DiscoverEntityIDs)
+}
+
+// SearchEntities returns a slice of entity given a searchrequest.
+func (m *MemDB) SearchEntities(r db.SearchRequest) ([]*pb.Entity, error) {
+	res, err := m.idx.SearchEntities(r)
+	if err != nil {
+		return nil, err
+	}
+	return util.LoadEntityBatch(res, m.LoadEntity)
 }
 
 // DiscoverGroupNames returns  a slice  of strings  that can  be later
@@ -97,7 +109,7 @@ func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
 // SaveGroup saves a group to the "database".
 func (m *MemDB) SaveGroup(g *pb.Group) error {
 	m.gMap[g.GetName()] = g
-	return nil
+	return m.idx.IndexGroup(g)
 }
 
 // DeleteGroup deletes a group from the "database".
@@ -113,6 +125,15 @@ func (m *MemDB) DeleteGroup(name string) error {
 // NextGroupNumber uses the util package to return a group number.
 func (m *MemDB) NextGroupNumber() (int32, error) {
 	return util.NextGroupNumber(m.LoadGroup, m.DiscoverGroupNames)
+}
+
+// SearchGroups returns a slice of entity given a searchrequest.
+func (m *MemDB) SearchGroups(r db.SearchRequest) ([]*pb.Group, error) {
+	res, err := m.idx.SearchGroups(r)
+	if err != nil {
+		return nil, err
+	}
+	return util.LoadGroupBatch(res, m.LoadGroup)
 }
 
 func (m *MemDB) healthCheck() health.SubsystemStatus {

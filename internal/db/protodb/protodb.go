@@ -27,6 +27,7 @@ const groupSubdir = "groups"
 // package.
 type ProtoDB struct {
 	dataRoot string
+	idx      *util.SearchIndex
 }
 
 var (
@@ -46,6 +47,7 @@ func init() {
 func New() (db.DB, error) {
 	x := new(ProtoDB)
 	x.dataRoot = *dataRoot
+	x.idx = util.NewIndex()
 	if err := x.ensureDataDirectory(); err != nil {
 		log.Printf("Could not establish data directory! (%s)", err)
 		return nil, err
@@ -117,7 +119,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 		return db.ErrInternalError
 	}
 
-	return nil
+	return pdb.idx.IndexEntity(e)
 }
 
 // DeleteEntity removes an entity from disk.  This is rather simple to
@@ -136,6 +138,15 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 // NextEntityNumber computes and return the next entity number.
 func (pdb *ProtoDB) NextEntityNumber() (int32, error) {
 	return util.NextEntityNumber(pdb.LoadEntity, pdb.DiscoverEntityIDs)
+}
+
+// SearchEntities returns a slice of entity given a searchrequest.
+func (pdb *ProtoDB) SearchEntities(r db.SearchRequest) ([]*pb.Entity, error) {
+	res, err := pdb.idx.SearchEntities(r)
+	if err != nil {
+		return nil, err
+	}
+	return util.LoadEntityBatch(res, pdb.LoadEntity)
 }
 
 // DiscoverGroupNames returns a list of group names that this loader
@@ -199,7 +210,7 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 		return db.ErrInternalError
 	}
 
-	return nil
+	return pdb.idx.IndexGroup(g)
 }
 
 // DeleteGroup removes a group from disk.  This is rather simple to do
@@ -220,6 +231,15 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 // created, which is hopefully infrequent.
 func (pdb *ProtoDB) NextGroupNumber() (int32, error) {
 	return util.NextGroupNumber(pdb.LoadGroup, pdb.DiscoverGroupNames)
+}
+
+// SearchGroups returns a slice of entity given a searchrequest.
+func (pdb *ProtoDB) SearchGroups(r db.SearchRequest) ([]*pb.Group, error) {
+	res, err := pdb.idx.SearchGroups(r)
+	if err != nil {
+		return nil, err
+	}
+	return util.LoadGroupBatch(res, pdb.LoadGroup)
 }
 
 // ensureDataDirectory is called during initialization of this backend

@@ -67,6 +67,15 @@ func TestSearchEntities(t *testing.T) {
 	}
 }
 
+func TestSearchEntitiesBadRequest(t *testing.T) {
+	si := NewIndex()
+
+	r, err := si.SearchEntities(db.SearchRequest{})
+	if err != db.ErrBadSearch || r != nil {
+		t.Error(err)
+	}
+}
+
 func TestSearchGroups(t *testing.T) {
 	si := NewIndex()
 
@@ -111,5 +120,14 @@ func TestSearchGroups(t *testing.T) {
 	if len(r) != 2 {
 		t.Log(r)
 		t.Error("result has wrong size")
+	}
+}
+
+func TestSearchGroupsBadRequest(t *testing.T) {
+	si := NewIndex()
+
+	r, err := si.SearchGroups(db.SearchRequest{})
+	if err != db.ErrBadSearch || r != nil {
+		t.Error(err)
 	}
 }
