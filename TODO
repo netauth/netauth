@@ -1,9 +1,3 @@
-The ListGroups function needs to move down into the database.
-ListGroups should actually become SearchGroups, and should have a
-SearchEntities companion.  These functions should be implemented in a
-"polyfil" class so that memdb and protodb don't need to implement the
-same shims.
-
 Current flag configs should be transitioned to Viper.
 
 Google Subcommands should be replaced with cobra commander.
