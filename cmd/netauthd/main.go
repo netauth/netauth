@@ -51,7 +51,7 @@ func newServer() *rpc.NetAuthServer {
 	log.Printf("Initializing new Entity Tree with %s and %s", *dbImpl, *cryptoImpl)
 	tree, err := tree.New(db, crypto)
 	if err != nil {
-		log.Fatalf("Fatal tree error! (%s), err)")
+		log.Fatalf("Fatal tree error! (%s)", err)
 	}
 
 	// Initialize the token service
