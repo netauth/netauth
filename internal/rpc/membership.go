@@ -6,6 +6,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/internal/db"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -117,7 +119,7 @@ func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) 
 	} else {
 		// If e is not defined then we want all groups.
 		var err error
-		list, err = s.Tree.SearchGroups()
+		list, err = s.Tree.SearchGroups(db.SearchRequest{Expression: "*"})
 		if err != nil {
 			return nil, toWireError(err)
 		}

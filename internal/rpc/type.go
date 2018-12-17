@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
@@ -14,7 +15,7 @@ type EntityTree interface {
 
 	CreateEntity(string, int32, string) error
 	FetchEntity(string) (*pb.Entity, error)
-	SearchEntities() ([]*pb.Entity, error)
+	SearchEntities(db.SearchRequest) ([]*pb.Entity, error)
 	ValidateSecret(string, string) error
 	SetSecret(string, string) error
 	LockEntity(string) error
@@ -26,7 +27,7 @@ type EntityTree interface {
 
 	CreateGroup(string, string, string, int32) error
 	FetchGroup(string) (*pb.Group, error)
-	SearchGroups() ([]*pb.Group, error)
+	SearchGroups(db.SearchRequest) ([]*pb.Group, error)
 	UpdateGroupMeta(string, *pb.Group) error
 	ManageUntypedGroupMeta(string, string, string, string) ([]string, error)
 	DestroyGroup(string) error

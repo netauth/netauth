@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
@@ -100,7 +101,7 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 		client.GetService(),
 		client.GetID())
 
-	allGroups, err := s.Tree.SearchGroups()
+	allGroups, err := s.Tree.SearchGroups(db.SearchRequest{Expression: "*"})
 	if err != nil {
 		log.Printf("Error summoning groups: %s", err)
 	}
