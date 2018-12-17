@@ -65,6 +65,21 @@ func TestSearchEntities(t *testing.T) {
 		t.Log(r)
 		t.Error("Wrong number of results")
 	}
+
+	// Remove entity2 from the index and search for fish, should
+	// yield no results
+	if err := si.DeleteEntity(&entities[1]); err != nil {
+		t.Error(err)
+	}
+	r, err = si.SearchEntities(db.SearchRequest{Expression: "meta.Shell:fish"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r) != 0 {
+		t.Log(r)
+		t.Error("Got results back for an entity which was removed")
+	}
+
 }
 
 func TestSearchEntitiesBadRequest(t *testing.T) {
@@ -120,6 +135,20 @@ func TestSearchGroups(t *testing.T) {
 	if len(r) != 2 {
 		t.Log(r)
 		t.Error("result has wrong size")
+	}
+
+	// Remove group3 and check that its missing when searching for
+	// 'match'
+	if err := si.DeleteGroup(&groups[2]); err != nil {
+		t.Fatal(err)
+	}
+	r, err = si.SearchGroups(db.SearchRequest{Expression: "DisplayName:match"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(r) != 0 {
+		t.Log(r)
+		t.Error("Search results contained deleted group")
 	}
 }
 

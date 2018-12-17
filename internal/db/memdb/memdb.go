@@ -70,7 +70,7 @@ func (m *MemDB) DeleteEntity(ID string) error {
 	}
 
 	delete(m.eMap, ID)
-	return nil
+	return m.idx.DeleteEntity(&pb.Entity{ID: &ID})
 }
 
 // NextEntityNumber fetches out the next unassigned entity number.
@@ -119,7 +119,7 @@ func (m *MemDB) DeleteGroup(name string) error {
 	}
 
 	delete(m.gMap, name)
-	return nil
+	return m.idx.DeleteGroup(&pb.Group{Name: &name})
 }
 
 // NextGroupNumber uses the util package to return a group number.

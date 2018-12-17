@@ -94,9 +94,19 @@ func (s *SearchIndex) IndexEntity(e *pb.Entity) error {
 	return s.eIndex.Index(e.GetID(), e)
 }
 
+// DeleteEntity removes an entity from the index
+func (s *SearchIndex) DeleteEntity(e *pb.Entity) error {
+	return s.eIndex.Delete(e.GetID())
+}
+
 // IndexGroup adds or updates a group in the index.
 func (s *SearchIndex) IndexGroup(g *pb.Group) error {
 	return s.gIndex.Index(g.GetName(), g)
+}
+
+// DeleteGroup removes a group from the index.
+func (s *SearchIndex) DeleteGroup(g *pb.Group) error {
+	return s.gIndex.Delete(g.GetName())
 }
 
 // createSearchRequest is a helper function which converts between a

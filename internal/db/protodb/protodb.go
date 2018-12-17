@@ -132,7 +132,7 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 		return db.ErrUnknownEntity
 	}
 
-	return nil
+	return pdb.idx.DeleteEntity(&pb.Entity{ID: &ID})
 }
 
 // NextEntityNumber computes and return the next entity number.
@@ -223,7 +223,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 		return db.ErrUnknownGroup
 	}
 
-	return nil
+	return pdb.idx.DeleteGroup(&pb.Group{Name: &name})
 }
 
 // NextGroupNumber computes the next available group number.  This is
