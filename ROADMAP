@@ -102,15 +102,36 @@ v0.0.11:
     * Locking requires a specific capability, unlocking another
 
 v0.0.12:
-  * Tree Policy Hooks
-    * Policy implemented as hooks on key functions within the tree.Manager
-    * Pre and Post hooks are available
-    * Initial hooks will be added to secret handling functions
+  * Searching in the data layer
+  * Tree Hooks
+    * Small, testable functions for core components
+    * Infrastructure in place for later external hooks
+  * Cleanups and DRY in data layer
+
+v0.0.13:
+  * Unified server config
+  * Better Command implementations
+
+v0.0.14:
+  * Externally loadable plugins
+  * Plugin chain configuration with dynamic insertion
   * Example Policy Hooks
     * Secret complexity engine
     * Secret dictionary check
     * Secret character class check
-    * Auto lock w/ attempts per interval
+
+v0.0.15:
+  * go-plugin support
+
+v0.0.16:
+  * Protocol and Client library cleanup - BREAKING CHANGE
+
+v0.0.17:
+  * BoltDB backend
+  * DB Migrator
+
+v0.0.18:
+  * Consul backend
 
 v0.1.0:
   * API is marked stable
