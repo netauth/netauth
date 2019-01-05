@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
@@ -18,6 +18,8 @@ import (
 	"github.com/NetAuth/NetAuth/internal/tree"
 	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
 
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -25,41 +27,47 @@ import (
 )
 
 var (
-	bindPort   = flag.Int("port", 8080, "Serving port, defaults to 8080")
-	bindAddr   = flag.String("bind", "localhost", "Bind address, defaults to localhost")
-	insecure   = flag.Bool("PWN_ME", false, "Disable TLS; Don't set on a production server!")
-	certFile   = flag.String("cert_file", "netauth.cert", "Path to certificate file")
-	keyFile    = flag.String("key_file", "netauth.certkey", "Path to key file")
-	bootstrap  = flag.String("make_bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	dbImpl     = flag.String("db", "ProtoDB", "Database implementation to use.")
-	cryptoImpl = flag.String("crypto", "bcrypt", "Crypto implementation to use.")
+	bootstrap = pflag.String("server.bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
+	insecure  = pflag.Bool("server.PWN_ME", false, "Disable TLS; Don't set on a production server!")
+
+	writeDefConfig = pflag.String("write-config", "", "Write the default configuration to the specified file")
 )
+
+func init() {
+	pflag.String("tls.certificate", "keys/tls.crt", "Path to certificate file")
+	pflag.String("tls.key", "keys/tls.key", "Path to key file")
+
+	pflag.String("server.bind", "localhost", "Bind address, defaults to localhost")
+	pflag.Int("server.port", 8080, "Serving port, defaults to 8080")
+	pflag.String("core.home", "", "Base directory for NetAuth")
+}
 
 func newServer() *rpc.NetAuthServer {
 	// Need to setup the Database for use with the entity tree
-	db, err := db.New(*dbImpl)
+	db, err := db.New()
 	if err != nil {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
+	log.Printf("Using %s", viper.GetString("db.backend"))
 
-	crypto, err := crypto.New(*cryptoImpl)
+	crypto, err := crypto.New()
 	if err != nil {
 		log.Fatalf("Fatal crypto error! (%s)", err)
 	}
+	log.Printf("Using %s", viper.GetString("crypto.backend"))
 
 	// Initialize the entity tree
-	log.Printf("Initializing new Entity Tree with %s and %s", *dbImpl, *cryptoImpl)
 	tree, err := tree.New(db, crypto)
 	if err != nil {
 		log.Fatalf("Fatal tree error! (%s)", err)
 	}
 
 	// Initialize the token service
-	log.Println("Initializing token service")
 	tokenService, err := token.New()
 	if err != nil {
 		log.Fatalf("Fatal error initializing token service: %s", err)
 	}
+	log.Printf("Using %s", viper.GetString("token.backend"))
 
 	return &rpc.NetAuthServer{
 		Tree:  tree,
@@ -67,23 +75,50 @@ func newServer() *rpc.NetAuthServer {
 	}
 }
 
+func loadConfig() {
+	pflag.Parse()
+	viper.BindPFlags(pflag.CommandLine)
+	viper.SetConfigName("config")
+	viper.AddConfigPath("/etc/netauth/")
+	viper.AddConfigPath("$HOME/.netauth")
+	viper.AddConfigPath(".")
+
+	if *writeDefConfig != "" {
+		if err := viper.WriteConfigAs(*writeDefConfig); err != nil {
+			log.Fatal(err)
+		}
+		os.Exit(0)
+	}
+
+	// Attempt to load the config
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatal("Fatal error reading configuration: ", err)
+	}
+}
+
 func main() {
-	flag.Parse()
+	// Do the config load before anything else, this might bail
+	// out for a number of reasons.
+	loadConfig()
 
 	log.Println("NetAuth server is starting!")
 
 	// Bind early so that if this fails we can just bail out.
-	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", *bindAddr, *bindPort))
+	bindAddr := viper.GetString("server.bind")
+	bindPort := viper.GetInt("server.port")
+	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", bindAddr, bindPort))
 	if err != nil {
 		log.Fatalf("Could not bind! %v", err)
 	}
-	log.Printf("Server bound on %s:%d", *bindAddr, *bindPort)
+	log.Printf("Server bound on %s:%d", bindAddr, bindPort)
 
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
 	if !*insecure {
-		log.Printf("TLS with the certificate %s and key %s", *certFile, *keyFile)
-		creds, err := credentials.NewServerTLSFromFile(*certFile, *keyFile)
+		cFile := viper.GetString("tls.certificate")
+		ckFile := viper.GetString("tls.key")
+		log.Printf("TLS with the certificate %s and key %s", cFile, ckFile)
+		creds, err := credentials.NewServerTLSFromFile(cFile, ckFile)
 		if err != nil {
 			log.Fatalf("TLS credentials could not be loaded! %v", err)
 		}
@@ -129,6 +164,9 @@ func main() {
 
 	// Attempt to bootstrap a superuser
 	if len(*bootstrap) != 0 {
+		if !strings.Contains(*bootstrap, ":") {
+			log.Fatal("Bootstrap string must be of the form <entity>:<secret>")
+		}
 		log.Println("Commencing Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
 		srv.Tree.Bootstrap(eParts[0], eParts[1])

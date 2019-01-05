@@ -1,6 +1,10 @@
 package token
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/spf13/viper"
+)
 
 type dummyTokenService struct{}
 
@@ -27,7 +31,7 @@ func TestNewKnown(t *testing.T) {
 
 	Register("dummy", newDummyTokenService)
 
-	*impl = "dummy"
+	viper.Set("token.backend", "dummy")
 	x, err := New()
 	if err != nil {
 		t.Error(err)
@@ -43,7 +47,7 @@ func TestNewUnspecified(t *testing.T) {
 
 	Register("dummy", newDummyTokenService)
 
-	*impl = ""
+	viper.Set("token.backend", "")
 	x, err := New()
 	if err != nil {
 		t.Error(err)
@@ -58,7 +62,7 @@ func TestNewUnspecified(t *testing.T) {
 func TestNewUnknown(t *testing.T) {
 	services = make(map[string]Factory)
 
-	*impl = "unknown"
+	viper.Set("token.backend", "unknown")
 	if x, err := New(); x != nil || err != ErrUnknownTokenService {
 		t.Error("Undefined error behavior")
 	}
@@ -66,7 +70,7 @@ func TestNewUnknown(t *testing.T) {
 
 func TestGetConfig(t *testing.T) {
 	c := GetConfig()
-	if c.Lifetime != *lifetime || c.Renewals != *renewals {
+	if c.Lifetime != viper.GetDuration("token.lifetime") || c.Renewals != viper.GetInt("token.renewals") {
 		t.Error("Config contains incorrect values")
 	}
 }

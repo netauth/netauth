@@ -4,13 +4,14 @@
 package protodb
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/util"
@@ -30,10 +31,6 @@ type ProtoDB struct {
 	idx      *util.SearchIndex
 }
 
-var (
-	dataRoot = flag.String("protodb_root", "./data", "Base directory for ProtoDB")
-)
-
 func init() {
 	db.Register("ProtoDB", New)
 }
@@ -46,7 +43,7 @@ func init() {
 // of the server is undefined!
 func New() (db.DB, error) {
 	x := new(ProtoDB)
-	x.dataRoot = *dataRoot
+	x.dataRoot = filepath.Join(viper.GetString("core.home"), "pdb")
 	x.idx = util.NewIndex()
 	if err := x.ensureDataDirectory(); err != nil {
 		log.Printf("Could not establish data directory! (%s)", err)

@@ -25,7 +25,9 @@
 ### Local Ignores ###
 vendor/
 data/
+keys/
 *.key
 *.pem
 *.cert*
 netauth.toml
+config.toml

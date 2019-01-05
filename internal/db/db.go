@@ -1,7 +1,13 @@
+// Package db implements a plugin system for data storage options.
+// The db package itself implements the registration and
+// initialization functions that provide a uniform interface to
+// underlying storage mechanisms.
 package db
 
-// This package implements a map of interfaces that contain the
-// various database options.
+import (
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+)
 
 var (
 	backends map[string]Factory
@@ -9,11 +15,12 @@ var (
 
 func init() {
 	backends = make(map[string]Factory)
+	pflag.String("db.backend", "ProtoDB", "Database implementation to use")
 }
 
 // New returns a db struct.
-func New(name string) (DB, error) {
-	b, ok := backends[name]
+func New() (DB, error) {
+	b, ok := backends[viper.GetString("db.backend")]
 	if !ok {
 		return nil, ErrUnknownDatabase
 	}

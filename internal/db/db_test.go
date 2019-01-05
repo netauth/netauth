@@ -3,6 +3,8 @@ package db
 import (
 	"testing"
 
+	"github.com/spf13/viper"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -41,7 +43,8 @@ func TestNewKnown(t *testing.T) {
 
 	Register("dummy", newDummyDB)
 
-	x, err := New("dummy")
+	viper.Set("db.backend", "dummy")
+	x, err := New()
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,7 +56,8 @@ func TestNewKnown(t *testing.T) {
 
 func TestNewUnknown(t *testing.T) {
 	backends = make(map[string]Factory)
-	x, err := New("unknown")
+	viper.Set("db.backend", "unknown")
+	x, err := New()
 	if x != nil && err != ErrUnknownDatabase {
 		t.Error(err)
 	}

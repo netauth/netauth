@@ -5,10 +5,13 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"flag"
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/token"
@@ -17,10 +20,8 @@ import (
 )
 
 var (
-	privateKeyFile = flag.String("jwt_rsa_privatekey", "token.key", "Path to private key")
-	publicKeyFile  = flag.String("jwt_rsa_publickey", "/usr/share/netauth/token.pem", "Path to public key")
-	rsaBits        = flag.Int("jwt_rsa_bits", 2048, "Bit length of generated keys")
-	generate       = flag.Bool("jwt_rsa_generate", false, "Generate keys if not available")
+	rsaBits  = pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
+	generate = pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
 )
 
 // An RSAToken is a token that provides both the token.Claims required
@@ -35,6 +36,9 @@ type RSAToken struct {
 type RSATokenService struct {
 	privateKey *rsa.PrivateKey
 	publicKey  *rsa.PublicKey
+
+	publicKeyFile  string
+	privateKeyFile string
 }
 
 func init() {
@@ -118,10 +122,13 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 // not available and it is not disabled, then a keypair will be
 // generated.
 func (s *RSATokenService) GetKeys() error {
-	log.Printf("Loading public key from %s", *publicKeyFile)
-	f, err := ioutil.ReadFile(*publicKeyFile)
+	s.publicKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.pem")
+	s.privateKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.key")
+
+	log.Printf("Loading public key from %s", s.publicKeyFile)
+	f, err := ioutil.ReadFile(s.publicKeyFile)
 	if os.IsNotExist(err) {
-		log.Printf("Blob at %s contains no key!", *publicKeyFile)
+		log.Printf("Blob at %s contains no key!", s.publicKeyFile)
 
 		if !*generate {
 			log.Println("Generating keys is disabled!")
@@ -141,7 +148,7 @@ func (s *RSATokenService) GetKeys() error {
 		return token.ErrKeyUnavailable
 	}
 
-	if !checkKeyModeOK("-rw-r--r--", *publicKeyFile) {
+	if !checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
 		log.Println("Public Key has incorrect mode bits")
 		return token.ErrKeyUnavailable
 	}
@@ -160,7 +167,7 @@ func (s *RSATokenService) GetKeys() error {
 
 	p, ok := pub.(*rsa.PublicKey)
 	if !ok {
-		log.Printf("%s does not contain an RSA public key", *publicKeyFile)
+		log.Printf("%s does not contain an RSA public key", s.publicKeyFile)
 		return token.ErrKeyUnavailable
 	}
 	s.publicKey = p
@@ -169,8 +176,8 @@ func (s *RSATokenService) GetKeys() error {
 	// out, because you can still do meaningful work with the
 	// public key.  The generate function will return errors
 	// though if the private key fails to load.
-	log.Printf("Loading private key from %s", *privateKeyFile)
-	pristr, err := ioutil.ReadFile(*privateKeyFile)
+	log.Printf("Loading private key from %s", s.privateKeyFile)
+	pristr, err := ioutil.ReadFile(s.privateKeyFile)
 	if err != nil && !os.IsNotExist(err) {
 		log.Printf("File load error: %s", err)
 	}
@@ -184,7 +191,7 @@ func (s *RSATokenService) GetKeys() error {
 		return nil
 	}
 
-	if !checkKeyModeOK("-r--------", *privateKeyFile) {
+	if !checkKeyModeOK("-r--------", s.privateKeyFile) {
 		log.Println("Private Key has incorrect mode bits")
 		log.Println("This may be fatal if this is a server")
 	}
@@ -211,6 +218,12 @@ func (s *RSATokenService) GetKeys() error {
 func (s *RSATokenService) generateKeys(bits int) error {
 	log.Println("Generating keys")
 
+	// First create the directory for the keys if it doesn't
+	// already exist.
+	if err := os.MkdirAll(filepath.Join(viper.GetString("core.home"), "keys"), 0755); err != nil {
+		return token.ErrInternalError
+	}
+
 	// No keys, we need to create them
 	var err error
 	s.privateKey, err = rsa.GenerateKey(rand.Reader, bits)
@@ -220,11 +233,11 @@ func (s *RSATokenService) generateKeys(bits int) error {
 	}
 	s.publicKey = &s.privateKey.PublicKey
 
-	if err := marshalPrivateKey(s.privateKey, *privateKeyFile); err != nil {
+	if err := marshalPrivateKey(s.privateKey, s.privateKeyFile); err != nil {
 		return err
 	}
 
-	if err := marshalPublicKey(s.publicKey, *publicKeyFile); err != nil {
+	if err := marshalPublicKey(s.publicKey, s.publicKeyFile); err != nil {
 		return err
 	}
 
@@ -252,12 +265,12 @@ func (s *RSATokenService) healthCheck() health.SubsystemStatus {
 		return status
 	}
 
-	if !checkKeyModeOK("-rw-r--r--", *publicKeyFile) {
+	if !checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
 		status.Status = "Public key has incorrect mode"
 		return status
 	}
 
-	if !checkKeyModeOK("-r--------", *privateKeyFile) {
+	if !checkKeyModeOK("-r--------", s.privateKeyFile) {
 		status.Status = "Private key has incorrect mode"
 		return status
 	}

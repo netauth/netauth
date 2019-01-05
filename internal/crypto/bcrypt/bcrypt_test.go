@@ -3,13 +3,15 @@ package bcrypt
 import (
 	"testing"
 
+	"github.com/spf13/viper"
+
 	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
 	secret := "foo"
 
-	*cost = 0
+	viper.Set("crypto.bcrypt.cost", 0)
 	e, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -28,7 +30,7 @@ func TestEncryptDecrypt(t *testing.T) {
 }
 
 func TestBadDecode(t *testing.T) {
-	*cost = 0
+	viper.Set("crypto.bcrypt.cost", 0)
 	e, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -45,7 +47,7 @@ func TestCostTooHigh(t *testing.T) {
 	// errors out, whereas a high cost might cause the algorithm
 	// to either draw down the random pool, or just lock up the
 	// machine spinning.
-	*cost = 250
+	viper.Set("crypto.bcrypt.cost", 250)
 	secret := "foo"
 
 	e, err := New()

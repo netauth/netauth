@@ -1,6 +1,10 @@
 package crypto
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/spf13/viper"
+)
 
 type dummyCrypto struct{}
 
@@ -27,7 +31,8 @@ func TestNewKnown(t *testing.T) {
 
 	Register("dummy", dummyCryptoFactory)
 
-	x, err := New("dummy")
+	viper.Set("crypto.backend", "dummy")
+	x, err := New()
 	if err != nil {
 		t.Error(err)
 	}
@@ -39,7 +44,8 @@ func TestNewKnown(t *testing.T) {
 
 func TestNewUnknown(t *testing.T) {
 	backends = make(map[string]Factory)
-	x, err := New("unknown")
+	viper.Set("crypto.backend", "dummy")
+	x, err := New()
 	if x != nil && err != ErrUnknownCrypto {
 		t.Error(err)
 	}

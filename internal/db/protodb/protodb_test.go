@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 
@@ -19,31 +20,20 @@ func mkTmpTestDir(t *testing.T) string {
 		t.Error(err)
 	}
 
-	dir = filepath.Join(dir, "pdb")
-
 	return dir
 }
 
 func cleanTmpTestDir(dir string, t *testing.T) {
-	// Remove the tmpdir, don't want to clutter the filesystem
-	path, final := filepath.Split(dir)
-
-	// Strip the added directory path if this came from
-	// mkTmpTestDir
-	if final == "pdb" {
-		dir = path
-	}
-
 	if err := os.RemoveAll(dir); err != nil {
 		t.Log(err)
 	}
 }
 
 func TestDiscoverEntities(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
+
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -84,10 +74,9 @@ func TestDiscoverEntities(t *testing.T) {
 }
 
 func TestNextEntityNumber(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -124,6 +113,9 @@ func TestNextEntityNumber(t *testing.T) {
 }
 
 func TestSearchEntities(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -160,10 +152,9 @@ func TestSearchEntities(t *testing.T) {
 }
 
 func TestDiscoverGroups(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -198,10 +189,9 @@ func TestDiscoverGroups(t *testing.T) {
 }
 
 func TestEntitySaveLoadDelete(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -235,10 +225,9 @@ func TestEntitySaveLoadDelete(t *testing.T) {
 }
 
 func TestGroupSaveLoadDelete(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -272,6 +261,9 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 }
 
 func TestSearchGroups(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -308,12 +300,11 @@ func TestSearchGroups(t *testing.T) {
 }
 
 func TestEnsureDataDirectoryBadBase(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 
-	if _, err := os.OpenFile(*dataRoot, os.O_RDONLY|os.O_CREATE, 0000); err != nil {
+	if _, err := os.OpenFile(filepath.Join(r, "pdb"), os.O_RDONLY|os.O_CREATE, 0000); err != nil {
 		t.Fatal(err)
 	}
 
@@ -324,16 +315,15 @@ func TestEnsureDataDirectoryBadBase(t *testing.T) {
 }
 
 func TestEnsureDataDirectoryBadSubDir(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 
-	if err := os.Mkdir(*dataRoot, 0750); err != nil {
+	if err := os.Mkdir(filepath.Join(r, "pdb"), 0750); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := os.OpenFile(filepath.Join(*dataRoot, entitySubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
+	if _, err := os.OpenFile(filepath.Join(r, "pdb", entitySubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
 	}
 	_, err := New()
@@ -343,10 +333,9 @@ func TestEnsureDataDirectoryBadSubDir(t *testing.T) {
 }
 
 func TestLoadEntityBadFile(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -359,7 +348,7 @@ func TestLoadEntityBadFile(t *testing.T) {
 	}
 
 	// Make the entity unreadable
-	if err := os.Chmod(filepath.Join(*dataRoot, entitySubdir, "foo.dat"), 0000); err != nil {
+	if err := os.Chmod(filepath.Join(r, "pdb", entitySubdir, "foo.dat"), 0000); err != nil {
 		t.Error(err)
 	}
 
@@ -369,17 +358,16 @@ func TestLoadEntityBadFile(t *testing.T) {
 }
 
 func TestLoadEntityBadParse(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Write an empty file to disk that will fail to unmarshal
-	if err := ioutil.WriteFile(filepath.Join(*dataRoot, entitySubdir, "foo.dat"), []byte("foo"), 0666); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(r, "pdb", entitySubdir, "foo.dat"), []byte("foo"), 0666); err != nil {
 		t.Fatal(err)
 	}
 
@@ -390,10 +378,9 @@ func TestLoadEntityBadParse(t *testing.T) {
 }
 
 func TestSaveEntityBadEntity(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -405,17 +392,16 @@ func TestSaveEntityBadEntity(t *testing.T) {
 }
 
 func TestSaveEntityUnwritableFile(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Write an empty file to disk that will collide with a proper write
-	if err := ioutil.WriteFile(filepath.Join(*dataRoot, entitySubdir, "foo.dat"), []byte("foo"), 0000); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(r, "pdb", entitySubdir, "foo.dat"), []byte("foo"), 0000); err != nil {
 		t.Fatal(err)
 	}
 
@@ -427,10 +413,9 @@ func TestSaveEntityUnwritableFile(t *testing.T) {
 }
 
 func TestDeleteUnknownEntity(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -442,10 +427,9 @@ func TestDeleteUnknownEntity(t *testing.T) {
 }
 
 func TestLoadGroupBadFile(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -458,7 +442,7 @@ func TestLoadGroupBadFile(t *testing.T) {
 	}
 
 	// Make the group unreadable
-	if err := os.Chmod(filepath.Join(*dataRoot, groupSubdir, "group1.dat"), 0000); err != nil {
+	if err := os.Chmod(filepath.Join(r, "pdb", groupSubdir, "group1.dat"), 0000); err != nil {
 		t.Error(err)
 	}
 
@@ -468,17 +452,16 @@ func TestLoadGroupBadFile(t *testing.T) {
 }
 
 func TestLoadGroupBadParse(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Write an empty file to disk that will fail to unmarshal
-	if err := ioutil.WriteFile(filepath.Join(*dataRoot, groupSubdir, "group1.dat"), []byte("group1"), 0666); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(r, "pdb", groupSubdir, "group1.dat"), []byte("group1"), 0666); err != nil {
 		t.Fatal(err)
 	}
 
@@ -489,10 +472,9 @@ func TestLoadGroupBadParse(t *testing.T) {
 }
 
 func TestSaveGroupBadGroup(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -504,17 +486,16 @@ func TestSaveGroupBadGroup(t *testing.T) {
 }
 
 func TestSaveGroupUnwritableFile(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Write an empty file to disk that will collide with a proper write
-	if err := ioutil.WriteFile(filepath.Join(*dataRoot, groupSubdir, "group1.dat"), []byte("group1"), 0000); err != nil {
+	if err := ioutil.WriteFile(filepath.Join(r, "pdb", groupSubdir, "group1.dat"), []byte("group1"), 0000); err != nil {
 		t.Fatal(err)
 	}
 
@@ -526,10 +507,9 @@ func TestSaveGroupUnwritableFile(t *testing.T) {
 }
 
 func TestDeleteUnknownGroup(t *testing.T) {
-	// This is a slight race condition since we're manipulating
-	// flags, but this shouldn't actually be flaky.
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -541,6 +521,9 @@ func TestDeleteUnknownGroup(t *testing.T) {
 }
 
 func TestNextGroupNumber(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -575,8 +558,9 @@ func TestNextGroupNumber(t *testing.T) {
 }
 
 func TestHealthCheckOK(t *testing.T) {
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
@@ -595,18 +579,19 @@ func TestHealthCheckOK(t *testing.T) {
 }
 
 func TestHealthCheckBadBase(t *testing.T) {
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.RemoveAll(*dataRoot); err != nil {
+	if err := os.RemoveAll(r); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := os.OpenFile(*dataRoot, os.O_RDONLY|os.O_CREATE, 0666); err != nil {
+	if _, err := os.OpenFile(r, os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
 	}
 
@@ -623,15 +608,16 @@ func TestHealthCheckBadBase(t *testing.T) {
 }
 
 func TestHealthCheckBadPermissions(t *testing.T) {
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 
 	x, err := New()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.Chmod(*dataRoot, 0770); err != nil {
+	if err := os.Chmod(filepath.Join(r, "pdb"), 0770); err != nil {
 		t.Fatal(err)
 	}
 
@@ -648,8 +634,9 @@ func TestHealthCheckBadPermissions(t *testing.T) {
 }
 
 func TestHealthCheckBadStat(t *testing.T) {
-	*dataRoot = mkTmpTestDir(t)
-	defer cleanTmpTestDir(*dataRoot, t)
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
 
 	x, err := New()
 	if err != nil {
@@ -661,7 +648,7 @@ func TestHealthCheckBadStat(t *testing.T) {
 		t.Fatal("Bad type assertion")
 	}
 
-	rx.dataRoot = filepath.Join(*dataRoot, "bad")
+	rx.dataRoot = filepath.Join(r, "bad")
 
 	status := rx.healthCheck()
 

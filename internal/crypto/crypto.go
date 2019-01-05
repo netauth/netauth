@@ -1,4 +1,12 @@
+// Package crypto implements the plugin system for cryptography
+// engines.  Specifically, the package implements methods to register
+// cryptosystems and then obtain an initialized engine.
 package crypto
+
+import (
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+)
 
 // The EMCrypto interface defines the functions that are needed to
 // make a secret secure for storage and later verify a secret against
@@ -18,12 +26,13 @@ var (
 
 func init() {
 	backends = make(map[string]Factory)
+	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
 }
 
 // New returns an initialized Crypto instance which can create and
 // verify secure versions of secrets.
-func New(name string) (EMCrypto, error) {
-	b, ok := backends[name]
+func New() (EMCrypto, error) {
+	b, ok := backends[viper.GetString("crypto.backend")]
 	if !ok {
 		return nil, ErrUnknownCrypto
 	}

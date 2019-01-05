@@ -1,20 +1,18 @@
 package bcrypt
 
 import (
-	"flag"
 	"log"
 
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 )
 
-var (
-	cost = flag.Int("bcrypt_cost", 15, "Cost to use when running the bcrypt hashing algorithm")
-)
-
 func init() {
 	crypto.Register("bcrypt", New)
+	pflag.Int("crypto.bcrypt.cost", 15, "Cost for bcrypt")
 }
 
 // Engine binds the functions of the BCrypt Crypto system and
@@ -28,7 +26,7 @@ type Engine struct {
 // New registers this crypto type for use by the NetAuth server.
 func New() (crypto.EMCrypto, error) {
 	x := new(Engine)
-	x.cost = *cost
+	x.cost = viper.GetInt("crypto.bcrypt.cost")
 	return x, nil
 }
 

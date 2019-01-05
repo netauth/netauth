@@ -1,9 +1,11 @@
 package token
 
 import (
-	"flag"
 	"log"
 	"time"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 // A Factory returns a token service when called.
@@ -29,25 +31,26 @@ type Config struct {
 
 var (
 	services map[string]Factory
-
-	impl     = flag.String("token_impl", "", "Token implementation to use")
-	lifetime = flag.Duration("token_lifetime", time.Hour*10, "Token lifetime")
-	renewals = flag.Int("token_renewals", 5, "Maximum number of times the token may be renewed")
 )
 
 func init() {
 	services = make(map[string]Factory)
+
+	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
+	pflag.Duration("token.lifetime", time.Hour*10, "Token lifetime")
+	pflag.Int("token.renewals", 5, "Maximum number of times the token may be renewed")
 }
 
 // New returns an initialized token service based on the value of the
 // --token_impl flag.
 func New() (Service, error) {
-	if *impl == "" && len(services) == 1 {
+	backend := viper.GetString("token.backend")
+	if backend == "" && len(services) == 1 {
 		log.Println("Warning: No token implementation selected, using only registered option...")
-		*impl = GetBackendList()[0]
+		backend = GetBackendList()[0]
 	}
 
-	t, ok := services[*impl]
+	t, ok := services[backend]
 	if !ok {
 		return nil, ErrUnknownTokenService
 	}
@@ -79,8 +82,8 @@ func GetBackendList() []string {
 // token service to use while issuing tokens.
 func GetConfig() Config {
 	return Config{
-		Lifetime:  *lifetime,
-		Renewals:  *renewals,
+		Lifetime:  viper.GetDuration("token.lifetime"),
+		Renewals:  viper.GetInt("token.renewals"),
 		IssuedAt:  time.Now(),
 		NotBefore: time.Now(),
 	}
