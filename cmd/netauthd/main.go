@@ -28,7 +28,7 @@ import (
 
 var (
 	bootstrap = pflag.String("server.bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	insecure  = pflag.Bool("server.PWN_ME", false, "Disable TLS; Don't set on a production server!")
+	insecure  = pflag.Bool("tls.PWN_ME", false, "Disable TLS; Don't set on a production server!")
 
 	writeDefConfig = pflag.String("write-config", "", "Write the default configuration to the specified file")
 )

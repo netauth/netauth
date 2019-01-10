@@ -2,13 +2,13 @@ package client
 
 import (
 	"context"
-	"os"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	"github.com/NetAuth/NetAuth/internal/tree"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -20,34 +20,9 @@ import (
 // such as the TokenService and the TokenStore, as well as the config
 // structures that drive the client.
 type NetAuthClient struct {
-	c          pb.NetAuthClient
-	cfg        *NACLConfig
-	tokenStore TokenStore
-
+	c            pb.NetAuthClient
+	tokenStore   TokenStore
 	tokenService token.Service
-}
-
-// The NACLConfig configures the library to make connections to a
-// remote NetAuth servers.
-type NACLConfig struct {
-	Server    string
-	Port      int
-	ServiceID string
-	ClientID  string
-
-	// This could just be "Insecure", but this makes it a bit more
-	// clear that you're a fool to be running with this set.
-	WildlyInsecure bool
-
-	ServerCert string
-}
-
-// SetServiceID allows the service ID to be changed on an initialized
-// client.  This allows the general case to source everything from the
-// config file and then set the service ID after the client is
-// initialized.
-func (n *NetAuthClient) SetServiceID(id string) {
-	n.cfg.ServiceID = ensureServiceID(id)
 }
 
 // Ping very simply pings the server.  The reply will contain the
@@ -56,10 +31,7 @@ func (n *NetAuthClient) SetServiceID(id string) {
 // reloading during the request).
 func (n *NetAuthClient) Ping() (*pb.PingResponse, error) {
 	request := &pb.PingRequest{
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 	}
 
 	result, err := n.c.Ping(context.Background(), request)
@@ -77,10 +49,7 @@ func (n *NetAuthClient) Authenticate(entity string, secret string) (*pb.SimpleRe
 			ID:     &entity,
 			Secret: &secret,
 		},
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 	}
 
 	result, err := n.c.AuthEntity(context.Background(), &request)
@@ -104,10 +73,7 @@ func (n *NetAuthClient) ValidateToken(entity string) (*pb.SimpleResult, error) {
 			ID: &entity,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ValidateToken(context.Background(), &request)
@@ -131,10 +97,7 @@ func (n *NetAuthClient) ChangeSecret(e, s, me, ms, t string) (*pb.SimpleResult, 
 			Secret: &ms,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ChangeSecret(context.Background(), &request)
@@ -154,10 +117,7 @@ func (n *NetAuthClient) NewEntity(id string, uidn int32, secret, t string) (*pb.
 			Secret: &secret,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.NewEntity(context.Background(), &request)
@@ -175,10 +135,7 @@ func (n *NetAuthClient) RemoveEntity(id, token string) (*pb.SimpleResult, error)
 			ID: &id,
 		},
 		AuthToken: &token,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.RemoveEntity(context.Background(), &request)
@@ -196,10 +153,7 @@ func (n *NetAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 		Entity: &pb.Entity{
 			ID: &id,
 		},
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 	}
 	result, err := n.c.EntityInfo(context.Background(), &request)
 	if status.Code(err) != codes.OK {
@@ -217,10 +171,7 @@ func (n *NetAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (*pb
 			Meta: meta,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ModifyEntityMeta(context.Background(), &request)
@@ -241,10 +192,7 @@ func (n *NetAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, erro
 		Mode:      &m,
 		Type:      &kt,
 		Key:       &kv,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 	result, err := n.c.ModifyEntityKeys(context.Background(), &request)
 	if status.Code(err) != codes.OK {
@@ -272,10 +220,7 @@ func (n *NetAuthClient) ModifyUntypedEntityMeta(t, e, m, k, v string) (map[strin
 		Mode:      &m,
 		Key:       &k,
 		Value:     &v,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ModifyUntypedEntityMeta(context.Background(), &request)
@@ -303,10 +248,7 @@ func (n *NetAuthClient) NewGroup(name, displayname, managedby, t string, number 
 			ManagedBy:   &managedby,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.NewGroup(context.Background(), &request)
@@ -324,10 +266,7 @@ func (n *NetAuthClient) DeleteGroup(name, t string) (*pb.SimpleResult, error) {
 			Name: &name,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.DeleteGroup(context.Background(), &request)
@@ -341,10 +280,7 @@ func (n *NetAuthClient) DeleteGroup(name, t string) (*pb.SimpleResult, error) {
 // does not require authorization.
 func (n *NetAuthClient) ListGroups(entity string, indirects bool) ([]*pb.Group, error) {
 	request := pb.GroupListRequest{
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:             clientInfo(),
 		IncludeIndirects: &indirects,
 	}
 
@@ -362,10 +298,7 @@ func (n *NetAuthClient) ListGroups(entity string, indirects bool) ([]*pb.Group, 
 // GroupInfo provides information about a single group.
 func (n *NetAuthClient) GroupInfo(name string) (*pb.GroupInfoResult, error) {
 	request := pb.ModGroupRequest{
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 		Group: &pb.Group{
 			Name: &name,
 		},
@@ -385,10 +318,7 @@ func (n *NetAuthClient) ModifyGroupMeta(group *pb.Group, token string) (*pb.Simp
 	request := pb.ModGroupRequest{
 		Group:     group,
 		AuthToken: &token,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ModifyGroupMeta(context.Background(), &request)
@@ -409,10 +339,7 @@ func (n *NetAuthClient) AddEntityToGroup(t, g, e string) (*pb.SimpleResult, erro
 			Name: &g,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.AddEntityToGroup(context.Background(), &request)
@@ -433,10 +360,7 @@ func (n *NetAuthClient) RemoveEntityFromGroup(t, g, e string) (*pb.SimpleResult,
 			Name: &g,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.RemoveEntityFromGroup(context.Background(), &request)
@@ -453,10 +377,7 @@ func (n *NetAuthClient) ListGroupMembers(g string) ([]*pb.Entity, error) {
 		Group: &pb.Group{
 			Name: &g,
 		},
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 	}
 
 	result, err := n.c.ListGroupMembers(context.Background(), &request)
@@ -469,13 +390,11 @@ func (n *NetAuthClient) ListGroupMembers(g string) ([]*pb.Entity, error) {
 // ModifyGroupExpansions modifies the parent/child status of the provided groups.
 // This action must be authorized.
 func (n *NetAuthClient) ModifyGroupExpansions(t, p, c, m string) (*pb.SimpleResult, error) {
+	m = strings.ToUpper(m)
 	mode := pb.ExpansionMode(pb.ExpansionMode_value[m])
 
 	request := pb.ModGroupNestingRequest{
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 		AuthToken: &t,
 		ParentGroup: &pb.Group{
 			Name: &p,
@@ -504,10 +423,7 @@ func (n *NetAuthClient) ModifyUntypedGroupMeta(t, g, m, k, v string) (map[string
 		Mode:      &m,
 		Key:       &k,
 		Value:     &v,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.ModifyUntypedGroupMeta(context.Background(), &request)
@@ -533,10 +449,7 @@ func (n *NetAuthClient) ManageCapabilities(t, e, g, c, m string) (*pb.SimpleResu
 	cap := pb.Capability(capID)
 
 	request := pb.ModCapabilityRequest{
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:       clientInfo(),
 		AuthToken:  &t,
 		Mode:       &m,
 		Capability: &cap,
@@ -563,10 +476,7 @@ func (n *NetAuthClient) LockEntity(t, e string) (*pb.SimpleResult, error) {
 			ID: &e,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.LockEntity(context.Background(), &request)
@@ -583,10 +493,7 @@ func (n *NetAuthClient) UnlockEntity(t, e string) (*pb.SimpleResult, error) {
 			ID: &e,
 		},
 		AuthToken: &t,
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info:      clientInfo(),
 	}
 
 	result, err := n.c.UnlockEntity(context.Background(), &request)
@@ -596,21 +503,42 @@ func (n *NetAuthClient) UnlockEntity(t, e string) (*pb.SimpleResult, error) {
 	return result, nil
 }
 
-func ensureClientID(clientID string) string {
-	if clientID == "" {
-		hostname, err := os.Hostname()
-		if err != nil {
-			clientID = "BOGUS_CLIENT"
-			return clientID
-		}
-		clientID = hostname
+// SearchEntities takes a string search expression to search for
+// entites on the server.
+func (n *NetAuthClient) SearchEntities(expr string) (*pb.EntityList, error) {
+	request := pb.SearchRequest{
+		Expression: &expr,
+		Info: clientInfo(),
 	}
-	return clientID
+	
+	result, err := n.c.SearchEntities(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+	return result, nil
 }
 
-func ensureServiceID(serviceID string) string {
-	if serviceID == "" {
-		serviceID = "BOGUS_SERVICE"
+// SearchGroups takes a string search expression to search for
+// entites on the server.
+func (n *NetAuthClient) SearchGroups(expr string) (*pb.GroupList, error) {
+	request := pb.SearchRequest{
+		Expression: &expr,
+		Info: clientInfo(),
 	}
-	return serviceID
+	
+	result, err := n.c.SearchGroups(context.Background(), &request)
+	if status.Code(err) != codes.OK {
+		return nil, err
+	}
+	return result, nil
+}
+
+func clientInfo() *pb.ClientInfo {
+	i := viper.GetString("client.ID")
+	s := viper.GetString("client.ServiceName")
+
+	return &pb.ClientInfo{
+		ID:      &i,
+		Service: &s,
+	}
 }

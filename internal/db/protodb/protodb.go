@@ -50,6 +50,42 @@ func New() (db.DB, error) {
 		return nil, err
 	}
 
+	// Prime the index with entities
+	eids, err := x.DiscoverEntityIDs()
+	if err != nil {
+		log.Printf("Initial load failure")
+		return nil, db.ErrInternalError
+	}
+	for _, id := range eids {
+		e, err := x.LoadEntity(id)
+		if err != nil {
+			log.Printf("Error indexing %s", id)
+			continue
+		}
+		if err := x.idx.IndexEntity(e); err != nil {
+			log.Printf("Error indexing %s", id)
+			continue
+		}
+	}
+
+	// Prime the index with entities
+	gids, err := x.DiscoverGroupNames()
+	if err != nil {
+		log.Printf("Initial load failure")
+		return nil, db.ErrInternalError
+	}
+	for _, id := range gids {
+		g, err := x.LoadGroup(id)
+		if err != nil {
+			log.Printf("Error indexing %s", id)
+			continue
+		}
+		if err := x.idx.IndexGroup(g); err != nil {
+			log.Printf("Error indexing %s", id)
+			continue
+		}
+	}
+
 	health.RegisterCheck("ProtoDB", x.healthCheck)
 
 	return x, nil

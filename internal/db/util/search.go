@@ -120,6 +120,9 @@ func createSearchRequest(r db.SearchRequest) *bleve.SearchRequest {
 // extractDocIDs converts between a bleve.SearchResult and a []string
 // which can be subsequently fetched by the storage layer.
 func extractDocIDs(r *bleve.SearchResult) []string {
+	if r == nil {
+		return nil
+	}
 	slice := []string{}
 	hits := r.Hits
 	for i := range hits {

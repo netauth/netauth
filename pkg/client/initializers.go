@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 	// Register the token services on import
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
-	"github.com/BurntSushi/toml"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
@@ -23,41 +25,30 @@ var (
 	ErrConfigError = errors.New("Required configuration values are missing")
 )
 
-// New takes in a NACLConfig pointer and uses this to bootstrap a
-// client.  If the pointer is nil, then the config will be loaded from
-// disk from the default location.
-func New(cfg *NACLConfig) (*NetAuthClient, error) {
-	if cfg == nil {
-		// Load from disk
-		var err error
-		cfg, err = LoadConfig("")
-		if err != nil {
-			return nil, err
-		}
+// New returns a complete client ready to use.
+func New() (*NetAuthClient, error) {
+	// Set defaults for the client ID and service ID
+	hn, err := os.Hostname()
+	if err != nil {
+		viper.SetDefault("client.ID", "BOGUS_CLIENT")
+	} else {
+		viper.SetDefault("client.ID", hn)
 	}
-	cfg.ServiceID = ensureServiceID(cfg.ServiceID)
-	cfg.ClientID = ensureClientID(cfg.ClientID)
-
-	// Make sure the server/port tuple is defined.
-	if cfg.Server == "" {
-		return nil, ErrConfigError
-	}
-	if cfg.Port == 0 {
-		cfg.Port = 8080
-	}
+	viper.SetDefault("client.ServiceName", "BOGUS_SERVICE")
 
 	// Setup the connection.
 	var opts []grpc.DialOption
-	if cfg.WildlyInsecure {
+	if viper.GetBool("tls.pwn_me") {
 		opts = []grpc.DialOption{grpc.WithInsecure()}
 	} else {
-		// If it wasn't set then pull it from the default
-		// location and hope its there.
-		if cfg.ServerCert == "" {
-			cfg.ServerCert = "/etc/netauth.cert"
+		// If this is a relative path its relative to the home
+		// directory.
+		certPath := viper.GetString("tls.certificate")
+		if !filepath.IsAbs(certPath) {
+			certPath = filepath.Join(viper.GetString("core.home"), certPath)
 		}
 
-		creds, err := credentials.NewClientTLSFromFile(cfg.ServerCert, "")
+		creds, err := credentials.NewClientTLSFromFile(certPath, "")
 		if err != nil {
 			log.Printf("Could not load certificate: %s", err)
 			return nil, err
@@ -65,7 +56,7 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
 	}
 	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", cfg.Server, cfg.Port),
+		fmt.Sprintf("%s:%d", viper.GetString("core.server"), viper.GetInt("core.port")),
 		opts...,
 	)
 	if err != nil {
@@ -90,33 +81,9 @@ func New(cfg *NACLConfig) (*NetAuthClient, error) {
 	// Create a client to use later on.
 	client := NetAuthClient{
 		c:            pb.NewNetAuthClient(conn),
-		cfg:          cfg,
 		tokenStore:   t,
 		tokenService: ts,
 	}
 
 	return &client, nil
-}
-
-// LoadConfig fetches the configuration file from disk in the default
-// location, or the provided path if specified.
-func LoadConfig(cfgpath string) (*NACLConfig, error) {
-	if cfgpath == "" {
-		cfgpath = os.Getenv("NACLCONFIG")
-		if cfgpath == "" {
-			// If it wasn't set, this is the location to
-			// load from.  At some point this path should
-			// come about via an OS agnostic way since
-			// Windows doesn't have an /etc to load from.
-			cfgpath = "/etc/netauth.toml"
-		}
-	}
-
-	// Actually load the config
-	var cfg NACLConfig
-	_, err := toml.DecodeFile(cfgpath, &cfg)
-	if err != nil {
-		return nil, err
-	}
-	return &cfg, nil
 }

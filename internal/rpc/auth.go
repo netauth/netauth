@@ -154,15 +154,19 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	modself := false
 
 	// Determine if this is a self modifying request or not
+	log.Println(e, me)
 	if me != nil && e.GetID() == me.GetID() {
 		modself = true
 	}
 
 	// Self modifying requests require the original password to
 	// proceed
-	err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret())
-	if modself && err == nil {
-		err := s.Tree.SetSecret(me.GetID(), me.GetSecret())
+	if modself {
+		err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret())
+		if err != nil {
+			return nil, toWireError(err)
+		}
+		err = s.Tree.SetSecret(me.GetID(), me.GetSecret())
 		if err != nil {
 			return nil, toWireError(err)
 		}
@@ -174,11 +178,6 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 			Msg:     proto.String("Secret Changed"),
 			Success: proto.Bool(true),
 		}, toWireError(nil)
-	}
-	if err != nil {
-		// Problem with the password in the self modifying
-		// request, bail out!
-		return nil, toWireError(err)
 	}
 
 	// This change is being done administratively since modself

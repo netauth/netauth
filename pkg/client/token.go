@@ -38,10 +38,7 @@ func (n *NetAuthClient) GetToken(entity, secret string) (string, error) {
 			ID:     &entity,
 			Secret: &secret,
 		},
-		Info: &pb.ClientInfo{
-			ID:      &n.cfg.ClientID,
-			Service: &n.cfg.ServiceID,
-		},
+		Info: clientInfo(),
 	}
 	tokenResult, err := n.c.GetToken(context.Background(), &request)
 	if status.Code(err) != codes.OK {

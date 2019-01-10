@@ -6,8 +6,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/db"
-
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -90,39 +88,26 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	}, toWireError(nil)
 }
 
-// ListGroups lists the groups a particular entity is in, or all
-// groups on the server if no entity is specified.  In the case of
-// calculating the groups a specific entity is in this can be quite
-// expensive since large chunks of the membership tree will need to be
-// calculated.
+// ListGroups lists the groups a particular entity is in.
 func (s *NetAuthServer) ListGroups(ctx context.Context, r *pb.GroupListRequest) (*pb.GroupList, error) {
 	e := r.GetEntity()
 	inclindr := r.GetIncludeIndirects()
 
 	var list []*pb.Group
 
-	if e != nil {
-		// If e is defined then we want the groups for a
-		// specific entity
-		entity, err := s.Tree.FetchEntity(e.GetID())
+	// If e is defined then we want the groups for a
+	// specific entity
+	entity, err := s.Tree.FetchEntity(e.GetID())
+	if err != nil {
+		return nil, toWireError(err)
+	}
+	groupNames := s.Tree.GetMemberships(entity, inclindr)
+	for _, name := range groupNames {
+		g, err := s.Tree.FetchGroup(name)
 		if err != nil {
 			return nil, toWireError(err)
 		}
-		groupNames := s.Tree.GetMemberships(entity, inclindr)
-		for _, name := range groupNames {
-			g, err := s.Tree.FetchGroup(name)
-			if err != nil {
-				return nil, toWireError(err)
-			}
-			list = append(list, g)
-		}
-	} else {
-		// If e is not defined then we want all groups.
-		var err error
-		list, err = s.Tree.SearchGroups(db.SearchRequest{Expression: "*"})
-		if err != nil {
-			return nil, toWireError(err)
-		}
+		list = append(list, g)
 	}
 
 	return &pb.GroupList{

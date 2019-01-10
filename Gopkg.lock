@@ -2,16 +2,10 @@
 
 
 [[projects]]
-  name = "github.com/BurntSushi/toml"
-  packages = ["."]
-  revision = "3012a1dbe2e4bd1391d42b32f0577cb7bbc7f005"
-  version = "v0.3.1"
-
-[[projects]]
   branch = "master"
   name = "github.com/NetAuth/Protocol"
   packages = ["."]
-  revision = "3583e5bfd5927e6ecae7a50de3ec9258a13733e9"
+  revision = "fa32b3772b230129d6e14fa14cfc3681dccfb278"
 
 [[projects]]
   name = "github.com/RoaringBitmap/roaring"
@@ -168,6 +162,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/inconshreveable/mousetrap"
+  packages = ["."]
+  revision = "76626ae9c91c4f2a10f34cad8ce83ea42c93bb75"
+  version = "v1.0"
+
+[[projects]]
   name = "github.com/magiconair/properties"
   packages = ["."]
   revision = "c2353362d570a7bfa228149c62842019201cfb71"
@@ -211,6 +211,12 @@
   packages = ["."]
   revision = "8c9545af88b134710ab1cd196795e7f2388358d7"
   version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/spf13/cobra"
+  packages = ["."]
+  revision = "ef82de70bb3f60c65fb8eebacbb2d122ef517385"
+  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/spf13/jwalterweatherman"
@@ -354,6 +360,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7b4af0391fd9d67faea237c28d0aee3641a935a788efea9ddde35ef65cf2de02"
+  inputs-digest = "ba650076de500009df56abd74dc52a928f4ce9ee912cfac4ecfa2dedaa4610b4"
   solver-name = "gps-cdcl"
   solver-version = 1
