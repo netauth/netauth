@@ -1,57 +1,58 @@
 package ctl
 
 import (
-	"context"
-	"flag"
 	"fmt"
+	"os"
 
-	"github.com/google/subcommands"
+	"github.com/spf13/cobra"
+
+	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
-// EntityInfoCmd summons information on a named entity
-type EntityInfoCmd struct {
-	entityID string
-	fields   string
+var (
+	entityInfoFields string
+
+	entityInfoCmd = &cobra.Command{
+		Use:   "info <entity>",
+		Short: "Fetch information on an existing entity",
+		Long:  entityInfoLongDocs,
+		Args:  cobra.ExactArgs(1),
+		Run:   entityInfoRun,
+	}
+
+	entityInfoLongDocs = `
+The info command can return information on any entity known to the
+server.  The output may be filtered with the --fields option which
+takes a comma seperated list of field names to display.  `
+
+	entityInfoExample = `$ netauth entity info demo2
+ID: demo2
+Number: 9
+
+$ netauth entity info --fields ID demo2
+ID: demo2`
+)
+
+func init() {
+	entityCmd.AddCommand(entityInfoCmd)
+	entityInfoCmd.Flags().StringVar(&entityInfoFields, "fields", "", "Fields to be displayed")
 }
 
-// Name of this cmdlet is 'entity-info'
-func (*EntityInfoCmd) Name() string { return "entity-info" }
-
-// Synopsis for the cmdlet.
-func (*EntityInfoCmd) Synopsis() string { return "Obtain information on an entity" }
-
-// Usage info for the cmdlet.
-func (*EntityInfoCmd) Usage() string {
-	return `entity-info --entity <ID>  [--fields field1,field2...]
-Print information about an entity.  The listed fields can be used to
-limit the information that is printed.
-`
-}
-
-// SetFlags processes the flags for this cmdlet.
-func (p *EntityInfoCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.entityID, "entity", getEntity(), "ID to summon info for")
-	f.StringVar(&p.fields, "fields", "", "Comma separated list of fields to display")
-}
-
-// Execute is called to run this cmdlet.
-func (p *EntityInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func entityInfoRun(cmd *cobra.Command, args []string) {
 	// Grab a client
-	c, err := getClient()
+	c, err := client.New()
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
 	// Obtain entity info
-	entity, err := c.EntityInfo(p.entityID)
+	entity, err := c.EntityInfo(args[0])
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
 	// Print the fields
-	printEntity(entity, p.fields)
-
-	return subcommands.ExitSuccess
+	printEntity(entity, entityInfoFields)
 }

@@ -1,78 +1,87 @@
 package ctl
 
 import (
-	"context"
-	"flag"
 	"fmt"
+	"os"
+	"strings"
 
-	"github.com/google/subcommands"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
+	"github.com/NetAuth/NetAuth/pkg/client"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-// EntityMembershipCmd modifies the direct group membership for an
-// entity.
-type EntityMembershipCmd struct {
-	entityID  string
-	groupName string
-	add       bool
-	drop      bool
+var (
+	entityMembershipCmd = &cobra.Command{
+		Use:     "membership <entity> <ADD|DROP> <group>",
+		Short:   "Add or remove direct group memberships",
+		Long:    entityMembershipLongDocs,
+		Example: entityMembershipExample,
+		Args:    entityMembershipArgs,
+		Run:     entityMembershipRun,
+	}
+
+	entityMembershipLongDocs = `
+The membership command adds and removes groups from an entity.  These
+groups are direct memberships that are only influenced by EXCLUDE
+expansions.
+
+The caller must posses the MODIFY_GROUP_MEMBERS capability or be a
+member of the group that is listed to manage the membership of the
+target group.`
+
+	entityMembershipExample = `$ netauth entity membership demo2 add demo-group
+Membership updated successfully
+
+$ netauth entity membership demo2 drop demo-group
+Membership updated successfully`
+)
+
+func init() {
+	entityCmd.AddCommand(entityMembershipCmd)
 }
 
-// Name of this cmdlet will be 'entity-membership'
-func (*EntityMembershipCmd) Name() string { return "entity-membership" }
+func entityMembershipArgs(cmd *cobra.Command, args []string) error {
+	if len(args) != 3 {
+		return fmt.Errorf("This command takes exactly 3 arguments")
+	}
 
-// Synopsis returns the short-form usage information
-func (*EntityMembershipCmd) Synopsis() string {
-	return "Add or remove an existing entity to an existing group"
+	m := strings.ToUpper(args[1])
+	if m != "ADD" && m != "DROP" {
+		return fmt.Errorf("Mode must be one of ADD or DROP")
+	}
+
+	return nil
 }
 
-// Usage returns the long form usage information.
-func (*EntityMembershipCmd) Usage() string {
-	return `entity-membership --entity <ID> --group <name> --<add|remove>
-
-Add or remove the named entity from the named group.  Both the entity
-and the group must exist already.
-`
-}
-
-// SetFlags sets the cmdlet specific flags.
-func (cmd *EntityMembershipCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&cmd.entityID, "entity", getEntity(), "ID of the entity to add to the group")
-	f.StringVar(&cmd.groupName, "group", "", "Name of the group to add to")
-	f.BoolVar(&cmd.add, "add", false, "Add the specified membership")
-	f.BoolVar(&cmd.drop, "drop", false, "Drop the specified membership")
-}
-
-// Execute runs the cmdlet.
-func (cmd *EntityMembershipCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func entityMembershipRun(cmd *cobra.Command, args []string) {
 	// Grab a client
-	c, err := getClient()
+	c, err := client.New()
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
 	// Get the authorization token
-	t, err := getToken(c, getEntity())
+	t, err := getToken(c, viper.GetString("entity"))
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
 	result := &pb.SimpleResult{}
-	if cmd.add {
-		result, err = c.AddEntityToGroup(t, cmd.groupName, cmd.entityID)
-	} else if cmd.drop {
-		result, err = c.RemoveEntityFromGroup(t, cmd.groupName, cmd.entityID)
-	} else {
-		fmt.Println("You must specify either --add or --drop for this command!")
-		return subcommands.ExitFailure
+	switch strings.ToUpper(args[1]) {
+	case "ADD":
+		result, err = c.AddEntityToGroup(t, args[2], args[0])
+	case "DROP":
+		result, err = c.AddEntityToGroup(t, args[2], args[0])
 	}
+
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 	fmt.Println(result.GetMsg())
-	return subcommands.ExitSuccess
 }

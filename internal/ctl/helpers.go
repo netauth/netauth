@@ -4,8 +4,41 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/bgentry/speakeasy"
+	"github.com/spf13/viper"
+
+	"github.com/NetAuth/NetAuth/pkg/client"
+
 	pb "github.com/NetAuth/Protocol"
 )
+
+// Prompt for the secret if it wasn't provided in cleartext.
+func getSecret(prompt string) string {
+	if prompt == "" {
+		prompt = "Secret: "
+	}
+
+	if viper.GetString("secret") != "" {
+		return viper.GetString("secret")
+	}
+	secret, err := speakeasy.Ask(prompt)
+	if err != nil {
+		fmt.Printf("Error: %s", err)
+	}
+	return secret
+}
+
+func getToken(c *client.NetAuthClient, entity string) (string, error) {
+	t, err := c.GetToken(entity, "")
+	switch err {
+	case nil:
+		return t, nil
+	case client.ErrTokenUnavailable:
+		return c.GetToken(entity, getSecret(""))
+	default:
+		return "", err
+	}
+}
 
 func printEntity(entity *pb.Entity, fields string) {
 	var fieldList []string

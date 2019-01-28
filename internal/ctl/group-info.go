@@ -1,64 +1,64 @@
 package ctl
 
 import (
-	"context"
-	"flag"
 	"fmt"
+	"os"
 
-	"github.com/google/subcommands"
+	"github.com/spf13/cobra"
+
+	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
-// GroupInfoCmd returns  information about a named  group filtered for
-// specific fields.
-type GroupInfoCmd struct {
-	groupName string
-	fields    string
+var (
+	groupInfoFields string
+
+	groupInfoCmd = &cobra.Command{
+		Use:     "info <group>",
+		Short:   "Fetch information on an existing group",
+		Long:    groupInfoLongDocs,
+		Example: groupInfoExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     groupInfoRun,
+	}
+
+	groupInfoLongDocs = `
+The info command retursn information on any group known to the server.
+The output may be filtered with the --fields option which takes a
+comma seperated list of field names to display.`
+
+	groupInfoExample = `$ netauth group info example-group
+Name: example-group
+Display Name:
+Number: 10
+Expansion: INCLUDE:example-group2`
+)
+
+func init() {
+	groupCmd.AddCommand(groupInfoCmd)
+	groupInfoCmd.Flags().StringVar(&groupInfoFields, "fields", "", "Fields to be displayed")
 }
 
-// Name of this cmdlet will be 'group-info'
-func (*GroupInfoCmd) Name() string { return "group-info" }
-
-// Synopsis returns the short-form usage.
-func (*GroupInfoCmd) Synopsis() string { return "Obtain information on a group" }
-
-// Usage returns the long-form usage.
-func (*GroupInfoCmd) Usage() string {
-	return `group-info --group <name> [--fields field1,field2,field3...]
-
-Return the fields of a group.  This will provide information on a
-single group, as opposed to attempting to list all groups.
-`
-}
-
-// SetFlags sets the cmdlet specific flags.
-func (p *GroupInfoCmd) SetFlags(f *flag.FlagSet) {
-	f.StringVar(&p.fields, "fields", "", "Comma separated list of fields to display")
-	f.StringVar(&p.groupName, "group", "", "Name of the group to query")
-}
-
-// Execute gets the group and prints information on it.
-func (p *GroupInfoCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface{}) subcommands.ExitStatus {
+func groupInfoRun(cmd *cobra.Command, args []string) {
 	// Grab a client
-	c, err := getClient()
+	c, err := client.New()
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
 	// Obtain group info
-	result, err := c.GroupInfo(p.groupName)
+	result, err := c.GroupInfo(args[0])
 	if err != nil {
 		fmt.Println(err)
-		return subcommands.ExitFailure
+		os.Exit(1)
 	}
 
-	printGroup(result.GetGroup(), p.fields)
-
+	// Print the fields
+	printGroup(result.GetGroup(), groupInfoFields)
 	if len(result.GetManaged()) > 0 {
-		fmt.Printf("The following group(s) are managed by %s\n", p.groupName)
+		fmt.Printf("The following group(s) are managed by %s\n", args[0])
 	}
 	for _, gn := range result.GetManaged() {
 		fmt.Printf("  - %s\n", gn)
 	}
-	return subcommands.ExitSuccess
 }
