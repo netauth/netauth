@@ -10,18 +10,12 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	"github.com/dgrijalva/jwt-go"
-)
-
-var (
-	rsaBits  = pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
-	generate = pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
 )
 
 // An RSAToken is a token that provides both the token.Claims required
@@ -130,13 +124,13 @@ func (s *RSATokenService) GetKeys() error {
 	if os.IsNotExist(err) {
 		log.Printf("Blob at %s contains no key!", s.publicKeyFile)
 
-		if !*generate {
+		if !viper.GetBool("token.jwt.generate") {
 			log.Println("Generating keys is disabled!")
 			return token.ErrKeyGenerationDisabled
 		}
 
 		// Request the keys be generated
-		if err := s.generateKeys(*rsaBits); err != nil {
+		if err := s.generateKeys(viper.GetInt("token.jwt.bits")); err != nil {
 			return err
 		}
 

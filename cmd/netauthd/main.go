@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	_ "github.com/NetAuth/NetAuth/internal/crypto/all"
@@ -40,6 +41,17 @@ func init() {
 	pflag.String("server.bind", "localhost", "Bind address, defaults to localhost")
 	pflag.Int("server.port", 8080, "Serving port, defaults to 8080")
 	pflag.String("core.home", "", "Base directory for NetAuth")
+
+	pflag.String("db.backend", "ProtoDB", "Database implementation to use")
+
+	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
+
+	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
+	pflag.Duration("token.lifetime", time.Hour*10, "Token lifetime")
+	pflag.Int("token.renewals", 5, "Maximum number of times the token may be renewed")
+
+	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
+	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
 }
 
 func newServer() *rpc.NetAuthServer {

@@ -5,7 +5,6 @@
 package db
 
 import (
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -15,7 +14,6 @@ var (
 
 func init() {
 	backends = make(map[string]Factory)
-	pflag.String("db.backend", "ProtoDB", "Database implementation to use")
 }
 
 // New returns a db struct.

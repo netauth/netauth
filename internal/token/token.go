@@ -4,7 +4,6 @@ import (
 	"log"
 	"time"
 
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -35,10 +34,6 @@ var (
 
 func init() {
 	services = make(map[string]Factory)
-
-	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
-	pflag.Duration("token.lifetime", time.Hour*10, "Token lifetime")
-	pflag.Int("token.renewals", 5, "Maximum number of times the token may be renewed")
 }
 
 // New returns an initialized token service based on the value of the

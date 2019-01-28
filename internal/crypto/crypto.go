@@ -4,7 +4,6 @@
 package crypto
 
 import (
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 )
 
@@ -26,7 +25,6 @@ var (
 
 func init() {
 	backends = make(map[string]Factory)
-	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
 }
 
 // New returns an initialized Crypto instance which can create and
