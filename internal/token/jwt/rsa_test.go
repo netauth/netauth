@@ -34,6 +34,8 @@ func init() {
 
 	config.IssuedAt = t
 	config.NotBefore = t
+
+	viper.Set("token.jwt.bits", 1024)
 }
 
 func mkTmpTestDir(t *testing.T) string {
@@ -61,9 +63,9 @@ func genFixedKey(dir string, t *testing.T) {
 	}
 
 	// No keys, we need to create them
-	privateKey, err := rsa.GenerateKey(r, *rsaBits)
+	privateKey, err := rsa.GenerateKey(r, viper.GetInt("token.jwt.bits"))
 	if err != nil {
-		t.Log("Keys unavailable")
+		t.Fatal("Keys unavailable")
 	}
 	publicKey := &privateKey.PublicKey
 
@@ -97,7 +99,7 @@ func genFixedKey(dir string, t *testing.T) {
 func TestNewMissingKeys(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	_, err := NewRSA()
 	if err != token.ErrKeyGenerationDisabled {
@@ -110,14 +112,14 @@ func TestNewExistingKey(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 
 	// This one should generate keys
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 	_, err := NewRSA()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// This one should be loading the existing key
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 	_, err = NewRSA()
 	if err != nil {
 		t.Fatal(err)
@@ -127,7 +129,7 @@ func TestNewExistingKey(t *testing.T) {
 func TestGenerateNoKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -301,7 +303,7 @@ func TestValidateExpiredToken(t *testing.T) {
 func TestGetKeysNoGenerate(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	if err := os.MkdirAll(filepath.Join(testDir, "keys", "token.key"), 0755); err != nil {
 		t.Fatal(err)
@@ -316,7 +318,7 @@ func TestGetKeysNoGenerate(t *testing.T) {
 func TestGetKeysBadPublicKeyFile(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	if err := os.MkdirAll(filepath.Join(testDir, "keys", "token.pem"), 0755); err != nil {
 		t.Fatal(err)
@@ -348,7 +350,7 @@ func TestGetKeysBadPublicKeyMode(t *testing.T) {
 func TestGetKeysBadBlockDecode(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	if err := os.MkdirAll(filepath.Join(testDir, "keys"), 0755); err != nil {
 		t.Fatal(err)
@@ -367,7 +369,7 @@ func TestGetKeysBadBlockDecode(t *testing.T) {
 func TestGetKeysPublicKeyWrongType(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	// Chosen by fair dice roll.
 	r := rand.New(rand.NewSource(4))
@@ -406,7 +408,7 @@ func TestGetKeysPublicKeyWrongType(t *testing.T) {
 func TestGetKeysPublicKeyIsPrivate(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	// Generate the keys flipped, so that the private key winds up
 	// in the wrong file, then flip the keys back.
@@ -433,7 +435,7 @@ func TestGetKeysPublicKeyIsPrivate(t *testing.T) {
 func TestGetKeysNoPrivateKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	genFixedKey(testDir, t)
 	if err := os.Remove(filepath.Join(testDir, "keys", "token.key")); err != nil {
@@ -449,7 +451,7 @@ func TestGetKeysNoPrivateKey(t *testing.T) {
 func TestGetKeysUnreadablePrivateKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	genFixedKey(testDir, t)
 
@@ -466,7 +468,7 @@ func TestGetKeysUnreadablePrivateKey(t *testing.T) {
 func TestGetKeysPrivateKeyIsPublic(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = false
+	viper.Set("token.jwt.generate", false)
 
 	// Write out a public key, then change where the private key
 	// points to cause a load error.  This must not cause an
@@ -490,7 +492,7 @@ func TestGetKeysPrivateKeyIsPublic(t *testing.T) {
 func TestGenerateKeysSuccess(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -514,7 +516,7 @@ func TestGenerateKeysSuccess(t *testing.T) {
 func TestGenerateKeysWrongBitNumber(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -534,7 +536,7 @@ func TestGenerateKeysWrongBitNumber(t *testing.T) {
 func TestGenerateKeysBadPrivateKeyFile(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -564,7 +566,7 @@ func TestGenerateKeysBadPrivateKeyFile(t *testing.T) {
 func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -599,7 +601,7 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 func TestHealthCheck(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -619,7 +621,7 @@ func TestHealthCheck(t *testing.T) {
 func TestHealthCheckNoPublicKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -641,7 +643,7 @@ func TestHealthCheckNoPublicKey(t *testing.T) {
 func TestHealthCheckNoPrivateKey(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -663,7 +665,7 @@ func TestHealthCheckNoPrivateKey(t *testing.T) {
 func TestHealthCheckBadPrivateKeyPermissions(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
@@ -687,7 +689,7 @@ func TestHealthCheckBadPrivateKeyPermissions(t *testing.T) {
 func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
 	testDir := mkTmpTestDir(t)
 	defer cleanTmpTestDir(testDir, t)
-	*generate = true
+	viper.Set("token.jwt.generate", true)
 
 	x, err := NewRSA()
 	if err != nil {
