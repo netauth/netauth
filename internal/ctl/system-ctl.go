@@ -6,7 +6,7 @@ import (
 
 var (
 	cliCmd = &cobra.Command{
-		Use: "cli",
+		Use:   "cli",
 		Short: "Extra utilities for the CLI",
 	}
 )

@@ -508,9 +508,9 @@ func (n *NetAuthClient) UnlockEntity(t, e string) (*pb.SimpleResult, error) {
 func (n *NetAuthClient) SearchEntities(expr string) (*pb.EntityList, error) {
 	request := pb.SearchRequest{
 		Expression: &expr,
-		Info: clientInfo(),
+		Info:       clientInfo(),
 	}
-	
+
 	result, err := n.c.SearchEntities(context.Background(), &request)
 	if status.Code(err) != codes.OK {
 		return nil, err
@@ -523,9 +523,9 @@ func (n *NetAuthClient) SearchEntities(expr string) (*pb.EntityList, error) {
 func (n *NetAuthClient) SearchGroups(expr string) (*pb.GroupList, error) {
 	request := pb.SearchRequest{
 		Expression: &expr,
-		Info: clientInfo(),
+		Info:       clientInfo(),
 	}
-	
+
 	result, err := n.c.SearchGroups(context.Background(), &request)
 	if status.Code(err) != codes.OK {
 		return nil, err

@@ -13,12 +13,12 @@ var (
 	entitySearchFields string
 
 	entitySearchCmd = &cobra.Command{
-		Use:   "search <expression>",
-		Short: "Search entities on the server",
-		Long:  entitySearchLongDocs,
+		Use:     "search <expression>",
+		Short:   "Search entities on the server",
+		Long:    entitySearchLongDocs,
 		Example: entitySearchExample,
-		Args:  cobra.ExactArgs(1),
-		Run:   entitySearchRun,
+		Args:    cobra.ExactArgs(1),
+		Run:     entitySearchRun,
 	}
 
 	entitySearchLongDocs = `
@@ -33,7 +33,7 @@ argument of the field names you wish to display.
 Some fields on entities are part of the metadata, to address these
 fields in a search prefix them with 'meta.' as in 'meta.DisplayName'.`
 
-entitySearchExample = `$ netauth entity search 'ID:demo*'
+	entitySearchExample = `$ netauth entity search 'ID:demo*'
 ID: demo2
 Number: 9
 ID: demo3

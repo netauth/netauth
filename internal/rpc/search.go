@@ -1,8 +1,8 @@
 package rpc
 
 import (
-	"log"
 	"context"
+	"log"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 

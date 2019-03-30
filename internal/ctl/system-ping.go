@@ -11,11 +11,11 @@ import (
 
 var (
 	systemPingCmd = &cobra.Command{
-		Use:   "ping",
-		Short: "Ping the server and print the reply",
-		Long: systemPingLongDocs,
+		Use:     "ping",
+		Short:   "Ping the server and print the reply",
+		Long:    systemPingLongDocs,
 		Example: systemPingExample,
-		Run:   systemPingRun,
+		Run:     systemPingRun,
 	}
 
 	systemPingLongDocs = `

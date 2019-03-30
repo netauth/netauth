@@ -14,12 +14,12 @@ var (
 	entityMembershipsIndirects bool
 
 	entityMembershipsCmd = &cobra.Command{
-		Use:   "memberships <entity>",
-		Short: "Memberships held by the specified entity",
-		Long:  entityMembershipLongDocs,
+		Use:     "memberships <entity>",
+		Short:   "Memberships held by the specified entity",
+		Long:    entityMembershipLongDocs,
 		Example: entityMembershipsExample,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityMembershipsRun,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityMembershipsRun,
 	}
 
 	entityMembershipsLongDocs = `

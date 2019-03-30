@@ -18,7 +18,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "netauth <subsystem> <command> [flags] [args]",
 		Short: "Interact with the NetAuth system.",
-		Long: rootCmdLongDocs,
+		Long:  rootCmdLongDocs,
 	}
 
 	rootCmdLongDocs = `

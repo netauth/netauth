@@ -14,7 +14,7 @@ var (
 	authInspectTokenCmd = &cobra.Command{
 		Use:   "inspect-token",
 		Short: "Inspect a token locally",
-		Long: authInspectTokenLongDocs,
+		Long:  authInspectTokenLongDocs,
 		Run:   authInspectTokenRun,
 	}
 

@@ -14,7 +14,7 @@ var (
 	authGetTokenCmd = &cobra.Command{
 		Use:   "get-token",
 		Short: "Request a new token from the server",
-		Long: authGetTokenLongDocs,
+		Long:  authGetTokenLongDocs,
 		Run:   authGetTokenRun,
 	}
 

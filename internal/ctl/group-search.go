@@ -13,12 +13,12 @@ var (
 	groupSearchFields string
 
 	groupSearchCmd = &cobra.Command{
-		Use:   "search <expression>",
-		Short: "Search entities on the server",
-		Long: groupSearchLongDocs,
+		Use:     "search <expression>",
+		Short:   "Search entities on the server",
+		Long:    groupSearchLongDocs,
 		Example: groupSearchExample,
-		Args:  cobra.ExactArgs(1),
-		Run:   groupSearchRun,
+		Args:    cobra.ExactArgs(1),
+		Run:     groupSearchRun,
 	}
 
 	groupSearchLongDocs = `

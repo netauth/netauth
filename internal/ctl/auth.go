@@ -8,7 +8,7 @@ var (
 	authCmd = &cobra.Command{
 		Use:   "auth <command>",
 		Short: "Use and set authentication data",
-		Long: authCmdLongDocs,
+		Long:  authCmdLongDocs,
 	}
 
 	authCmdLongDocs = `
