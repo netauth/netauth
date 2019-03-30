@@ -113,6 +113,7 @@ v0.0.13:
   * Better Command implementations
   * Simplify the ListGroups RPC to always take an entity
   * Provide dedicated Search RPC for searching entities and groups
+  * Drop dep in favor of go modules
 
 v0.0.14:
   * Externally loadable plugins
