@@ -1,6 +1,6 @@
 module github.com/NetAuth/NetAuth
 
-go 1.12
+go 1.11
 
 require (
 	github.com/NetAuth/Protocol v0.0.0-20190121213421-fa32b3772b23
