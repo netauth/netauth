@@ -27,6 +27,7 @@ var (
 
 func init() {
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
+	viper.SetDefault("core.port", 1729)
 }
 
 // New returns a complete client ready to use.
