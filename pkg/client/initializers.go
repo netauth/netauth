@@ -25,6 +25,10 @@ var (
 	ErrConfigError = errors.New("Required configuration values are missing")
 )
 
+func init() {
+	viper.SetDefault("tls.certificate", "keys/tls.pem")
+}
+
 // New returns a complete client ready to use.
 func New() (*NetAuthClient, error) {
 	// Set defaults for the client ID and service ID
