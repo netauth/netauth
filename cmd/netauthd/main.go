@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -52,6 +53,10 @@ func init() {
 
 	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
 	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
+
+	viper.SetDefault("server.port", 1729)
+	viper.SetDefault("tls.certificate", "keys/tls.pem")
+	viper.SetDefault("tls.key", "keys/tls.key")
 }
 
 func newServer() *rpc.NetAuthServer {
@@ -129,6 +134,12 @@ func main() {
 	if !*insecure {
 		cFile := viper.GetString("tls.certificate")
 		ckFile := viper.GetString("tls.key")
+		if !filepath.IsAbs(cFile) {
+			cFile = filepath.Join(viper.GetString("core.home"), cFile)
+		}
+		if !filepath.IsAbs(ckFile) {
+			ckFile = filepath.Join(viper.GetString("core.home"), ckFile)
+		}
 		log.Printf("TLS with the certificate %s and key %s", cFile, ckFile)
 		creds, err := credentials.NewServerTLSFromFile(cFile, ckFile)
 		if err != nil {
