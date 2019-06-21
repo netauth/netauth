@@ -40,7 +40,7 @@ func init() {
 	pflag.String("tls.key", "keys/tls.key", "Path to key file")
 
 	pflag.String("server.bind", "localhost", "Bind address, defaults to localhost")
-	pflag.Int("server.port", 8080, "Serving port, defaults to 8080")
+	pflag.Int("server.port", 1729, "Serving port")
 	pflag.String("core.home", "", "Base directory for NetAuth")
 
 	pflag.String("db.backend", "ProtoDB", "Database implementation to use")
