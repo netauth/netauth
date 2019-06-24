@@ -76,7 +76,7 @@ func entityMembershipRun(cmd *cobra.Command, args []string) {
 	case "ADD":
 		result, err = c.AddEntityToGroup(t, args[2], args[0])
 	case "DROP":
-		result, err = c.AddEntityToGroup(t, args[2], args[0])
+		result, err = c.RemoveEntityFromGroup(t, args[2], args[0])
 	}
 
 	if err != nil {
