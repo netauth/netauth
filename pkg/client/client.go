@@ -23,6 +23,7 @@ type NetAuthClient struct {
 	c            pb.NetAuthClient
 	tokenStore   TokenStore
 	tokenService token.Service
+	readonly     bool
 }
 
 // Ping very simply pings the server.  The reply will contain the
@@ -87,6 +88,10 @@ func (n *NetAuthClient) ValidateToken(entity string) (*pb.SimpleResult, error) {
 // change an entity secret either via self authentication or via token
 // authentication which is held by an appropriate administrator.
 func (n *NetAuthClient) ChangeSecret(e, s, me, ms, t string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
 			ID:     &e,
@@ -110,6 +115,10 @@ func (n *NetAuthClient) ChangeSecret(e, s, me, ms, t string) (*pb.SimpleResult, 
 // NewEntity crafts a modEntity request with the correct fields to
 // create a new entity.
 func (n *NetAuthClient) NewEntity(id string, uidn int32, secret, t string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
 			ID:     &id,
@@ -130,6 +139,10 @@ func (n *NetAuthClient) NewEntity(id string, uidn int32, secret, t string) (*pb.
 // RemoveEntity removes an entity by the given name.  Only the
 // 'entity' field of the modEntityRequest is required.
 func (n *NetAuthClient) RemoveEntity(id, token string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
 			ID: &id,
@@ -165,6 +178,10 @@ func (n *NetAuthClient) EntityInfo(id string) (*pb.Entity, error) {
 // ModifyEntityMeta makes an authenticated request to the server to
 // update the metadata of an entity.
 func (n *NetAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityRequest{
 		Entity: &pb.Entity{
 			ID:   &id,
@@ -184,6 +201,12 @@ func (n *NetAuthClient) ModifyEntityMeta(id, t string, meta *pb.EntityMeta) (*pb
 // ModifyEntityKeys modifies the keys on an entity, this action must
 // be authorized.
 func (n *NetAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, error) {
+	if strings.ToUpper(m) != "LIST" {
+		if err := n.makeWritable(); err != nil {
+			return nil, err
+		}
+	}
+
 	request := pb.ModEntityKeyRequest{
 		Entity: &pb.Entity{
 			ID: &e,
@@ -212,6 +235,12 @@ func (n *NetAuthClient) ModifyEntityKeys(t, e, m, kt, kv string) ([]string, erro
 // ModifyUntypedEntityMeta manages actions on the untyped metadata
 // storage.
 func (n *NetAuthClient) ModifyUntypedEntityMeta(t, e, m, k, v string) (map[string]string, error) {
+	if strings.ToUpper(m) != "READ" {
+		if err := n.makeWritable(); err != nil {
+			return nil, err
+		}
+	}
+
 	request := pb.ModEntityMetaRequest{
 		Entity: &pb.Entity{
 			ID: &e,
@@ -239,6 +268,10 @@ func (n *NetAuthClient) ModifyUntypedEntityMeta(t, e, m, k, v string) (map[strin
 // NewGroup creates a new group with the given name, display name, and
 // group number.  This action must be authorized.
 func (n *NetAuthClient) NewGroup(name, displayname, managedby, t string, number int) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	gid := int32(number)
 	request := pb.ModGroupRequest{
 		Group: &pb.Group{
@@ -261,6 +294,10 @@ func (n *NetAuthClient) NewGroup(name, displayname, managedby, t string, number 
 // DeleteGroup removes a group by name.  This action must be
 // authorized.
 func (n *NetAuthClient) DeleteGroup(name, t string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModGroupRequest{
 		Group: &pb.Group{
 			Name: &name,
@@ -315,6 +352,10 @@ func (n *NetAuthClient) GroupInfo(name string) (*pb.GroupInfoResult, error) {
 // ModifyGroupMeta allows a group's metadata to be altered after the
 // fact.  This action must be authorized.
 func (n *NetAuthClient) ModifyGroupMeta(group *pb.Group, token string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModGroupRequest{
 		Group:     group,
 		AuthToken: &token,
@@ -331,6 +372,10 @@ func (n *NetAuthClient) ModifyGroupMeta(group *pb.Group, token string) (*pb.Simp
 // AddEntityToGroup modifies direct membership of entities.  This
 // action must be authorized.
 func (n *NetAuthClient) AddEntityToGroup(t, g, e string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityMembershipRequest{
 		Entity: &pb.Entity{
 			ID: &e,
@@ -352,6 +397,10 @@ func (n *NetAuthClient) AddEntityToGroup(t, g, e string) (*pb.SimpleResult, erro
 // RemoveEntityFromGroup modifies direct membership of entities.  This
 // action must be authorized.
 func (n *NetAuthClient) RemoveEntityFromGroup(t, g, e string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.ModEntityMembershipRequest{
 		Entity: &pb.Entity{
 			ID: &e,
@@ -390,6 +439,10 @@ func (n *NetAuthClient) ListGroupMembers(g string) ([]*pb.Entity, error) {
 // ModifyGroupExpansions modifies the parent/child status of the provided groups.
 // This action must be authorized.
 func (n *NetAuthClient) ModifyGroupExpansions(t, p, c, m string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	m = strings.ToUpper(m)
 	mode := pb.ExpansionMode(pb.ExpansionMode_value[m])
 
@@ -415,6 +468,12 @@ func (n *NetAuthClient) ModifyGroupExpansions(t, p, c, m string) (*pb.SimpleResu
 // ModifyUntypedGroupMeta manages actions on the untyped metadata
 // storage.
 func (n *NetAuthClient) ModifyUntypedGroupMeta(t, g, m, k, v string) (map[string]string, error) {
+	if strings.ToUpper(m) != "READ" {
+		if err := n.makeWritable(); err != nil {
+			return nil, err
+		}
+	}
+
 	request := pb.ModGroupMetaRequest{
 		Group: &pb.Group{
 			Name: &g,
@@ -442,6 +501,10 @@ func (n *NetAuthClient) ModifyUntypedGroupMeta(t, g, m, k, v string) (map[string
 // ManageCapabilities modifies the capabilities present on an entity
 // or group.  This action must be authorized.
 func (n *NetAuthClient) ManageCapabilities(t, e, g, c, m string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	capID, ok := pb.Capability_value[c]
 	if !ok {
 		return nil, tree.ErrUnknownCapability
@@ -471,6 +534,10 @@ func (n *NetAuthClient) ManageCapabilities(t, e, g, c, m string) (*pb.SimpleResu
 // LockEntity locks an entity which prevents validation of an entity
 // secret.
 func (n *NetAuthClient) LockEntity(t, e string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.NetAuthRequest{
 		Entity: &pb.Entity{
 			ID: &e,
@@ -488,6 +555,10 @@ func (n *NetAuthClient) LockEntity(t, e string) (*pb.SimpleResult, error) {
 
 // UnlockEntity unlocks an entity which was previously locked.
 func (n *NetAuthClient) UnlockEntity(t, e string) (*pb.SimpleResult, error) {
+	if err := n.makeWritable(); err != nil {
+		return nil, err
+	}
+
 	request := pb.NetAuthRequest{
 		Entity: &pb.Entity{
 			ID: &e,

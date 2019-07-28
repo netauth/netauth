@@ -42,29 +42,9 @@ func New() (*NetAuthClient, error) {
 	viper.SetDefault("client.ServiceName", "BOGUS_SERVICE")
 
 	// Setup the connection.
-	var opts []grpc.DialOption
-	if viper.GetBool("tls.pwn_me") {
-		opts = []grpc.DialOption{grpc.WithInsecure()}
-	} else {
-		// If this is a relative path its relative to the home
-		// directory.
-		certPath := viper.GetString("tls.certificate")
-		if !filepath.IsAbs(certPath) {
-			certPath = filepath.Join(viper.GetString("core.home"), certPath)
-		}
-
-		creds, err := credentials.NewClientTLSFromFile(certPath, "")
-		if err != nil {
-			log.Printf("Could not load certificate: %s", err)
-			return nil, err
-		}
-		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
-	}
-	conn, err := grpc.Dial(
-		fmt.Sprintf("%s:%d", viper.GetString("core.server"), viper.GetInt("core.port")),
-		opts...,
-	)
+	conn, err := connect(false)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -83,12 +63,68 @@ func New() (*NetAuthClient, error) {
 		log.Println(err)
 	}
 
-	// Create a client to use later on.
+	// Create a client to use later on.  The value of the readonly
+	// flag is set here based on if the master and server
+	// addresses are the same.
 	client := NetAuthClient{
 		c:            pb.NewNetAuthClient(conn),
 		tokenStore:   t,
 		tokenService: ts,
+		readonly:     viper.GetString("core.server") != viper.GetString("core.master"),
 	}
 
 	return &client, nil
+}
+
+func connect(writable bool) (*grpc.ClientConn, error) {
+	addr := viper.GetString("core.server")
+
+	// This has to happen here since it needs to happen after
+	// everything else is already parsed.
+	if viper.GetString("core.master") == "" {
+		viper.Set("core.master", viper.GetString("core.server"))
+	}
+
+	if writable {
+		addr = viper.GetString("core.master")
+	}
+
+	var opts []grpc.DialOption
+	if viper.GetBool("tls.pwn_me") {
+		opts = []grpc.DialOption{grpc.WithInsecure()}
+	} else {
+		// If this is a relative path its relative to the home
+		// directory.
+		certPath := viper.GetString("tls.certificate")
+		if !filepath.IsAbs(certPath) {
+			certPath = filepath.Join(viper.GetString("core.home"), certPath)
+		}
+
+		creds, err := credentials.NewClientTLSFromFile(certPath, "")
+		if err != nil {
+			log.Printf("Could not load certificate: %s", err)
+			return nil, err
+		}
+		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}
+	}
+	return grpc.Dial(
+		fmt.Sprintf("%s:%d", addr, viper.GetInt("core.port")),
+		opts...,
+	)
+}
+
+func (n *NetAuthClient) makeWritable() error {
+	// If the master server is the one that we would already be
+	// connected to, then just return.  Also return if we are
+	// already not readonly.
+	if viper.GetString("core.server") == viper.GetString("core.master") || !n.readonly {
+		return nil
+	}
+
+	conn, err := connect(true)
+	if err != nil {
+		return err
+	}
+	n.c = pb.NewNetAuthClient(conn)
+	return nil
 }
