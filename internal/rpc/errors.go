@@ -18,6 +18,11 @@ var (
 	// itself.
 	ErrMalformedRequest = errors.New("the request is malformed and cannot be processed")
 
+	// ErrReadOnly is used to signal to the client that they have
+	// requested a mutating change from a server that is unable to
+	// comply due to being in read-only mode.
+	ErrReadOnly = errors.New("this server is in read only mode")
+
 	// ErrInternalError is a catchall for errors that are
 	// otherwise unidentified and unrecoverable in the server.
 	ErrInternalError = errors.New("An internal error has occurred")

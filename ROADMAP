@@ -116,24 +116,21 @@ v0.0.13:
   * Drop dep in favor of go modules
 
 v0.0.14:
-  * Externally loadable plugins
+  * read-only mode
+
+v0.0.15:
+  * Externally loadable plugins via go-plugin
   * Plugin chain configuration with dynamic insertion
   * Example Policy Hooks
     * Secret complexity engine
     * Secret dictionary check
     * Secret character class check
 
-v0.0.15:
-  * go-plugin support
-
 v0.0.16:
-  * Protocol and Client library cleanup - BREAKING CHANGE
-
-v0.0.17:
   * BoltDB backend
   * DB Migrator
 
-v0.0.18:
+v0.0.17:
   * Consul backend
 
 v0.1.0:

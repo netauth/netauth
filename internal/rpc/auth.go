@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 
@@ -151,6 +152,16 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	me := r.GetModEntity()
 	t := r.GetAuthToken()
 
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied ChangeSecret request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
+
 	modself := false
 
 	// Determine if this is a self modifying request or not
@@ -215,6 +226,16 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	t := r.GetAuthToken()
 	mode := r.GetMode()
 	cap := r.GetCapability().String()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied ManageCapabilities request from %s@%s (read-only mode is enabled)",
+			r.GetInfo().GetService(),
+			r.GetInfo().GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	// Validate the token and confirm the holder posses
 	// GLOBAL_ROOT.  You might wonder why there isn't a capability
@@ -292,6 +313,16 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	e := r.GetEntity()
 	t := r.GetAuthToken()
 
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied LockEntity request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
+
 	// Verify the correct capability is present in the token.
 	c, err := s.Token.Validate(t)
 	if err != nil {
@@ -326,6 +357,16 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 	client := r.GetInfo()
 	e := r.GetEntity()
 	t := r.GetAuthToken()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied UnlockEntity request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	// Verify the correct capability is present in the token.
 	c, err := s.Token.Validate(t)

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/spf13/viper"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -18,6 +19,16 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 	t := r.GetAuthToken()
 	g := r.GetGroup()
 	e := r.GetEntity()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied AddEntityToGroup request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
@@ -57,6 +68,16 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	t := r.GetAuthToken()
 	g := r.GetGroup()
 	e := r.GetEntity()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied RemoveEntityFromGroup request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
@@ -142,6 +163,16 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 	parent := r.GetParentGroup()
 	child := r.GetChildGroup()
 	mode := r.GetMode()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied ModifyGroupNesting request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	c, err := s.Token.Validate(t)
 	if err != nil {

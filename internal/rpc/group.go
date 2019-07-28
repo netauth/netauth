@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/token"
@@ -20,6 +21,16 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 	client := r.GetInfo()
 	t := r.GetAuthToken()
 	g := r.GetGroup()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied NewGroup request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
@@ -58,6 +69,16 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	client := r.GetInfo()
 	t := r.GetAuthToken()
 	g := r.GetGroup()
+
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied DeleteGroup request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
 
 	c, err := s.Token.Validate(t)
 	if err != nil {
@@ -126,6 +147,16 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 	t := r.GetAuthToken()
 	g := r.GetGroup()
 
+	if viper.GetBool("server.readonly") {
+		log.Printf("Denied ModifyGroupMeta request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.SimpleResult{
+			Msg: proto.String("This server is in read-only mode"),
+			Success: proto.Bool(false),
+		}, toWireError(ErrReadOnly)
+	}
+
 	c, err := s.Token.Validate(t)
 	if err != nil {
 		return nil, toWireError(err)
@@ -163,6 +194,13 @@ func (s *NetAuthServer) ModifyUntypedGroupMeta(ctx context.Context, r *pb.ModGro
 	t := r.GetAuthToken()
 
 	mode := strings.ToUpper(r.GetMode())
+
+	if viper.GetBool("server.readonly") && mode != "READ" {
+		log.Printf("Denied ModifyUntypedGroupMeta request from %s@%s (read-only mode is enabled)",
+			client.GetService(),
+			client.GetID())
+		return &pb.UntypedMetaResult{}, toWireError(ErrReadOnly)
+	}
 
 	// If we aren't doing a read only operation then we need a
 	// token for this

@@ -93,6 +93,8 @@ func toWireError(err error) error {
 		return status.Errorf(codes.PermissionDenied, err.Error())
 	case ErrInternalError:
 		return status.Errorf(codes.Internal, err.Error())
+	case ErrReadOnly:
+		return status.Errorf(codes.FailedPrecondition, err.Error())
 	default:
 		return status.Errorf(codes.Unknown, "An unidentifiable error has occurred")
 	}
