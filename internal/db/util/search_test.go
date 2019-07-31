@@ -160,3 +160,9 @@ func TestSearchGroupsBadRequest(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestExtractDocIDsNullResult(t *testing.T) {
+	if res := extractDocIDs(nil); res != nil {
+		t.Error("Got a non-nil response from a nil result")
+	}
+}
