@@ -1,6 +1,8 @@
 package util
 
 import (
+	"log"
+
 	"github.com/blevesearch/bleve"
 
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -14,6 +16,9 @@ import (
 type SearchIndex struct {
 	eIndex bleve.Index
 	gIndex bleve.Index
+
+	eLoader loadEntityFunc
+	gLoader loadGroupFunc
 }
 
 // NewIndex returns a new SearchIndex with the mappings configured and
@@ -52,6 +57,49 @@ func NewIndex() *SearchIndex {
 	return &SearchIndex{
 		eIndex: eIndex,
 		gIndex: gIndex,
+	}
+}
+
+// ConfigureCallback is used to set the references to the loaders
+// which are later used by the callback to fetch entities and groups
+// for indexing.
+func (s *SearchIndex) ConfigureCallback(el loadEntityFunc, gl loadGroupFunc) {
+	s.eLoader = el
+	s.gLoader = gl
+}
+
+// IndexCallback is meant to be plugged into the event system and is
+// subsequently capable of maintaining the index based on events being
+// fired during save and as files change on disk.
+func (s *SearchIndex) IndexCallback(e db.Event) {
+	if s.eLoader == nil || s.gLoader == nil {
+		log.Println("IndexCallback is unavailable, call ConfigureCallback() first!")
+		return
+	}
+
+	switch e.Type {
+	case db.EventEntityCreate:
+		fallthrough
+	case db.EventEntityUpdate:
+		ent, err := s.eLoader(e.PK)
+		if err != nil {
+			log.Printf("Could not reindex %s", e.PK)
+			return
+		}
+		s.IndexEntity(ent)
+	case db.EventEntityDestroy:
+		s.eIndex.Delete(e.PK)
+	case db.EventGroupCreate:
+		fallthrough
+	case db.EventGroupUpdate:
+		grp, err := s.gLoader(e.PK)
+		if err != nil {
+			log.Printf("Could not reindex %s", e.PK)
+			return
+		}
+		s.IndexGroup(grp)
+	case db.EventGroupDestroy:
+		s.gIndex.Delete(e.PK)
 	}
 }
 

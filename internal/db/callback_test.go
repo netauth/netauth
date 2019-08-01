@@ -19,7 +19,7 @@ func TestCallbacks(t *testing.T) {
 	}
 
 	e := Event{
-		Type: "null",
+		Type: EventEntityCreate,
 		PK:   "null",
 	}
 

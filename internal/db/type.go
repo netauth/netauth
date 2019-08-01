@@ -37,9 +37,28 @@ type Callback func(Event)
 // Event is a type of message that can be fed to callbacks
 // describing the event and the key of the thing that happened.
 type Event struct {
-	Type string
+	Type EventType
 	PK   string
 }
+
+// An EventType is used to specify what kind of event has happened and
+// is constrained for consumption in downstream select cases.  As
+// these IDs are entirely internal and are maintained within a
+// compiled version, iota is used here to make it easier to patch this
+// list in the future.
+type EventType int
+
+// The callbacks defined below are used to signal what events are
+// handled by the Event subsystem.
+const (
+	EventEntityCreate EventType = iota
+	EventEntityUpdate
+	EventEntityDestroy
+
+	EventGroupCreate
+	EventGroupUpdate
+	EventGroupDestroy
+)
 
 // SearchRequest is an expression that can be interpreted by the
 // default util search system, or translated by a storage layer to
