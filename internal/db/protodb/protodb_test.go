@@ -608,6 +608,36 @@ func TestHealthCheckBadBase(t *testing.T) {
 	}
 }
 
+func TestHealthCheckNotDirectory(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	defer cleanTmpTestDir(r, t)
+
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eDir := filepath.Join(r, "pdb", entitySubdir)
+	if err := os.RemoveAll(eDir); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := os.OpenFile(eDir, os.O_RDONLY|os.O_CREATE, 0666); err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	status := rx.healthCheck()
+
+	if status.OK {
+		t.Errorf("Bad status: %v", status)
+	}
+}
+
 func TestHealthCheckBadPermissions(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
