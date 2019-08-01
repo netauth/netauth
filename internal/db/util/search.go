@@ -83,6 +83,7 @@ func (s *SearchIndex) IndexCallback(e db.Event) {
 	case db.EventEntityUpdate:
 		ent, err := s.eLoader(e.PK)
 		if err != nil {
+			log.Println(err)
 			log.Printf("Could not reindex %s", e.PK)
 			return
 		}
@@ -94,6 +95,7 @@ func (s *SearchIndex) IndexCallback(e db.Event) {
 	case db.EventGroupUpdate:
 		grp, err := s.gLoader(e.PK)
 		if err != nil {
+			log.Println(err)
 			log.Printf("Could not reindex %s", e.PK)
 			return
 		}

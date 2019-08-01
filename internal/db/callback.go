@@ -24,3 +24,10 @@ func FireEvent(e Event) {
 		c(e)
 	}
 }
+
+// DeregisterCallback is used to drop a callback from the list.  This
+// is effectively for use in tests only to clean up the registration
+// list in test cases.
+func DeregisterCallback(name string) {
+	delete(callbacks, name)
+}

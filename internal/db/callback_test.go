@@ -28,4 +28,5 @@ func TestCallbacks(t *testing.T) {
 	if !dummyCalled {
 		t.Error("Callbacks run but dummy was not called")
 	}
+	DeregisterCallback("foo")
 }

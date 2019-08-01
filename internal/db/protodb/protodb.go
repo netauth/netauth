@@ -50,42 +50,14 @@ func New() (db.DB, error) {
 		return nil, err
 	}
 
-	// Prime the index with entities
-	eids, err := x.DiscoverEntityIDs()
-	if err != nil {
-		log.Printf("Initial load failure")
-		return nil, db.ErrInternalError
-	}
-	for _, id := range eids {
-		e, err := x.LoadEntity(id)
-		if err != nil {
-			log.Printf("Error indexing %s", id)
-			continue
-		}
-		if err := x.idx.IndexEntity(e); err != nil {
-			log.Printf("Error indexing %s", id)
-			continue
-		}
-	}
+	// ProtoDB uses callbacks to manage the search index, this
+	// permits reactive handling of the index with a backgrounded
+	// goroutine.
+	x.idx.ConfigureCallback(x.LoadEntity, x.LoadGroup)
+	db.RegisterCallback("BleveIndexer", x.idx.IndexCallback)
 
-	// Prime the index with entities
-	gids, err := x.DiscoverGroupNames()
-	if err != nil {
-		log.Printf("Initial load failure")
-		return nil, db.ErrInternalError
-	}
-	for _, id := range gids {
-		g, err := x.LoadGroup(id)
-		if err != nil {
-			log.Printf("Error indexing %s", id)
-			continue
-		}
-		if err := x.idx.IndexGroup(g); err != nil {
-			log.Printf("Error indexing %s", id)
-			continue
-		}
-	}
-
+	// ProtoDB registers several health checks that allow the
+	// system to know the status of the backend database.
 	health.RegisterCheck("ProtoDB", x.healthCheck)
 
 	return x, nil
@@ -152,7 +124,8 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 		return db.ErrInternalError
 	}
 
-	return pdb.idx.IndexEntity(e)
+	db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: e.GetID()})
+	return nil
 }
 
 // DeleteEntity removes an entity from disk.  This is rather simple to
@@ -165,7 +138,8 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 		return db.ErrUnknownEntity
 	}
 
-	return pdb.idx.DeleteEntity(&pb.Entity{ID: &ID})
+	db.FireEvent(db.Event{Type: db.EventEntityDestroy, PK: ID})
+	return nil
 }
 
 // NextEntityNumber computes and return the next entity number.
@@ -243,7 +217,8 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 		return db.ErrInternalError
 	}
 
-	return pdb.idx.IndexGroup(g)
+	db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: g.GetName()})
+	return nil
 }
 
 // DeleteGroup removes a group from disk.  This is rather simple to do
@@ -256,7 +231,8 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 		return db.ErrUnknownGroup
 	}
 
-	return pdb.idx.DeleteGroup(&pb.Group{Name: &name})
+	db.FireEvent(db.Event{Type: db.EventGroupDestroy, PK: name})
+	return nil
 }
 
 // NextGroupNumber computes the next available group number.  This is

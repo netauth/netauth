@@ -24,6 +24,7 @@ func mkTmpTestDir(t *testing.T) string {
 }
 
 func cleanTmpTestDir(dir string, t *testing.T) {
+	db.DeregisterCallback("BleveIndexer")
 	if err := os.RemoveAll(dir); err != nil {
 		t.Log(err)
 	}
