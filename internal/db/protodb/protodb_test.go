@@ -1,12 +1,14 @@
 package protodb
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -28,6 +30,16 @@ func cleanTmpTestDir(dir string, t *testing.T) {
 	if err := os.RemoveAll(dir); err != nil {
 		t.Log(err)
 	}
+}
+
+func cleanUpWatcher(d db.DB, t *testing.T) {
+	rx, ok := d.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	rx.w.Wait()
+	rx.w.Close()
 }
 
 func TestDiscoverEntities(t *testing.T) {
@@ -685,5 +697,211 @@ func TestHealthCheckBadStat(t *testing.T) {
 
 	if status.OK {
 		t.Errorf("Bad status: %v", status)
+	}
+}
+
+func TestIndexAvailableOnReload(t *testing.T) {
+	r := mkTmpTestDir(t)
+	defer cleanTmpTestDir(r, t)
+	viper.Set("core.home", r)
+	viper.Set("pdb.watcher", false)
+
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	e1 := pb.Entity{ID: proto.String("entity1")}
+	if err := x.SaveEntity(&e1); err != nil {
+		t.Fatal(err)
+	}
+
+	g1 := pb.Group{Name: proto.String("group1")}
+	if err := x.SaveGroup(&g1); err != nil {
+		t.Fatal(err)
+	}
+
+	// After this point it is no longer safe to modify the DB
+	// instance pointed to by X since callback hooks are global.
+	db.DeregisterCallback("BleveIndexer")
+
+	// Get a new pdb and make sure the index is populated
+	y, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	res, err := y.SearchEntities(db.SearchRequest{Expression: "ID:entity1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 1 || res[0].GetID() != "entity1" {
+		t.Log(res)
+		t.Error("Result does not match expected singular value")
+	}
+
+	res2, err := y.SearchGroups(db.SearchRequest{Expression: "Name:group1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res2) != 1 || res2[0].GetName() != "group1" {
+		t.Log(res2)
+		t.Error("Result does not match expected singular value")
+	}
+}
+
+func TestStartWatcher(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	viper.Set("pdb.watcher", true)
+	viper.Set("pdb.watch-interval", "100ms")
+	defer cleanTmpTestDir(r, t)
+
+	x, err := New()
+	defer cleanUpWatcher(x, t)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestWatcherLogging(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	viper.Set("pdb.watcher", true)
+	viper.Set("pdb.watch-interval", "100ms")
+	defer cleanTmpTestDir(r, t)
+
+	x, err := New()
+	defer cleanUpWatcher(x, t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	rx.w.Error <- errors.New("Test Error")
+}
+
+func TestWatcherEvents(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	viper.Set("pdb.watcher", true)
+	viper.Set("pdb.watch-interval", "100ms")
+	defer cleanTmpTestDir(r, t)
+
+	x, err := New()
+	defer cleanUpWatcher(x, t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
+	hookCorrect := false
+
+	wf := func(e db.Event) {
+		if e.PK == "entity1" && e.Type == db.EventEntityCreate {
+			hookCorrect = true
+		}
+	}
+
+	defer db.DeregisterCallback("TestWatcherEvents")
+	db.RegisterCallback("TestWatcherEvents", wf)
+
+	rx.w.Event <- watcher.Event{
+		Op:   watcher.Create,
+		Path: "pdb/entities/entity1.dat",
+	}
+
+	if !hookCorrect {
+		t.Error("Watched event was incorrect")
+	}
+}
+
+func TestConvertFSToDBEvent(t *testing.T) {
+	cases := []struct {
+		in   watcher.Event
+		want db.Event
+	}{
+		{
+			in: watcher.Event{
+				Op:   watcher.Create,
+				Path: "pdb/entities/entity1.dat",
+			},
+			want: db.Event{
+				PK:   "entity1",
+				Type: db.EventEntityCreate,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Write,
+				Path: "pdb/entities/entity1.dat",
+			},
+			want: db.Event{
+				PK:   "entity1",
+				Type: db.EventEntityUpdate,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Remove,
+				Path: "pdb/entities/entity1.dat",
+			},
+			want: db.Event{
+				PK:   "entity1",
+				Type: db.EventEntityDestroy,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Create,
+				Path: "pdb/groups/group1.dat",
+			},
+			want: db.Event{
+				PK:   "group1",
+				Type: db.EventGroupCreate,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Write,
+				Path: "pdb/groups/group1.dat",
+			},
+			want: db.Event{
+				PK:   "group1",
+				Type: db.EventGroupUpdate,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Remove,
+				Path: "pdb/groups/group1.dat",
+			},
+			want: db.Event{
+				PK:   "group1",
+				Type: db.EventGroupDestroy,
+			},
+		},
+		{
+			in: watcher.Event{
+				Op:   watcher.Remove,
+				Path: "pdb/unknown/group1.dat",
+			},
+			want: db.Event{},
+		},
+	}
+
+	for i, c := range cases {
+		if got := convertFSToDBEvent(c.in); got != c.want {
+			t.Errorf("%d: Got %v Want %v", i, got, c.want)
+		}
 	}
 }

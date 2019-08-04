@@ -30,3 +30,17 @@ func TestCallbacks(t *testing.T) {
 	}
 	DeregisterCallback("foo")
 }
+
+func TestEventIsEmpty(t *testing.T) {
+	e := Event{}
+
+	if !e.IsEmpty() {
+		t.Error("Empty event is claimed not empty!")
+	}
+
+	e.PK = "something"
+
+	if e.IsEmpty() {
+		t.Error("Filled event is claimed empty!")
+	}
+}

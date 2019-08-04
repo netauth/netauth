@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
+	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -29,6 +32,8 @@ const groupSubdir = "groups"
 type ProtoDB struct {
 	dataRoot string
 	idx      *util.SearchIndex
+
+	w *watcher.Watcher
 }
 
 func init() {
@@ -56,9 +61,16 @@ func New() (db.DB, error) {
 	x.idx.ConfigureCallback(x.LoadEntity, x.LoadGroup)
 	db.RegisterCallback("BleveIndexer", x.idx.IndexCallback)
 
+	// loadIndex triggers an index regenerate on server startup.
+	x.loadIndex()
+
 	// ProtoDB registers several health checks that allow the
 	// system to know the status of the backend database.
 	health.RegisterCheck("ProtoDB", x.healthCheck)
+
+	if viper.GetBool("pdb.watcher") {
+		x.startWatcher()
+	}
 
 	return x, nil
 }
@@ -124,7 +136,9 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 		return db.ErrInternalError
 	}
 
-	db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: e.GetID()})
+	if !viper.GetBool("pdb.watcher") {
+		db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: e.GetID()})
+	}
 	return nil
 }
 
@@ -138,7 +152,9 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 		return db.ErrUnknownEntity
 	}
 
-	db.FireEvent(db.Event{Type: db.EventEntityDestroy, PK: ID})
+	if !viper.GetBool("pdb.watcher") {
+		db.FireEvent(db.Event{Type: db.EventEntityDestroy, PK: ID})
+	}
 	return nil
 }
 
@@ -217,7 +233,9 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 		return db.ErrInternalError
 	}
 
-	db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: g.GetName()})
+	if !viper.GetBool("pdb.watcher") {
+		db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: g.GetName()})
+	}
 	return nil
 }
 
@@ -231,7 +249,9 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 		return db.ErrUnknownGroup
 	}
 
-	db.FireEvent(db.Event{Type: db.EventGroupDestroy, PK: name})
+	if !viper.GetBool("pdb.watcher") {
+		db.FireEvent(db.Event{Type: db.EventGroupDestroy, PK: name})
+	}
 	return nil
 }
 
@@ -302,4 +322,99 @@ func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
 		}
 	}
 	return status
+}
+
+// loadIndex is used to fire an event for all entities and groups on
+// the server to trigger an index action.
+func (pdb *ProtoDB) loadIndex() {
+	log.Println("Beginning index regeneration")
+	eList, _ := pdb.DiscoverEntityIDs()
+	for i := range eList {
+		db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: eList[i]})
+	}
+
+	gList, _ := pdb.DiscoverGroupNames()
+	for i := range gList {
+		db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: gList[i]})
+	}
+	log.Println("Index regenerated")
+}
+
+// startWatcher is used to configure the filesystem watcher during
+// startup and sets the directories to be watched, after
+// configuration, it enables the watcher.
+func (pdb *ProtoDB) startWatcher() {
+	pdb.w = watcher.New()
+
+	// We're only interested in events that would require
+	// re-indexing.
+	pdb.w.FilterOps(watcher.Create, watcher.Write, watcher.Remove)
+
+	// As the directories themselves won't affect reindexing, we
+	// can also just filter on dat files.
+	r := regexp.MustCompile("^.*.dat$")
+	pdb.w.AddFilterHook(watcher.RegexFilterHook(r, false))
+
+	// While NetAuth itself won't write hidden files, its
+	// plausible that a synchronization system might, so to be on
+	// the safe side we ignore hidden files.
+	pdb.w.IgnoreHiddenFiles(true)
+
+	// Watch everything under the dataroot, which will include the
+	// two directories for entities and groups, but we've filtered
+	// out directories from the listing of changes that are
+	// subscribed to.
+	pdb.w.AddRecursive(pdb.dataRoot)
+
+	go pdb.w.Start(viper.GetDuration("pdb.watch-interval"))
+	go pdb.doWatch()
+	return
+}
+
+// doWatch is used to fire events if the watcher is enabled.
+func (pdb *ProtoDB) doWatch() {
+	for {
+		select {
+		case event := <-pdb.w.Event:
+			e := convertFSToDBEvent(event)
+			if !e.IsEmpty() {
+				db.FireEvent(e)
+			}
+		case err := <-pdb.w.Error:
+			log.Println("pdb watch error:", err)
+		case <-pdb.w.Closed:
+			return
+		}
+	}
+}
+
+// convertFSToDBEvent figures out how to get from an event that
+// converts from events happening on the filesystem to events that the
+// database system understands.
+func convertFSToDBEvent(e watcher.Event) db.Event {
+	basename := filepath.Base(e.Path)
+
+	ev := db.Event{
+		PK: strings.TrimSuffix(basename, path.Ext(basename)),
+	}
+
+	subdir := filepath.Base(filepath.Dir(e.Path))
+	if e.Op == watcher.Create && subdir == entitySubdir {
+		ev.Type = db.EventEntityCreate
+	} else if e.Op == watcher.Create && subdir == groupSubdir {
+		ev.Type = db.EventGroupCreate
+	} else if e.Op == watcher.Write && subdir == entitySubdir {
+		ev.Type = db.EventEntityUpdate
+	} else if e.Op == watcher.Write && subdir == groupSubdir {
+		ev.Type = db.EventGroupUpdate
+	} else if e.Op == watcher.Remove && subdir == entitySubdir {
+		ev.Type = db.EventEntityDestroy
+	} else if e.Op == watcher.Remove && subdir == groupSubdir {
+		ev.Type = db.EventGroupDestroy
+	} else {
+		log.Println("PDB Event match failure:", e)
+		return db.Event{}
+	}
+
+	return ev
 }

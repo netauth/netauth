@@ -31,3 +31,8 @@ func FireEvent(e Event) {
 func DeregisterCallback(name string) {
 	delete(callbacks, name)
 }
+
+// IsEmpty is used to test for an empty event being returned.
+func (e *Event) IsEmpty() bool {
+	return e.PK == ""
+}
