@@ -64,17 +64,17 @@ func init() {
 
 func newServer() *rpc.NetAuthServer {
 	// Need to setup the Database for use with the entity tree
+	log.Printf("Using %s", viper.GetString("db.backend"))
 	db, err := db.New()
 	if err != nil {
 		log.Fatalf("Fatal database error! (%s)", err)
 	}
-	log.Printf("Using %s", viper.GetString("db.backend"))
 
+	log.Printf("Using %s", viper.GetString("crypto.backend"))
 	crypto, err := crypto.New()
 	if err != nil {
 		log.Fatalf("Fatal crypto error! (%s)", err)
 	}
-	log.Printf("Using %s", viper.GetString("crypto.backend"))
 
 	// Initialize the entity tree
 	tree, err := tree.New(db, crypto)
@@ -83,11 +83,11 @@ func newServer() *rpc.NetAuthServer {
 	}
 
 	// Initialize the token service
+	log.Printf("Using %s", viper.GetString("token.backend"))
 	tokenService, err := token.New()
 	if err != nil {
 		log.Fatalf("Fatal error initializing token service: %s", err)
 	}
-	log.Printf("Using %s", viper.GetString("token.backend"))
 
 	return &rpc.NetAuthServer{
 		Tree:  tree,
@@ -204,7 +204,7 @@ func main() {
 	srv.Tree.DisableBootstrap()
 
 	// Instantiate and launch.  This will block and the server
-	// will server forever.
+	// will serve forever.
 	log.Println("Ready to Serve...")
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
