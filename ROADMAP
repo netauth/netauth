@@ -115,10 +115,10 @@ v0.0.13:
   * Provide dedicated Search RPC for searching entities and groups
   * Drop dep in favor of go modules
 
-v0.0.14:
+v0.1.0:
   * read-only mode
 
-v0.0.15:
+v0.2.0:
   * Externally loadable plugins via go-plugin
   * Plugin chain configuration with dynamic insertion
   * Example Policy Hooks
@@ -126,13 +126,6 @@ v0.0.15:
     * Secret dictionary check
     * Secret character class check
 
-v0.0.16:
+v0.3.0:
   * BoltDB backend
   * DB Migrator
-
-v0.0.17:
-  * Consul backend
-
-v0.1.0:
-  * API is marked stable
-  * Development of other modules will be permitted to move forwards
