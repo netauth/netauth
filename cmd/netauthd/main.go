@@ -33,6 +33,10 @@ var (
 	insecure  = pflag.Bool("tls.PWN_ME", false, "Disable TLS; Don't set on a production server!")
 
 	writeDefConfig = pflag.String("write-config", "", "Write the default configuration to the specified file")
+
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func init() {
@@ -122,6 +126,7 @@ func main() {
 	loadConfig()
 
 	log.Println("NetAuth server is starting!")
+	log.Printf("%v, commit %v, built at %v", version, commit, date)
 
 	// Bind early so that if this fails we can just bail out.
 	bindAddr := viper.GetString("server.bind")

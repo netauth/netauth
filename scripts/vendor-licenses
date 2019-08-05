@@ -1,0 +1,64 @@
+#!/bin/bash
+
+list_vendor_files() {
+    find vendor -type f -a \( -iname 'COPYING*' -o -iname 'LICENSE*' \) | sort
+}
+
+list_files() {
+    goroot="$(go env GOROOT)"
+    goid='Go programming language'
+    if [ -r "$goroot/LICENSE" ]; then
+        echo "${goid}::$goroot/LICENSE"
+    elif [ -r /usr/share/licenses/go/LICENSE ]; then
+        echo "${goid}::/usr/share/licenses/go/LICENSE"
+    else # last restort: HTTP
+        echo "${goid}::https://golang.org/LICENSE?m=text"
+    fi
+    list_vendor_files
+}
+
+generate_notice() {
+    last=
+    $0 -all | while IFS=$'\n' read license; do
+        pkg="${license%%::*}"
+        if [ "$pkg" != "$license" ]; then
+            license="${license#${pkg}::}"
+        else
+            pkg="${pkg#vendor/}"
+            pkg="${pkg%/*}"
+        fi
+
+        printf ${last:+'\n\n\n'}
+        last=x
+
+        echo "$pkg" | sed 'p;s/./-/g'
+        fetch "${license}"
+    done
+}
+
+fetch() {
+    case "$1" in
+        *://*) wget -q -O- "${1#*::}";;
+        *) cat "${1#*::}";;
+    esac
+}
+
+case "${1--gen}" in
+    -gen)
+        if [ -t 1 ]; then
+            generate_notice | ${PAGER:-more}
+        else
+            generate_notice
+        fi
+        ;;
+    -src) list_vendor_files;;
+    -all) list_files;;
+    -h)
+        echo 'Usage: vendor-licenses [-h|-gen|-src|-all]' >&2
+        exit 2
+        ;;
+    *)
+        echo "Unrecognized argument: '$1'" >&2
+        exit 1
+        ;;
+esac

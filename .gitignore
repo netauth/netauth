@@ -31,3 +31,7 @@ keys/
 *.cert*
 netauth.toml
 config.toml
+
+# GoReleaser
+dist/
+NOTICE
