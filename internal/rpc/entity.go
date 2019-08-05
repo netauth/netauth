@@ -25,7 +25,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -69,7 +69,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -132,7 +132,7 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -180,7 +180,6 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 			client.GetID())
 		return &pb.KeyList{}, toWireError(ErrReadOnly)
 	}
-
 
 	// If we aren't doing a read only operation then we need a
 	// token for this

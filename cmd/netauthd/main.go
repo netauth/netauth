@@ -55,7 +55,7 @@ func init() {
 	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
 
 	pflag.Bool("pdb.watcher", false, "Enable the pdb filesystem watcher")
-	pflag.Duration("pdb.watch-interval", 1 * time.Second, "Watch Interval")
+	pflag.Duration("pdb.watch-interval", 1*time.Second, "Watch Interval")
 
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")

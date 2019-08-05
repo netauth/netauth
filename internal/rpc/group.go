@@ -27,7 +27,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -75,7 +75,7 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -152,7 +152,7 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}

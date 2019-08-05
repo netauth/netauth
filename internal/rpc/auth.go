@@ -157,7 +157,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -232,7 +232,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 			r.GetInfo().GetService(),
 			r.GetInfo().GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -318,7 +318,7 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -363,7 +363,7 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}

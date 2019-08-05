@@ -25,7 +25,7 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -74,7 +74,7 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
@@ -169,7 +169,7 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 			client.GetService(),
 			client.GetID())
 		return &pb.SimpleResult{
-			Msg: proto.String("This server is in read-only mode"),
+			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
 		}, toWireError(ErrReadOnly)
 	}
