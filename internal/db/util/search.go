@@ -163,7 +163,11 @@ func (s *SearchIndex) DeleteGroup(g *pb.Group) error {
 // db.SearchRequest and a bleve.SearchRequest.
 func createSearchRequest(r db.SearchRequest) *bleve.SearchRequest {
 	q := bleve.NewQueryStringQuery(r.Expression)
-	sr := bleve.NewSearchRequest(q)
+
+	// This will bite someone someday, by creating a near
+	// impossible to reason about bug where the entities returned
+	// in a search keep changing, but today is not that day.
+	sr := bleve.NewSearchRequestOptions(q, 16000, 0, false)
 	return sr
 }
 
