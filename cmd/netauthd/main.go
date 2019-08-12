@@ -103,9 +103,9 @@ func loadConfig() {
 	pflag.Parse()
 	viper.BindPFlags(pflag.CommandLine)
 	viper.SetConfigName("config")
-	viper.AddConfigPath("/etc/netauth/")
-	viper.AddConfigPath("$HOME/.netauth")
 	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.netauth")
+	viper.AddConfigPath("/etc/netauth/")
 
 	if *writeDefConfig != "" {
 		if err := viper.WriteConfigAs(*writeDefConfig); err != nil {
