@@ -34,5 +34,5 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20181010114359-8752a9433481 // indirect
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
-	google.golang.org/grpc v1.19.1
+	google.golang.org/grpc v1.23.0
 )
