@@ -53,7 +53,6 @@ func init() {
 
 	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
 	pflag.Duration("token.lifetime", time.Hour*10, "Token lifetime")
-	pflag.Int("token.renewals", 5, "Maximum number of times the token may be renewed")
 
 	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
 	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")

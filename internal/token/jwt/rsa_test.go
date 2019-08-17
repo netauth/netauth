@@ -21,7 +21,6 @@ import (
 var (
 	config = token.Config{
 		Lifetime: time.Minute * 5,
-		Renewals: 0,
 		Issuer:   "NetAuth Test",
 	}
 )
@@ -169,7 +168,6 @@ func TestValidateToken(t *testing.T) {
 		Lifetime:  time.Minute * 5,
 		IssuedAt:  time.Now(),
 		NotBefore: time.Now(),
-		Renewals:  0,
 		Issuer:    "NetAuth Test",
 	}
 
@@ -285,7 +283,6 @@ func TestValidateExpiredToken(t *testing.T) {
 		Lifetime:  0,
 		IssuedAt:  time.Now().Add(-1 * time.Minute),
 		NotBefore: time.Now().Add(-1 * time.Minute),
-		Renewals:  0,
 		Issuer:    "NetAuth Test",
 	}
 

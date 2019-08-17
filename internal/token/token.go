@@ -22,7 +22,6 @@ type Service interface {
 // generating a token.
 type Config struct {
 	Lifetime  time.Duration
-	Renewals  int
 	Issuer    string
 	IssuedAt  time.Time
 	NotBefore time.Time
@@ -78,7 +77,6 @@ func GetBackendList() []string {
 func GetConfig() Config {
 	return Config{
 		Lifetime:  viper.GetDuration("token.lifetime"),
-		Renewals:  viper.GetInt("token.renewals"),
 		IssuedAt:  time.Now(),
 		NotBefore: time.Now(),
 	}

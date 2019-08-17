@@ -58,7 +58,6 @@ func (s *RSATokenService) Generate(claims token.Claims, config token.Config) (st
 		return "", token.ErrKeyUnavailable
 	}
 
-	claims.RenewalsLeft = config.Renewals
 	c := RSAToken{
 		claims,
 		jwt.StandardClaims{

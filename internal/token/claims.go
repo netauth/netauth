@@ -6,7 +6,6 @@ package token
 type Claims struct {
 	EntityID     string
 	Capabilities []string
-	RenewalsLeft int
 }
 
 // HasCapability is a convenience function to determine if the

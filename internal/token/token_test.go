@@ -70,7 +70,7 @@ func TestNewUnknown(t *testing.T) {
 
 func TestGetConfig(t *testing.T) {
 	c := GetConfig()
-	if c.Lifetime != viper.GetDuration("token.lifetime") || c.Renewals != viper.GetInt("token.renewals") {
+	if c.Lifetime != viper.GetDuration("token.lifetime") {
 		t.Error("Config contains incorrect values")
 	}
 }
