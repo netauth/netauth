@@ -52,7 +52,7 @@ func init() {
 	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
 
 	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
-	pflag.Duration("token.lifetime", time.Hour*10, "Token lifetime")
+	pflag.Duration("token.lifetime", time.Minute*10, "Token lifetime")
 
 	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
 	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
