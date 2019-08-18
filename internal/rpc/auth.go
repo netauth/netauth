@@ -257,7 +257,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 					Msg:     proto.String("Error while adding capability"),
 				}, toWireError(err)
 			}
-		case "REMOVE":
+		case "DEL":
 			if err := s.Tree.DropEntityCapability(entity.GetID(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
@@ -279,7 +279,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 					Msg:     proto.String("Error while adding capability"),
 				}, toWireError(err)
 			}
-		case "REMOVE":
+		case "DEL":
 			if err := s.Tree.DropGroupCapability(group.GetName(), cap); err != nil {
 				return &pb.SimpleResult{
 					Success: proto.Bool(false),
