@@ -57,6 +57,7 @@ func printEntity(entity *pb.Entity, fields string) {
 			"shell",
 			"graphicalShell",
 			"badgeNumber",
+			"capabilities",
 		}
 	}
 
@@ -98,6 +99,13 @@ func printEntity(entity *pb.Entity, fields string) {
 			if entity.Meta != nil && entity.GetMeta().GetBadgeNumber() != "" {
 				fmt.Printf("badgeNumber: %s\n", entity.GetMeta().GetBadgeNumber())
 			}
+		case "capabilities":
+			if entity.Meta != nil && len(entity.GetMeta().GetCapabilities()) != 0 {
+				fmt.Printf("Capabilities (Direct):\n")
+				for i := range entity.GetMeta().GetCapabilities() {
+					fmt.Printf("  - %s\n", entity.GetMeta().GetCapabilities()[i])
+				}
+			}
 		}
 	}
 }
@@ -114,6 +122,7 @@ func printGroup(group *pb.Group, fields string) {
 			"number",
 			"managedBy",
 			"expansions",
+			"capabilities",
 		}
 	}
 
@@ -133,6 +142,13 @@ func printGroup(group *pb.Group, fields string) {
 		case "expansions":
 			for _, exp := range group.GetExpansions() {
 				fmt.Printf("Expansion: %s\n", exp)
+			}
+		case "capabilities":
+			if len(group.GetCapabilities()) != 0 {
+				fmt.Printf("Capabilities:\n")
+				for i := range group.GetCapabilities() {
+					fmt.Printf("  - %s\n", group.GetCapabilities()[i])
+				}
 			}
 		}
 	}
