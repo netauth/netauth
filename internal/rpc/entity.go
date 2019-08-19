@@ -192,7 +192,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
-		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+		if !c.HasCapability("MODIFY_ENTITY_KEYS") && c.EntityID != e.GetID() {
 			return nil, toWireError(ErrRequestorUnqualified)
 		}
 	}
