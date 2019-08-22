@@ -32,10 +32,12 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 		hostname = "BOGUS_HOST"
 	}
 
-	if *reply.Healthy {
-		reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is ready to serve!", hostname))
-	} else {
-		reply.Msg = proto.String(fmt.Sprintf("NetAuth server on %s is not ready to serve at this time!", hostname))
+	st := "ready"
+	if !status.OK {
+		st = "not ready"
 	}
+	msg := fmt.Sprintf("NetAuth server on %s is %s\n\n%s", hostname, st, status)
+
+	reply.Msg = &msg
 	return reply, toWireError(nil)
 }
