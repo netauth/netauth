@@ -56,5 +56,13 @@ func authInspectTokenRun(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(claims)
+	fmt.Printf("This token was issued to '%s'\n", claims.EntityID)
+	if len(claims.EntityID) > 0 {
+		fmt.Printf(" Capabilities:\n")
+	} else {
+		fmt.Printf("\n")
+	}
+	for i := range claims.Capabilities {
+		fmt.Printf("  - %s\n", claims.Capabilities[i])
+	}
 }
