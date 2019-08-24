@@ -32,13 +32,17 @@ ecosystem.`
 )
 
 func init() {
+	viper.SetEnvPrefix("netauth")
+
 	cobra.OnInitialize(onInit)
 	rootCmd.PersistentFlags().StringVar(&cfg, "config", "", "Use an alternate config file")
 	rootCmd.PersistentFlags().StringVar(&rootEntity, "entity", "", "Specify a non-default entity to make requests as")
 	rootCmd.PersistentFlags().StringVar(&secret, "secret", "", "Specify the request secret on the command line")
 
 	viper.BindPFlag("entity", rootCmd.PersistentFlags().Lookup("entity"))
+	viper.BindEnv("entity")
 	viper.BindPFlag("secret", rootCmd.PersistentFlags().Lookup("secret"))
+	viper.BindEnv("secret")
 }
 
 func onInit() {
