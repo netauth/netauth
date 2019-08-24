@@ -414,7 +414,7 @@ func TestSaveEntityUnwritableFile(t *testing.T) {
 	}
 
 	// Write an empty file to disk that will collide with a proper write
-	if err := ioutil.WriteFile(filepath.Join(r, "pdb", entitySubdir, "foo.dat"), []byte("foo"), 0000); err != nil {
+	if err := os.Mkdir(filepath.Join(r, "pdb", entitySubdir, "foo.dat"), 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -508,7 +508,7 @@ func TestSaveGroupUnwritableFile(t *testing.T) {
 	}
 
 	// Write an empty file to disk that will collide with a proper write
-	if err := ioutil.WriteFile(filepath.Join(r, "pdb", groupSubdir, "group1.dat"), []byte("group1"), 0000); err != nil {
+	if err := os.Mkdir(filepath.Join(r, "pdb", groupSubdir, "group1.dat"), 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -811,6 +811,10 @@ func TestWatcherEvents(t *testing.T) {
 			hookCorrect = true
 		}
 	}
+
+	// The indexer has problems when trying to have the entity
+	// below that doesn't exist pass through the event system.
+	db.DeregisterCallback("BleveIndexer")
 
 	defer db.DeregisterCallback("TestWatcherEvents")
 	db.RegisterCallback("TestWatcherEvents", wf)

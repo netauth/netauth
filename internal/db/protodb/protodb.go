@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 
+	atomic "github.com/google/renameio"
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
@@ -130,7 +131,7 @@ func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 		return db.ErrInternalError
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
+	if err := atomic.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
 		fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
 		log.Printf("Failed to acquire write handle for '%s'", e.GetID())
 		return db.ErrInternalError
@@ -227,7 +228,7 @@ func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 		return db.ErrInternalError
 	}
 
-	if err := ioutil.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
+	if err := atomic.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
 		fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
 		log.Printf("Failed to acquire write handle for '%s'", g.GetName())
 		return db.ErrInternalError
