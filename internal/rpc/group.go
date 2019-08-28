@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -23,9 +22,9 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 	g := r.GetGroup()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied NewGroup request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied NewGroup request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -46,11 +45,11 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 		return nil, toWireError(err)
 	}
 
-	log.Printf("New Group '%s' created by '%s' (%s@%s)",
-		g.GetName(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("New Group Created",
+		"group", g.GetName(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("New group created successfully"),
@@ -71,9 +70,9 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	g := r.GetGroup()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied DeleteGroup request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied DeleteGroup request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -94,11 +93,11 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Group '%s' removed by '%s' (%s@%s)",
-		g.GetName(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Group removed!",
+		"group", g.GetName(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Group removed successfully"),
@@ -117,14 +116,14 @@ func (s *NetAuthServer) GroupInfo(ctx context.Context, r *pb.ModGroupRequest) (*
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Information on %s requested (%s@%s)",
-		g.GetName(),
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Group information request",
+		"group", g.GetName(),
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	allGroups, err := s.Tree.SearchGroups(db.SearchRequest{Expression: "*"})
 	if err != nil {
-		log.Printf("Error summoning groups: %s", err)
+		s.Log.Warn("Error summoning groups", "error", err)
 	}
 	var mgd []string
 	for _, g := range allGroups {
@@ -148,9 +147,9 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 	g := r.GetGroup()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied ModifyGroupMeta request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyGroupMeta request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -173,11 +172,11 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Group '%s' modified by '%s' (%s@%s)",
-		g.GetName(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Group metadata updated",
+		"group", g.GetName(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Group modified successfully"),
@@ -196,9 +195,9 @@ func (s *NetAuthServer) ModifyUntypedGroupMeta(ctx context.Context, r *pb.ModGro
 	mode := strings.ToUpper(r.GetMode())
 
 	if viper.GetBool("server.readonly") && mode != "READ" {
-		log.Printf("Denied ModifyUntypedGroupMeta request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyUntypedGroupMeta request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.UntypedMetaResult{}, toWireError(ErrReadOnly)
 	}
 
@@ -225,11 +224,11 @@ func (s *NetAuthServer) ModifyUntypedGroupMeta(ctx context.Context, r *pb.ModGro
 	}
 
 	if mode != "READ" {
-		log.Printf("UntypedMeta for %s updated by %s (%s@%s)",
-			g.GetName(),
-			c.EntityID,
-			client.GetService(),
-			client.GetID(),
+		s.Log.Info("Group UntypedMeta updated",
+			"group", g.GetName(),
+			"entity", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
 		)
 	}
 

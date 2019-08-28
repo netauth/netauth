@@ -2,7 +2,6 @@ package tree
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/db"
@@ -49,13 +48,13 @@ func (m *Manager) GetMemberships(e *pb.Entity, includeIndirects bool) []string {
 	// member of those groups.
 	grps, err := m.SearchGroups(db.SearchRequest{Expression: "*"})
 	if err != nil {
-		log.Printf("Error getting group list: %s", grps)
+		m.log.Error("Error getting complete group list", "error", err)
 		return []string{}
 	}
 	for _, g := range grps {
 		members, err := m.listMembers(g.GetName())
 		if err != nil {
-			log.Printf("Error expanding groups: %s", err)
+			m.log.Warn("Error during group expansion", "group", g.GetName(), "error", err)
 			continue
 		}
 		for _, m := range members {
@@ -146,7 +145,7 @@ func (m *Manager) listMembers(groupID string) ([]*pb.Entity, error) {
 		parts := strings.Split(exp, ":")
 		ents, err := m.listMembers(parts[1])
 		if err != nil {
-			log.Printf("Expansion parsing error! %s", err)
+			m.log.Error("Error parsing expansion", "expansion", exp, "error", err)
 		}
 		switch parts[0] {
 		case "INCLUDE":

@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/token"
@@ -21,9 +20,9 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied NewEntity request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied NewEntity request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -44,11 +43,11 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 		return nil, toWireError(err)
 	}
 
-	log.Printf("New entity '%s' created by '%s' (%s@%s)",
-		e.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("New entity created",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("New entity created successfully"),
@@ -65,9 +64,9 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied RemoveEntity request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied RemoveEntity request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -88,11 +87,11 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Entity '%s' removed by '%s' (%s@%s)",
-		e.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity removed",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Entity removed successfully"),
@@ -108,10 +107,10 @@ func (s *NetAuthServer) EntityInfo(ctx context.Context, r *pb.NetAuthRequest) (*
 	client := r.GetInfo()
 	e := r.GetEntity()
 
-	log.Printf("Info requested on '%s' (%s@%s)",
-		e.GetID(),
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity information request",
+		"entity", e.GetID(),
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	e, err := s.Tree.FetchEntity(e.GetID())
 	return e, toWireError(err)
@@ -128,9 +127,9 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied ModifyEntityMeta request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyEntityMeta request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -148,15 +147,15 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 	}
 
 	if err := s.Tree.UpdateEntityMeta(e.GetID(), e.GetMeta()); err != nil {
-		log.Printf("Metadata update error: %s", err)
+		s.Log.Error("Metadata update error", "error", err)
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Metadata for '%s' by '%s' completed (%s@%s)",
-		e.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity metadata update",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Metadata Updated"),
@@ -175,9 +174,9 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 	mode := strings.ToUpper(r.GetMode())
 
 	if viper.GetBool("server.readonly") && mode != "LIST" {
-		log.Printf("Denied ModifyEntityKeys request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyEntityKeys request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.KeyList{}, toWireError(ErrReadOnly)
 	}
 
@@ -207,12 +206,12 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 	if mode == "LIST" {
 		verb = "requested"
 	}
-	log.Printf("Keys for '%s' %s by '%s' (%s@%s)",
-		e.GetID(),
-		verb,
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity Key Handling Event",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"action", verb,
+		"service", client.GetService(),
+		"client", client.GetID())
 	return &pb.KeyList{
 		Keys: keys,
 	}, toWireError(nil)
@@ -229,9 +228,9 @@ func (s *NetAuthServer) ModifyUntypedEntityMeta(ctx context.Context, r *pb.ModEn
 	mode := strings.ToUpper(r.GetMode())
 
 	if viper.GetBool("server.readonly") && mode != "READ" {
-		log.Printf("Denied ModifyUntypedEntitymeta request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyUntypedEntityMeta request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.UntypedMetaResult{}, toWireError(ErrReadOnly)
 	}
 
@@ -258,11 +257,11 @@ func (s *NetAuthServer) ModifyUntypedEntityMeta(ctx context.Context, r *pb.ModEn
 	}
 
 	if mode != "READ" {
-		log.Printf("UntypedMeta for %s updated by %s (%s@%s)",
-			e.GetID(),
-			c.EntityID,
-			client.GetService(),
-			client.GetID(),
+		s.Log.Info("Entity UntypedMeta updated",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
 		)
 	}
 

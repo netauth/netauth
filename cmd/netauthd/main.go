@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"path/filepath"
@@ -20,6 +19,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/tree"
 	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc"
@@ -37,9 +37,16 @@ var (
 	version = "dev"
 	commit  = "none"
 	date    = "unknown"
+
+	appLogger = hclog.New(&hclog.LoggerOptions{
+		Name:  "netauthd",
+		Level: hclog.LevelFromString("TRACE"),
+	})
 )
 
 func init() {
+	hclog.SetDefault(appLogger)
+
 	pflag.String("tls.certificate", "keys/tls.crt", "Path to certificate file")
 	pflag.String("tls.key", "keys/tls.key", "Path to key file")
 
@@ -67,34 +74,39 @@ func init() {
 
 func newServer() *rpc.NetAuthServer {
 	// Need to setup the Database for use with the entity tree
-	log.Printf("Using %s", viper.GetString("db.backend"))
 	db, err := db.New()
 	if err != nil {
-		log.Fatalf("Fatal database error! (%s)", err)
+		appLogger.Error("Fatal database error", "error", err)
+		os.Exit(1)
 	}
+	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
 
-	log.Printf("Using %s", viper.GetString("crypto.backend"))
 	crypto, err := crypto.New()
 	if err != nil {
-		log.Fatalf("Fatal crypto error! (%s)", err)
+		appLogger.Error("Fatal crypto error", "error", err)
+		os.Exit(1)
 	}
+	appLogger.Info("Cryptography system initialized", "backend", viper.GetString("crypto.backend"))
 
 	// Initialize the entity tree
 	tree, err := tree.New(db, crypto)
 	if err != nil {
-		log.Fatalf("Fatal tree error! (%s)", err)
+		appLogger.Error("Fatal initialization error", "error", err)
+		os.Exit(1)
 	}
 
 	// Initialize the token service
-	log.Printf("Using %s", viper.GetString("token.backend"))
 	tokenService, err := token.New()
 	if err != nil {
-		log.Fatalf("Fatal error initializing token service: %s", err)
+		appLogger.Error("Fatal token error", "error", err)
+		os.Exit(1)
 	}
+	appLogger.Info("Token backend successfully initialized", "backend", viper.GetString("token.backend"))
 
 	return &rpc.NetAuthServer{
 		Tree:  tree,
 		Token: tokenService,
+		Log: appLogger.Named("rpc"),
 	}
 }
 
@@ -108,14 +120,16 @@ func loadConfig() {
 
 	if *writeDefConfig != "" {
 		if err := viper.WriteConfigAs(*writeDefConfig); err != nil {
-			log.Fatal(err)
+			appLogger.Error("Error writing configuration", "error", err)
+			os.Exit(2)
 		}
 		os.Exit(0)
 	}
 
 	// Attempt to load the config
 	if err := viper.ReadInConfig(); err != nil {
-		log.Fatal("Fatal error reading configuration: ", err)
+		appLogger.Error("Fatal error reading configuration", "error", err)
+		os.Exit(1)
 	}
 }
 
@@ -124,17 +138,18 @@ func main() {
 	// out for a number of reasons.
 	loadConfig()
 
-	log.Println("NetAuth server is starting!")
-	log.Printf("%v, commit %v, built at %v", version, commit, date)
+	appLogger.Info("NetAuth server is starting!")
+	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 
 	// Bind early so that if this fails we can just bail out.
 	bindAddr := viper.GetString("server.bind")
 	bindPort := viper.GetInt("server.port")
 	sock, err := net.Listen("tcp", fmt.Sprintf("%s:%d", bindAddr, bindPort))
 	if err != nil {
-		log.Fatalf("Could not bind! %v", err)
+		appLogger.Error("Could not bind!", "address", bindAddr, "port", bindPort)
+		os.Exit(1)
 	}
-	log.Printf("Server bound on %s:%d", bindAddr, bindPort)
+	appLogger.Debug("Server bind successful", "address", bindAddr, "port", bindPort)
 
 	// Setup the TLS parameters if necessary.
 	var opts []grpc.ServerOption
@@ -147,46 +162,47 @@ func main() {
 		if !filepath.IsAbs(ckFile) {
 			ckFile = filepath.Join(viper.GetString("core.home"), ckFile)
 		}
-		log.Printf("TLS with the certificate %s and key %s", cFile, ckFile)
+		appLogger.Debug("TLS Enabled", "certificate", cFile, "key", ckFile)
 		creds, err := credentials.NewServerTLSFromFile(cFile, ckFile)
 		if err != nil {
-			log.Fatalf("TLS credentials could not be loaded! %v", err)
+			appLogger.Error("TLS could not be initialized", "error", err)
+			os.Exit(1)
 		}
 		opts = []grpc.ServerOption{grpc.Creds(creds)}
 	} else {
 		// Not using TLS in an auth server?  For shame...
-		log.Println("===================================================================")
-		log.Println("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
-		log.Println("===================================================================")
-		log.Println("")
-		log.Println("Launching without TLS! Your passwords will be shipped in the clear!")
-		log.Println("Seriously, the option is --PWN_ME for a reason, you're trusting the")
-		log.Println("network fabric with your authentication information, and this is a ")
-		log.Println("bad idea.  Anyone on your local network can get passwords, tokens, ")
-		log.Println("and other secure information.  You should instead obtain a ")
-		log.Println("certificate and key and start the server with those.")
-		log.Println("")
-		log.Println("===================================================================")
-		log.Println("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
-		log.Println("===================================================================")
+		appLogger.Warn("===================================================================")
+		appLogger.Warn("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
+		appLogger.Warn("===================================================================")
+		appLogger.Warn("")
+		appLogger.Warn("Launching without TLS! Your passwords will be shipped in the clear!")
+		appLogger.Warn("Seriously, the option is --PWN_ME for a reason, you're trusting the")
+		appLogger.Warn("network fabric with your authentication information, and this is a ")
+		appLogger.Warn("bad idea.  Anyone on your local network can get passwords, tokens, ")
+		appLogger.Warn("and other secure information.  You should instead obtain a ")
+		appLogger.Warn("certificate and key and start the server with those.")
+		appLogger.Warn("")
+		appLogger.Warn("===================================================================")
+		appLogger.Warn("  WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING  ")
+		appLogger.Warn("===================================================================")
 	}
 
 	// Spit out what backends we know about
-	log.Printf("The following DB backends are registered:")
+	appLogger.Info("The following DB backends are registered:")
 	for _, b := range db.GetBackendList() {
-		log.Printf("  %s", b)
+		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
 
 	// Spit out what crypto backends we know about
-	log.Printf("The following crypto implementations are registered:")
+	appLogger.Info("The following crypto implementations are registered:")
 	for _, b := range crypto.GetBackendList() {
-		log.Printf("  %s", b)
+		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
 
 	// Spit out the token services we know about
-	log.Printf("The following token services are registered:")
+	appLogger.Info("The following token services are registered:")
 	for _, b := range token.GetBackendList() {
-		log.Printf("  %s", b)
+		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
 
 	// Init the new server instance
@@ -195,12 +211,13 @@ func main() {
 	// Attempt to bootstrap a superuser
 	if len(*bootstrap) != 0 {
 		if !strings.Contains(*bootstrap, ":") {
-			log.Fatal("Bootstrap string must be of the form <entity>:<secret>")
+			appLogger.Error("Bootstrap string must be in the format of <entity>:<secret>")
+			os.Exit(1)
 		}
-		log.Println("Commencing Bootstrap")
+		appLogger.Info("Beginning Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
 		srv.Tree.Bootstrap(eParts[0], eParts[1])
-		log.Println("Bootstrap phase complete")
+		appLogger.Info("Bootstrap complete")
 	}
 
 	// If it wasn't used make sure its disabled since it can
@@ -209,7 +226,7 @@ func main() {
 
 	// Instantiate and launch.  This will block and the server
 	// will serve forever.
-	log.Println("Ready to Serve...")
+	appLogger.Info("Ready to Serve...")
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
 

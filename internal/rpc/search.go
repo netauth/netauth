@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 
@@ -19,7 +18,7 @@ func (s *NetAuthServer) SearchEntities(ctx context.Context, r *pb.SearchRequest)
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Entity Search '%s' (%s@%s)", srchexpr, client.GetService(), client.GetID())
+	s.Log.Info("Entity Search", "expression", srchexpr, "service", client.GetService(), "client", client.GetID())
 	return &pb.EntityList{Members: res}, toWireError(nil)
 }
 
@@ -33,6 +32,6 @@ func (s *NetAuthServer) SearchGroups(ctx context.Context, r *pb.SearchRequest) (
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Group Search '%s' (%s@%s)", srchexpr, client.GetService(), client.GetID())
+	s.Log.Info("Group Search", "expression", srchexpr, "service", client.GetService(), "client", client.GetID())
 	return &pb.GroupList{Groups: res}, toWireError(nil)
 }

@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
@@ -20,10 +19,10 @@ func (s *NetAuthServer) AuthEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	// Log out some useful stuff for debugging
 	client := r.GetInfo()
 	entity := r.GetEntity()
-	log.Printf("Authenticating %s (%s@%s)",
-		entity.GetID(),
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Authenticating Entity",
+		"entity", entity.GetID(),
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	// Construct and return the response.
 	result := new(pb.SimpleResult)
@@ -44,10 +43,10 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	client := r.GetInfo()
 	e := r.GetEntity()
 
-	log.Printf("Token requested for %s (%s@%s)",
-		e.GetID(),
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Token requested",
+		"entity", e.GetID(),
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	// Run the normal authentication flow
 	if err := s.Tree.ValidateSecret(e.GetID(), e.GetSecret()); err != nil {
@@ -57,7 +56,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	// Get the full fledged entity
 	e, err := s.Tree.FetchEntity(e.GetID())
 	if err != nil {
-		log.Println("Entity Vanished!")
+		s.Log.Warn("Entity vanished while fetching token!", "entity", e.GetID())
 		return nil, toWireError(ErrInternalError)
 	}
 
@@ -77,7 +76,7 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 	for _, name := range groupNames {
 		g, err := s.Tree.FetchGroup(name)
 		if err != nil {
-			log.Printf("Error loading group: %s", err)
+			s.Log.Warn("Error loading group during GetToken", "group", name)
 			continue
 		}
 		for _, c := range g.GetCapabilities() {
@@ -120,10 +119,10 @@ func (s *NetAuthServer) ValidateToken(ctx context.Context, r *pb.NetAuthRequest)
 	e := r.GetEntity()
 	t := r.GetAuthToken()
 
-	log.Printf("Token validation requested by %s (%s@%s)",
-		e.GetID(),
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Token validation requested",
+		"entity", e.GetID(),
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	// Validate the token and if it validates, return that the
 	// token is valid.
@@ -153,9 +152,9 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied ChangeSecret request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ChangeSecret request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -165,7 +164,6 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	modself := false
 
 	// Determine if this is a self modifying request or not
-	log.Println(e, me)
 	if me != nil && e.GetID() == me.GetID() {
 		modself = true
 	}
@@ -181,10 +179,10 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 		if err != nil {
 			return nil, toWireError(err)
 		}
-		log.Printf("Secret for %s changed (%s@%s)",
-			me.GetID(),
-			client.GetService(),
-			client.GetID())
+		s.Log.Info("Secret Changed",
+			"entity", me.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("Secret Changed"),
 			Success: proto.Bool(true),
@@ -205,11 +203,11 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	}
 
 	// Log this as an administrative change.
-	log.Printf("Secret for %s administratively changed by %s (%s@%s)",
-		me.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Secret changed with authority",
+		"entity", me.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
 		Msg:     proto.String("Secret Changed"),
@@ -228,9 +226,9 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	cap := r.GetCapability().String()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied ManageCapabilities request from %s@%s (read-only mode is enabled)",
-			r.GetInfo().GetService(),
-			r.GetInfo().GetID())
+		s.Log.Warn("Denied ManageCapabilities request (read-only mode is enabled)",
+			"service", r.GetInfo().GetService(),
+			"client", r.GetInfo().GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -314,9 +312,9 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied LockEntity request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied LockEntity request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -339,11 +337,11 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 		}, toWireError(err)
 	}
 
-	log.Printf("Entity %s locked by %s (%s@%s)",
-		e.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity Locked",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),
@@ -359,9 +357,9 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 	t := r.GetAuthToken()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied UnlockEntity request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied UnlockEntity request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -384,11 +382,11 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 		}, toWireError(err)
 	}
 
-	log.Printf("Entity %s unlocked by %s (%s@%s)",
-		e.GetID(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Entity unlocked",
+		"entity", e.GetID(),
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Success: proto.Bool(true),

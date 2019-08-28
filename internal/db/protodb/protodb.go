@@ -6,7 +6,6 @@ package protodb
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -16,6 +15,7 @@ import (
 	atomic "github.com/google/renameio"
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/db/util"
@@ -35,6 +35,7 @@ type ProtoDB struct {
 	idx      *util.SearchIndex
 
 	w *watcher.Watcher
+	l hclog.Logger
 }
 
 func init() {
@@ -49,10 +50,11 @@ func init() {
 // of the server is undefined!
 func New() (db.DB, error) {
 	x := new(ProtoDB)
+	x.l = hclog.L().Named("protodb")
 	x.dataRoot = filepath.Join(viper.GetString("core.home"), "pdb")
 	x.idx = util.NewIndex()
 	if err := x.ensureDataDirectory(); err != nil {
-		log.Printf("Could not establish data directory! (%s)", err)
+		x.l.Error("Could not establish data directory", "error", err)
 		return nil, err
 	}
 
@@ -70,6 +72,7 @@ func New() (db.DB, error) {
 	health.RegisterCheck("ProtoDB", x.healthCheck)
 
 	if viper.GetBool("pdb.watcher") {
+		x.l.Debug("Launching watcher")
 		x.startWatcher()
 	}
 
@@ -108,12 +111,12 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 			// that is a UnknownEntity condition.
 			return nil, db.ErrUnknownEntity
 		}
-		log.Println("Error reading file:", err)
+		pdb.l.Error("Error reading file", "error", err)
 		return nil, db.ErrInternalError
 	}
 	e := &pb.Entity{}
 	if err := proto.Unmarshal(in, e); err != nil {
-		log.Printf("Failed to parse Entity from disk: (%s):", err)
+		pdb.l.Error("Error parsing entity", "error", err)
 		return nil, db.ErrInternalError
 	}
 	return e, nil
@@ -127,17 +130,18 @@ func (pdb *ProtoDB) LoadEntity(ID string) (*pb.Entity, error) {
 func (pdb *ProtoDB) SaveEntity(e *pb.Entity) error {
 	out, err := proto.Marshal(e)
 	if err != nil {
-		log.Printf("Failed to marshal entity '%s' (%s)", e.GetID(), err)
+		pdb.l.Error("Failed to marshal entity", "entity", e.GetID(), "error", err)
 		return db.ErrInternalError
 	}
 
-	if err := atomic.WriteFile(filepath.Join(pdb.dataRoot, entitySubdir,
-		fmt.Sprintf("%s.dat", e.GetID())), out, 0644); err != nil {
-		log.Printf("Failed to acquire write handle for '%s'", e.GetID())
+	eFile := filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", e.GetID()))
+	if err := atomic.WriteFile(eFile, out, 0644); err != nil {
+		pdb.l.Error("Failed to write entity", "entity", e.GetID(), "error", err)
 		return db.ErrInternalError
 	}
 
 	if !viper.GetBool("pdb.watcher") {
+		pdb.l.Trace("Firing non-watched event", "event", db.EventEntityUpdate, "pk", e.GetID())
 		db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: e.GetID()})
 	}
 	return nil
@@ -150,10 +154,15 @@ func (pdb *ProtoDB) DeleteEntity(ID string) error {
 	err := os.Remove(filepath.Join(pdb.dataRoot, entitySubdir, fmt.Sprintf("%s.dat", ID)))
 
 	if os.IsNotExist(err) {
+		pdb.l.Warn("Attempt to delete unknown entity", "entity", ID)
 		return db.ErrUnknownEntity
+	} else if err != nil {
+		pdb.l.Error("Error deleting entity", "entity", ID, "error", err)
+		return db.ErrInternalError
 	}
 
 	if !viper.GetBool("pdb.watcher") {
+		pdb.l.Trace("Firing non-watched event", "event", db.EventEntityDestroy, "pk", ID)
 		db.FireEvent(db.Event{Type: db.EventEntityDestroy, PK: ID})
 	}
 	return nil
@@ -205,12 +214,12 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 			// existing and is returned as such.
 			return nil, db.ErrUnknownGroup
 		}
-		log.Println("Error reading file:", err)
+		pdb.l.Error("Error reading group", "group", name, "error", err)
 		return nil, db.ErrInternalError
 	}
 	e := &pb.Group{}
 	if err := proto.Unmarshal(in, e); err != nil {
-		log.Printf("Failed to parse Group from disk: (%s):", err)
+		pdb.l.Error("Error parsing group", "group", name, "error", err)
 		return nil, db.ErrInternalError
 	}
 	return e, nil
@@ -224,17 +233,18 @@ func (pdb *ProtoDB) LoadGroup(name string) (*pb.Group, error) {
 func (pdb *ProtoDB) SaveGroup(g *pb.Group) error {
 	out, err := proto.Marshal(g)
 	if err != nil {
-		log.Printf("Failed to marshal entity '%s' (%s)", g.GetName(), err)
+		pdb.l.Error("Error marshaling group", "group", g.GetName(), "error", err)
 		return db.ErrInternalError
 	}
 
-	if err := atomic.WriteFile(filepath.Join(pdb.dataRoot, groupSubdir,
-		fmt.Sprintf("%s.dat", g.GetName())), out, 0644); err != nil {
-		log.Printf("Failed to acquire write handle for '%s'", g.GetName())
+	gFile := filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", g.GetName()))
+	if err := atomic.WriteFile(gFile, out, 0644); err != nil {
+		pdb.l.Error("Error writing group", "group", g.GetName(), "error", err)
 		return db.ErrInternalError
 	}
 
 	if !viper.GetBool("pdb.watcher") {
+		pdb.l.Trace("Firing non-watched event", "event", db.EventGroupUpdate, "pk", g.GetName())
 		db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: g.GetName()})
 	}
 	return nil
@@ -247,10 +257,15 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	err := os.Remove(filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", name)))
 
 	if os.IsNotExist(err) {
+		pdb.l.Warn("Attempt to remove non-existant group", "group", name)
 		return db.ErrUnknownGroup
+	} else if err != nil {
+		pdb.l.Error("Error deleting gruop", "group", name, "error", err)
+		return db.ErrInternalError
 	}
 
 	if !viper.GetBool("pdb.watcher") {
+		pdb.l.Trace("Firing non-watched event", "event", db.EventGroupDestroy, "pk", name)
 		db.FireEvent(db.Event{Type: db.EventGroupDestroy, PK: name})
 	}
 	return nil
@@ -282,7 +297,7 @@ func (pdb *ProtoDB) ensureDataDirectory() error {
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0750); err != nil {
-			log.Println(err)
+			pdb.l.Error("Error creating directory", "directory", d, "error", err)
 			return db.ErrInternalError
 		}
 	}
@@ -328,17 +343,19 @@ func (pdb *ProtoDB) healthCheck() health.SubsystemStatus {
 // loadIndex is used to fire an event for all entities and groups on
 // the server to trigger an index action.
 func (pdb *ProtoDB) loadIndex() {
-	log.Println("Beginning index regeneration")
+	pdb.l.Debug("Beginning index regeneration")
 	eList, _ := pdb.DiscoverEntityIDs()
 	for i := range eList {
+		pdb.l.Trace("Firing Index Event", "event", db.EventEntityUpdate, "pk", eList[i])
 		db.FireEvent(db.Event{Type: db.EventEntityUpdate, PK: eList[i]})
 	}
 
 	gList, _ := pdb.DiscoverGroupNames()
 	for i := range gList {
+		pdb.l.Trace("Firing Index Event", "event", db.EventGroupUpdate, "pk", gList[i])
 		db.FireEvent(db.Event{Type: db.EventGroupUpdate, PK: gList[i]})
 	}
-	log.Println("Index regenerated")
+	pdb.l.Debug("Index regenerated")
 }
 
 // startWatcher is used to configure the filesystem watcher during
@@ -377,12 +394,12 @@ func (pdb *ProtoDB) doWatch() {
 	for {
 		select {
 		case event := <-pdb.w.Event:
-			e := convertFSToDBEvent(event)
+			e := pdb.convertFSToDBEvent(event)
 			if !e.IsEmpty() {
 				db.FireEvent(e)
 			}
 		case err := <-pdb.w.Error:
-			log.Println("pdb watch error:", err)
+			pdb.l.Error("A watcher error has occured", "error", err)
 		case <-pdb.w.Closed:
 			return
 		}
@@ -392,7 +409,7 @@ func (pdb *ProtoDB) doWatch() {
 // convertFSToDBEvent figures out how to get from an event that
 // converts from events happening on the filesystem to events that the
 // database system understands.
-func convertFSToDBEvent(e watcher.Event) db.Event {
+func (pdb *ProtoDB) convertFSToDBEvent(e watcher.Event) db.Event {
 	basename := filepath.Base(e.Path)
 
 	ev := db.Event{
@@ -413,7 +430,7 @@ func convertFSToDBEvent(e watcher.Event) db.Event {
 	} else if e.Op == watcher.Remove && subdir == groupSubdir {
 		ev.Type = db.EventGroupDestroy
 	} else {
-		log.Println("PDB Event match failure:", e)
+		pdb.l.Warn("PDB Unmatched event!", "event", e)
 		return db.Event{}
 	}
 

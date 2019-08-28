@@ -1,8 +1,8 @@
 package tree
 
 import (
-	"log"
 	"sort"
+	"fmt"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -35,31 +35,25 @@ func init() {
 func RegisterEntityHookConstructor(name string, c EntityHookConstructor) {
 	if _, ok := eHookConstructors[name]; ok {
 		// Already registered
-		log.Printf("A constructor for %s is already registered", name)
+		logger.Trace("Duplicate EntityHookConstructor registration attempt", "hook", name)
 		return
 	}
 	eHookConstructors[name] = c
+	logger.Trace("EntityHookConstructor registered", "constructor", name)
 }
 
 // InitializeEntityHooks runs all the EntityHookConstructors and
 // registers the resulting hooks by name into m.entityProcessorHooks
 func (m *Manager) InitializeEntityHooks() {
-	if *debugChains {
-		log.Println("Executing EntityHookConstructor callbacks")
-	}
+	m.log.Debug("Executing EntityHookConstructor callbacks")
 	for _, v := range eHookConstructors {
 		hook, err := v(m.refContext)
 		if err != nil {
-			log.Println(err)
+			m.log.Warn("Error initializing hook", "hook", hook, "error", err)
 			continue
 		}
 		m.entityHooks[hook.Name()] = hook
-	}
-	if *debugChains {
-		log.Printf("The following (entity) hooks are loaded:")
-		for name := range m.entityHooks {
-			log.Printf("  %s", name)
-		}
+		m.log.Trace("EntityHook registered", "hook", hook.Name())
 	}
 }
 
@@ -68,14 +62,11 @@ func (m *Manager) InitializeEntityHooks() {
 // configuration has happened before this function is called.
 func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 	for chain, hooks := range c {
-		if *debugChains {
-			log.Printf("Initializing chain '%s'", chain)
-
-		}
+		m.log.Debug("Initializing Entity Chain", "chain", chain)
 		for _, h := range hooks {
 			eph, ok := m.entityHooks[h]
 			if !ok {
-				log.Printf("There is no hook named '%s'", h)
+				m.log.Warn("Missing hook during chain initializtion", "chain", chain, "hook", h)
 				return ErrUnknownHook
 			}
 			m.entityProcesses[chain] = append(m.entityProcesses[chain], eph)
@@ -83,10 +74,9 @@ func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 		sort.Slice(m.entityProcesses[chain], func(i, j int) bool {
 			return m.entityProcesses[chain][i].Priority() < m.entityProcesses[chain][j].Priority()
 		})
-		if *debugChains {
-			for _, hook := range m.entityProcesses[chain] {
-				log.Printf("  %s", hook.Name())
-			}
+		m.log.Trace("Chain contains")
+		for _, hook := range m.entityProcesses[chain] {
+			m.log.Trace(fmt.Sprintf("  %s", hook.Name()))
 		}
 	}
 	return nil
@@ -100,9 +90,11 @@ func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 func (m *Manager) CheckRequiredEntityChains() error {
 	for k := range defaultEntityChains {
 		if _, ok := m.entityProcesses[k]; !ok {
+			m.log.Error("Missing required chain", "chain", k)
 			return ErrUnknownHookChain
 		}
 		if len(m.entityProcesses[k]) == 0 {
+			m.log.Error("A required chain is empty", "chain", k)
 			return ErrEmptyHookChain
 		}
 	}
@@ -115,7 +107,9 @@ func (m *Manager) RunEntityChain(chain string, de *pb.Entity) (*pb.Entity, error
 	e := new(pb.Entity)
 	hookChain := m.entityProcesses[chain]
 	for _, h := range hookChain {
+		m.log.Trace("Executing entity hook", "chain", chain, "hook", h.Name())
 		if err := h.Run(e, de); err != nil {
+			m.log.Trace("Error during chain execution", "chain", chain, "hook", h.Name(), "error", err)
 			return nil, err
 		}
 	}

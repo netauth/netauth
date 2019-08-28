@@ -3,7 +3,6 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/NetAuth/NetAuth/internal/health"
@@ -21,14 +20,14 @@ func (s *NetAuthServer) Ping(ctx context.Context, pingRequest *pb.PingRequest) (
 	// with a Pong containing the server status.
 
 	client := pingRequest.GetInfo()
-	log.Printf("Ping from %s@%s", client.GetService(), client.GetID())
+	s.Log.Info("Ping", "service", client.GetService(), "client", client.GetID())
 
 	reply := new(pb.PingResponse)
 	status := health.Check()
 	reply.Healthy = proto.Bool(status.OK)
 	hostname, err := os.Hostname()
 	if err != nil {
-		log.Println("Hostname could not be determined!")
+		s.Log.Warn("Hostname could not be determined!")
 		hostname = "BOGUS_HOST"
 	}
 

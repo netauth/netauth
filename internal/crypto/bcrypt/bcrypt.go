@@ -1,11 +1,10 @@
 package bcrypt
 
 import (
-	"log"
-
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 )
@@ -21,12 +20,15 @@ func init() {
 // per-site basis.
 type Engine struct {
 	cost int
+	l hclog.Logger
 }
 
 // New registers this crypto type for use by the NetAuth server.
 func New() (crypto.EMCrypto, error) {
 	x := new(Engine)
 	x.cost = viper.GetInt("crypto.bcrypt.cost")
+	x.l = hclog.L().Named("bcrypt")
+	x.l.Debug("BCrypt Initialized", "cost", x.cost)
 	return x, nil
 }
 
@@ -35,7 +37,7 @@ func New() (crypto.EMCrypto, error) {
 func (b *Engine) SecureSecret(secret string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(secret), b.cost)
 	if err != nil {
-		log.Printf("Crypto Fault: %s", err)
+		b.l.Error("Bcrypt Error has occured", "error", err)
 		return "", crypto.ErrInternalError
 	}
 	return string(hash[:]), nil
@@ -47,7 +49,7 @@ func (b *Engine) SecureSecret(secret string) (string, error) {
 func (b *Engine) VerifySecret(secret, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(secret))
 	if err != nil {
-		log.Printf("Crypto Error: %s", err)
+		b.l.Error("Bcrypt Error has occured", "error", err)
 		return crypto.ErrAuthorizationFailure
 	}
 	return nil

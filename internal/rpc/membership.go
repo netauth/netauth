@@ -2,7 +2,6 @@ package rpc
 
 import (
 	"context"
-	"log"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
@@ -21,9 +20,9 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 	e := r.GetEntity()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied AddEntityToGroup request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied AddEntityToGroup request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -47,12 +46,13 @@ func (s *NetAuthServer) AddEntityToGroup(ctx context.Context, r *pb.ModEntityMem
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Entity '%s' added to '%s' by '%s' (%s@%s)",
-		e.GetID(),
-		g.GetName(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Direct group membership changed",
+		"entity", e.GetID(),
+		"group", g.GetName(),
+		"action", "add",
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Membership updated successfully"),
@@ -70,9 +70,9 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 	e := r.GetEntity()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied RemoveEntityFromGroup request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied RemoveEntityToGroup request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -96,12 +96,13 @@ func (s *NetAuthServer) RemoveEntityFromGroup(ctx context.Context, r *pb.ModEnti
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Entity '%s' removed from '%s' by '%s' (%s@%s)",
-		e.GetID(),
-		g.GetName(),
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Direct group membership changed",
+		"entity", e.GetID(),
+		"group", g.GetName(),
+		"action", "remove",
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Membership updated successfully"),
@@ -165,9 +166,9 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 	mode := r.GetMode()
 
 	if viper.GetBool("server.readonly") {
-		log.Printf("Denied ModifyGroupNesting request from %s@%s (read-only mode is enabled)",
-			client.GetService(),
-			client.GetID())
+		s.Log.Warn("Denied ModifyGroupNesting request (read-only mode is enabled)",
+			"service", client.GetService(),
+			"client", client.GetID())
 		return &pb.SimpleResult{
 			Msg:     proto.String("This server is in read-only mode"),
 			Success: proto.Bool(false),
@@ -190,13 +191,13 @@ func (s *NetAuthServer) ModifyGroupNesting(ctx context.Context, r *pb.ModGroupNe
 		return nil, toWireError(err)
 	}
 
-	log.Printf("Group '%s'->'%s' expansion to '%s' by '%s' (%s@%s)",
-		parent.GetName(),
-		child.GetName(),
-		mode,
-		c.EntityID,
-		client.GetService(),
-		client.GetID())
+	s.Log.Info("Group expansion modified",
+		"group", parent.GetName(),
+		"target", child.GetName(),
+		"mode", mode,
+		"authority", c.EntityID,
+		"service", client.GetService(),
+		"client", client.GetID())
 
 	return &pb.SimpleResult{
 		Msg:     proto.String("Nesting updated successfully"),

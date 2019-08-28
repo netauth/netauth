@@ -1,10 +1,10 @@
 package token
 
 import (
-	"log"
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 )
 
 // A Factory returns a token service when called.
@@ -29,6 +29,7 @@ type Config struct {
 
 var (
 	services map[string]Factory
+	logger = hclog.L().Named("token")
 )
 
 func init() {
@@ -40,8 +41,8 @@ func init() {
 func New() (Service, error) {
 	backend := viper.GetString("token.backend")
 	if backend == "" && len(services) == 1 {
-		log.Println("Warning: No token implementation selected, using only registered option...")
 		backend = GetBackendList()[0]
+		logger.Warn("No implementation specified, selecting single option", "backend", backend)
 	}
 
 	t, ok := services[backend]

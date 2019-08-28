@@ -1,5 +1,9 @@
 package db
 
+import (
+	"github.com/hashicorp/go-hclog"
+)
+
 var (
 	callbacks map[string]Callback
 )
@@ -20,7 +24,8 @@ func RegisterCallback(name string, c Callback) {
 
 // FireEvent fires an event to all callbacks.
 func FireEvent(e Event) {
-	for _, c := range callbacks {
+	for name, c := range callbacks {
+		hclog.L().Named("db").Trace("Calling callback", "callback", name)
 		c(e)
 	}
 }

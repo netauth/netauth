@@ -1,6 +1,8 @@
 package rpc
 
 import (
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/token"
 
@@ -49,4 +51,5 @@ type EntityTree interface {
 type NetAuthServer struct {
 	Tree  EntityTree
 	Token token.Service
+	Log   hclog.Logger
 }

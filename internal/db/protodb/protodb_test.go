@@ -830,6 +830,23 @@ func TestWatcherEvents(t *testing.T) {
 }
 
 func TestConvertFSToDBEvent(t *testing.T) {
+	r := mkTmpTestDir(t)
+	viper.Set("core.home", r)
+	viper.Set("pdb.watcher", true)
+	viper.Set("pdb.watch-interval", "100ms")
+	defer cleanTmpTestDir(r, t)
+
+	x, err := New()
+	defer cleanUpWatcher(x, t)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rx, ok := x.(*ProtoDB)
+	if !ok {
+		t.Fatal("Bad type assertion")
+	}
+
 	cases := []struct {
 		in   watcher.Event
 		want db.Event
@@ -904,7 +921,7 @@ func TestConvertFSToDBEvent(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if got := convertFSToDBEvent(c.in); got != c.want {
+		if got := rx.convertFSToDBEvent(c.in); got != c.want {
 			t.Errorf("%d: Got %v Want %v", i, got, c.want)
 		}
 	}

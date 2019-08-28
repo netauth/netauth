@@ -3,7 +3,6 @@ package client
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -15,6 +14,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"github.com/hashicorp/go-hclog"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -32,6 +32,7 @@ func init() {
 
 // New returns a complete client ready to use.
 func New() (*NetAuthClient, error) {
+	log := hclog.L().Named("nacl")
 	// Set defaults for the client ID and service ID
 	hn, err := os.Hostname()
 	if err != nil {
@@ -44,7 +45,7 @@ func New() (*NetAuthClient, error) {
 	// Setup the connection.
 	conn, err := connect(false)
 	if err != nil {
-		log.Println(err)
+		log.Error("Error during connect", "error", err)
 		return nil, err
 	}
 
@@ -53,14 +54,14 @@ func New() (*NetAuthClient, error) {
 	if err != nil {
 		// Log the error, but as there are many queries done
 		// in read only mode, don't fail on it.
-		log.Println(err)
+		log.Warn("Token storage are unavailable", "error", err)
 	}
 
 	// Get a token service, don't be a fatal error as most queries
 	// don't require authentication anyway.
 	ts, err := token.New()
 	if err != nil {
-		log.Println(err)
+		log.Warn("Token validation will be unvavailable", "error", err)
 	}
 
 	// Create a client to use later on.  The value of the readonly
@@ -71,6 +72,7 @@ func New() (*NetAuthClient, error) {
 		tokenStore:   t,
 		tokenService: ts,
 		readonly:     viper.GetString("core.server") != viper.GetString("core.master"),
+		log: log,
 	}
 
 	return &client, nil
@@ -102,7 +104,6 @@ func connect(writable bool) (*grpc.ClientConn, error) {
 
 		creds, err := credentials.NewClientTLSFromFile(certPath, "")
 		if err != nil {
-			log.Printf("Could not load certificate: %s", err)
 			return nil, err
 		}
 		opts = []grpc.DialOption{grpc.WithTransportCredentials(creds)}

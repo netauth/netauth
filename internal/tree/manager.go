@@ -1,21 +1,17 @@
 package tree
 
 import (
-	"flag"
-	"log"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
-)
-
-var (
-	debugChains = flag.Bool("verbose_chains", false, "Print verbose chain startup information")
 )
 
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
 func New(db db.DB, crypto crypto.EMCrypto) (*Manager, error) {
 	x := Manager{}
+	x.log = hclog.L().Named("tree")
 	x.bootstrapDone = false
 	x.db = db
 	x.crypto = crypto
@@ -51,7 +47,7 @@ func New(db db.DB, crypto crypto.EMCrypto) (*Manager, error) {
 		return nil, err
 	}
 
-	log.Println("Initialized new Entity Manager")
+	x.log.Debug("Initialized new Entity Manager")
 
 	return &x, nil
 }

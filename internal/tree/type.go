@@ -1,6 +1,8 @@
 package tree
 
 import (
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	"github.com/NetAuth/NetAuth/internal/db"
 )
@@ -33,6 +35,8 @@ type Manager struct {
 	// Maintain chains of hooks that can be used by processors.
 	entityProcesses map[string][]EntityHook
 	groupProcesses  map[string][]GroupHook
+
+	log hclog.Logger
 }
 
 // A RefContext is a container of references that are needed to
@@ -47,3 +51,11 @@ type RefContext struct {
 // groups, but as these each have seperate chains, different configs
 // must be created and loaded for each.
 type ChainConfig map[string][]string
+
+// This logger is special, since it needs to be available very early
+// on, and needs to be able to be setup by package main very early in
+// initialization.  Everything that's part of a manager instance
+// should use the logger from the instance.
+var (
+	logger = hclog.L().Named("tree")
+)

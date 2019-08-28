@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"log"
 
 	"github.com/NetAuth/NetAuth/internal/token"
 
@@ -21,12 +20,12 @@ func (n *NetAuthClient) GetToken(entity, secret string) (string, error) {
 	if err == nil {
 		var err error
 		if _, err = n.InspectToken(t); err == nil {
-			log.Println("Using cached token")
+			n.log.Debug("Using cached token")
 			return t, nil
 		}
-		log.Println("Not using cached token: ", err)
+		n.log.Debug("Not using cached token", "error", err)
 	} else {
-		log.Println("Could not retrieve cached token: ", err)
+		n.log.Debug("Could not retrieve cached token", "error", err)
 	}
 
 	if secret == "" {

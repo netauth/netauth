@@ -2,7 +2,6 @@ package tree
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/NetAuth/NetAuth/internal/tree/util"
@@ -51,17 +50,16 @@ func (m *Manager) Bootstrap(ID string, secret string) {
 	m.DisableBootstrap()
 
 	if err != nil {
-		log.Println("Bootstrap FAILED:")
-		log.Fatal(err)
+		m.log.Error("Bootstrap Failed", "error", err)
 	}
 }
 
 // DisableBootstrap disables the ability to bootstrap after the
 // opportunity to do so has passed.
 func (m *Manager) DisableBootstrap() {
-	log.Println("Disabling bootstrap")
+	m.log.Debug("Disabling bootstrap")
 	m.bootstrapDone = true
-	log.Println("Bootstrap disabled")
+	m.log.Info("Bootstrap disabled")
 }
 
 // DestroyEntity deletes the named entity.  This function will

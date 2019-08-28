@@ -2,8 +2,6 @@ package ctl
 
 import (
 	"fmt"
-	"io/ioutil"
-	"log"
 	"os"
 	"os/user"
 
@@ -70,11 +68,6 @@ func onInit() {
 
 // Execute serves as the entrypoint to the ctl package.
 func Execute() {
-	if _, set := os.LookupEnv("NETAUTH_VERBOSE"); !set {
-		log.SetFlags(0)
-		log.SetOutput(ioutil.Discard)
-	}
-
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 	}

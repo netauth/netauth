@@ -2,11 +2,14 @@ package health
 
 import (
 	"fmt"
-	"log"
+
+	"github.com/hashicorp/go-hclog"
 )
 
 var (
 	checks map[string]SubsystemCheck
+
+	logger = hclog.L().Named("health")
 )
 
 // SubsystemStatus contains the information needed to be returned by
@@ -76,7 +79,7 @@ func init() {
 // that will be called when health status is requested.
 func RegisterCheck(name string, check SubsystemCheck) {
 	if _, ok := checks[name]; ok {
-		log.Printf("Refusing to overwrite existing check '%s'", name)
+		logger.Warn("Refusing to overwrite existing check", "check", name)
 		return
 	}
 	checks[name] = check
@@ -89,8 +92,9 @@ func Check() SystemStatus {
 	status := SystemStatus{
 		OK: true,
 	}
+	logger.Debug("Running health check")
 	for name, check := range checks {
-		log.Printf("Health Check, polling '%s'", name)
+		logger.Trace("Polling subsystem", "check", name)
 		result := check()
 		status.Subsystems = append(status.Subsystems, result)
 		status.OK = status.OK && result.OK

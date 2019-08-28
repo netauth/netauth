@@ -6,11 +6,11 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/token"
@@ -33,6 +33,8 @@ type RSATokenService struct {
 
 	publicKeyFile  string
 	privateKeyFile string
+
+	log hclog.Logger
 }
 
 func init() {
@@ -42,6 +44,8 @@ func init() {
 // NewRSA returns an RSATokenService initialized and ready for use.
 func NewRSA() (token.Service, error) {
 	x := RSATokenService{}
+	x.log = hclog.L().Named("jwt-rsa")
+
 	if err := x.GetKeys(); err != nil {
 		return nil, err
 	}
@@ -88,7 +92,7 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 
 	t, err := jwt.ParseWithClaims(tkn, &RSAToken{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
-			log.Println("Token was signed with invalid algorithm:", t.Header["alg"])
+			s.log.Error("Token was signed with invalid algorithm", "expected", t.Method, "actual", t.Header["alg"])
 			return nil, token.ErrTokenInvalid
 		}
 		return s.publicKey, nil
@@ -118,18 +122,19 @@ func (s *RSATokenService) GetKeys() error {
 	s.publicKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.pem")
 	s.privateKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.key")
 
-	log.Printf("Loading public key from %s", s.publicKeyFile)
+	s.log.Debug("Loading public key", "file", s.publicKeyFile)
 	f, err := ioutil.ReadFile(s.publicKeyFile)
 	if os.IsNotExist(err) {
-		log.Printf("Blob at %s contains no key!", s.publicKeyFile)
+		s.log.Error("File contains no key!", "file", s.publicKeyFile)
 
 		if !viper.GetBool("token.jwt.generate") {
-			log.Println("Generating keys is disabled!")
+			s.log.Warn("Key generation is disabled")
 			return token.ErrKeyGenerationDisabled
 		}
 
 		// Request the keys be generated
 		if err := s.generateKeys(viper.GetInt("token.jwt.bits")); err != nil {
+			s.log.Error("Error generating keys", "error", err)
 			return err
 		}
 
@@ -137,30 +142,30 @@ func (s *RSATokenService) GetKeys() error {
 		return nil
 	}
 	if err != nil && !os.IsNotExist(err) {
-		log.Println("No key available and generate disabled!")
+		s.log.Warn("Keys are not available")
 		return token.ErrKeyUnavailable
 	}
 
 	if !checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
-		log.Println("Public Key has incorrect mode bits")
+		s.log.Warn("Public key has incorrect mode bits")
 		return token.ErrKeyUnavailable
 	}
 
 	block, _ := pem.Decode([]byte(f))
 	if block == nil {
-		log.Println("Error decoding PEM block")
+		s.log.Error("Error decoding PEM block")
 		return token.ErrKeyUnavailable
 	}
 
 	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
-		log.Println("Error parsing key:", err)
+		s.log.Error("Error parsing key:", "key", s.publicKeyFile, "error", err)
 		return token.ErrKeyUnavailable
 	}
 
 	p, ok := pub.(*rsa.PublicKey)
 	if !ok {
-		log.Printf("%s does not contain an RSA public key", s.publicKeyFile)
+		s.log.Error("File does not contain an RSA public key", "file", s.publicKeyFile)
 		return token.ErrKeyUnavailable
 	}
 	s.publicKey = p
@@ -169,10 +174,10 @@ func (s *RSATokenService) GetKeys() error {
 	// out, because you can still do meaningful work with the
 	// public key.  The generate function will return errors
 	// though if the private key fails to load.
-	log.Printf("Loading private key from %s", s.privateKeyFile)
+	s.log.Debug("Loading private key from file", "file", s.privateKeyFile)
 	pristr, err := ioutil.ReadFile(s.privateKeyFile)
 	if err != nil && !os.IsNotExist(err) {
-		log.Printf("File load error: %s", err)
+		s.log.Error("Private key load error", "file", s.privateKeyFile, "error", err)
 	}
 	if os.IsNotExist(err) {
 		// No private key, so we bail out early.  This doesn't
@@ -180,13 +185,13 @@ func (s *RSATokenService) GetKeys() error {
 		// verifying an existing token, which only needs the
 		// public key.  In this case unavailability of the
 		// private key will trigger an error on signing.
-		log.Println("Token: No private key available, signing will be unavailable")
+		s.log.Warn("No private key is loaded")
+		s.log.Warn("Signing will be unavailable")
 		return nil
 	}
 
 	if !checkKeyModeOK("-r--------", s.privateKeyFile) {
-		log.Println("Private Key has incorrect mode bits")
-		log.Println("This may be fatal if this is a server")
+		s.log.Warn("Private key has incorrect mode bits", "file", s.privateKeyFile)
 	}
 
 	block, _ = pem.Decode([]byte(pristr))
@@ -194,7 +199,7 @@ func (s *RSATokenService) GetKeys() error {
 		// We don't want to error out here since this isn't
 		// needed if all you want to do is verify a signature.
 		s.privateKey = nil
-		log.Println("Error decoding PEM block (private key)")
+		s.log.Warn("Error decoding private key", "file", s.privateKeyFile)
 		return nil
 	}
 	s.privateKey, err = x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -202,6 +207,7 @@ func (s *RSATokenService) GetKeys() error {
 		// We don't want to error out here since this isn't
 		// needed if all you want to do is verify a signature.
 		s.privateKey = nil
+		s.log.Warn("Error unmarshaling private key", "file", s.privateKeyFile, "error", err)
 	}
 
 	// Keys loaded and ready to sign with
@@ -209,11 +215,13 @@ func (s *RSATokenService) GetKeys() error {
 }
 
 func (s *RSATokenService) generateKeys(bits int) error {
-	log.Println("Generating keys")
+	s.log.Debug("Generating keys")
 
 	// First create the directory for the keys if it doesn't
 	// already exist.
-	if err := os.MkdirAll(filepath.Join(viper.GetString("core.home"), "keys"), 0755); err != nil {
+	path := filepath.Join(viper.GetString("core.home"), "keys")
+	if err := os.MkdirAll(path, 0755); err != nil {
+		s.log.Error("Could not create key directory", "path", path)
 		return token.ErrInternalError
 	}
 
@@ -221,7 +229,7 @@ func (s *RSATokenService) generateKeys(bits int) error {
 	var err error
 	s.privateKey, err = rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
-		log.Println(err)
+		s.log.Error("Error generating keys", "error", err)
 		return token.ErrInternalError
 	}
 	s.publicKey = &s.privateKey.PublicKey
@@ -236,7 +244,7 @@ func (s *RSATokenService) generateKeys(bits int) error {
 
 	// At this point the key is saved to disk and
 	// initialized
-	log.Println("Keys successfully generated")
+	s.log.Debug("Finished generating keys")
 	return nil
 }
 
@@ -282,7 +290,6 @@ func marshalPrivateKey(key *rsa.PrivateKey, path string) error {
 		},
 	)
 	if err := ioutil.WriteFile(path, pridata, 0400); err != nil {
-		log.Println("Error writing private key file:", err)
 		return token.ErrInternalError
 	}
 
@@ -303,7 +310,6 @@ func marshalPublicKey(key *rsa.PublicKey, path string) error {
 		},
 	)
 	if err := ioutil.WriteFile(path, pubdata, 0644); err != nil {
-		log.Println("Error writing public key file:", err)
 		return token.ErrInternalError
 	}
 	return nil
@@ -312,11 +318,11 @@ func marshalPublicKey(key *rsa.PublicKey, path string) error {
 func checkKeyModeOK(mode string, path string) bool {
 	stat, err := os.Stat(path)
 	if err != nil {
-		log.Println("Error while stating key:", path)
+		hclog.L().Named("jwt-rsa").Error("Error stating key", "error", err)
 		return false
 	}
 	if stat.Mode().Perm().String() != mode {
-		log.Printf("Key permissions are wrong: Current '%s'; Want: '%s'", stat.Mode().Perm(), mode)
+		hclog.L().Named("jwt-rsa").Error("Key permissions are wrong.", "current", stat.Mode().Perm(), "want", mode)
 		return false
 	}
 	return true

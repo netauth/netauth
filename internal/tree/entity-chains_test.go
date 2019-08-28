@@ -12,7 +12,6 @@ func resetEntityConstructorMap() {
 }
 
 func TestECRegisterAndInitialize(t *testing.T) {
-	*debugChains = true
 	resetEntityConstructorMap()
 	defer resetEntityConstructorMap()
 

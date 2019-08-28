@@ -1,9 +1,8 @@
 package util
 
 import (
-	"log"
-
 	"github.com/blevesearch/bleve"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/db"
 
@@ -19,6 +18,8 @@ type SearchIndex struct {
 
 	eLoader loadEntityFunc
 	gLoader loadGroupFunc
+
+	l hclog.Logger
 }
 
 // NewIndex returns a new SearchIndex with the mappings configured and
@@ -57,6 +58,7 @@ func NewIndex() *SearchIndex {
 	return &SearchIndex{
 		eIndex: eIndex,
 		gIndex: gIndex,
+		l: hclog.L().Named("blevesearch"),
 	}
 }
 
@@ -66,6 +68,7 @@ func NewIndex() *SearchIndex {
 func (s *SearchIndex) ConfigureCallback(el loadEntityFunc, gl loadGroupFunc) {
 	s.eLoader = el
 	s.gLoader = gl
+	s.l.Trace("IndexCallback is now configured")
 }
 
 // IndexCallback is meant to be plugged into the event system and is
@@ -73,7 +76,7 @@ func (s *SearchIndex) ConfigureCallback(el loadEntityFunc, gl loadGroupFunc) {
 // fired during save and as files change on disk.
 func (s *SearchIndex) IndexCallback(e db.Event) {
 	if s.eLoader == nil || s.gLoader == nil {
-		log.Println("IndexCallback is unavailable, call ConfigureCallback() first!")
+		s.l.Error("IndexCallback is unavailable, did you call ConfigureCallback() first?")
 		return
 	}
 
@@ -83,8 +86,7 @@ func (s *SearchIndex) IndexCallback(e db.Event) {
 	case db.EventEntityUpdate:
 		ent, err := s.eLoader(e.PK)
 		if err != nil {
-			log.Println(err)
-			log.Printf("Could not reindex %s", e.PK)
+			s.l.Warn("Could not reindex entity", "entity", e.PK, "error", err)
 			return
 		}
 		s.IndexEntity(ent)
@@ -95,8 +97,7 @@ func (s *SearchIndex) IndexCallback(e db.Event) {
 	case db.EventGroupUpdate:
 		grp, err := s.gLoader(e.PK)
 		if err != nil {
-			log.Println(err)
-			log.Printf("Could not reindex %s", e.PK)
+			s.l.Warn("Could not reindex group", "group", e.PK, "error", err)
 			return
 		}
 		s.IndexGroup(grp)
