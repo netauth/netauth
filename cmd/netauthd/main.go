@@ -38,13 +38,14 @@ var (
 	commit  = "none"
 	date    = "unknown"
 
-	appLogger = hclog.New(&hclog.LoggerOptions{
-		Name:  "netauthd",
-		Level: hclog.LevelFromString("TRACE"),
-	})
+	appLogger hclog.Logger
 )
 
 func init() {
+	appLogger = hclog.New(&hclog.LoggerOptions{
+		Name:  "netauthd",
+		Level: hclog.LevelFromString("INFO"),
+	})
 	hclog.SetDefault(appLogger)
 
 	pflag.String("tls.certificate", "keys/tls.crt", "Path to certificate file")
@@ -66,6 +67,8 @@ func init() {
 
 	pflag.Bool("pdb.watcher", false, "Enable the pdb filesystem watcher")
 	pflag.Duration("pdb.watch-interval", 1*time.Second, "Watch Interval")
+
+	pflag.String("log.level", "INFO", "Log verbosity level")
 
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
@@ -137,6 +140,7 @@ func main() {
 	// Do the config load before anything else, this might bail
 	// out for a number of reasons.
 	loadConfig()
+	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
 	appLogger.Info("NetAuth server is starting!")
 	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
