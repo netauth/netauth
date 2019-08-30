@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -30,6 +32,7 @@ func TestECRegisterAndInitialize(t *testing.T) {
 
 	em := Manager{
 		entityHooks: make(map[string]EntityHook),
+		log:         hclog.NewNullLogger(),
 	}
 
 	em.InitializeEntityHooks()
@@ -47,6 +50,7 @@ func TestECInitializeChainsOK(t *testing.T) {
 	em := Manager{
 		entityHooks:     make(map[string]EntityHook),
 		entityProcesses: make(map[string][]EntityHook),
+		log:             hclog.NewNullLogger(),
 	}
 	em.InitializeEntityHooks()
 
@@ -66,6 +70,7 @@ func TestECInitializeBadHook(t *testing.T) {
 	em := Manager{
 		entityHooks:     make(map[string]EntityHook),
 		entityProcesses: make(map[string][]EntityHook),
+		log:             hclog.NewNullLogger(),
 	}
 	em.InitializeEntityHooks()
 
@@ -85,6 +90,7 @@ func TestECCheckRequiredMissing(t *testing.T) {
 	em := Manager{
 		entityHooks:     make(map[string]EntityHook),
 		entityProcesses: make(map[string][]EntityHook),
+		log:             hclog.NewNullLogger(),
 	}
 
 	if err := em.CheckRequiredEntityChains(); err != ErrUnknownHookChain {
@@ -99,6 +105,7 @@ func TestECCheckRequiredEmpty(t *testing.T) {
 	em := Manager{
 		entityHooks:     make(map[string]EntityHook),
 		entityProcesses: make(map[string][]EntityHook),
+		log:             hclog.NewNullLogger(),
 	}
 
 	// This lets us do this without having hooks loaded, we just

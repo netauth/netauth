@@ -4,6 +4,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	pb "github.com/NetAuth/Protocol"
 )
 
@@ -12,7 +14,6 @@ func resetGroupConstructorMap() {
 }
 
 func TestGCRegisterAndInitialize(t *testing.T) {
-	*debugChains = true
 	resetGroupConstructorMap()
 	defer resetGroupConstructorMap()
 
@@ -31,6 +32,7 @@ func TestGCRegisterAndInitialize(t *testing.T) {
 
 	em := Manager{
 		groupHooks: make(map[string]GroupHook),
+		log:        hclog.NewNullLogger(),
 	}
 
 	em.InitializeGroupHooks()
@@ -48,6 +50,7 @@ func TestGCInitializeChainsOK(t *testing.T) {
 	em := Manager{
 		groupHooks:     make(map[string]GroupHook),
 		groupProcesses: make(map[string][]GroupHook),
+		log:            hclog.NewNullLogger(),
 	}
 	em.InitializeGroupHooks()
 
@@ -67,6 +70,7 @@ func TestGCInitializeBadHook(t *testing.T) {
 	em := Manager{
 		groupHooks:     make(map[string]GroupHook),
 		groupProcesses: make(map[string][]GroupHook),
+		log:            hclog.NewNullLogger(),
 	}
 	em.InitializeGroupHooks()
 
@@ -86,6 +90,7 @@ func TestGCCheckRequiredMissing(t *testing.T) {
 	em := Manager{
 		groupHooks:     make(map[string]GroupHook),
 		groupProcesses: make(map[string][]GroupHook),
+		log:            hclog.NewNullLogger(),
 	}
 
 	if err := em.CheckRequiredGroupChains(); err != ErrUnknownHookChain {
@@ -100,6 +105,7 @@ func TestGCCheckRequiredEmpty(t *testing.T) {
 	em := Manager{
 		groupHooks:     make(map[string]GroupHook),
 		groupProcesses: make(map[string][]GroupHook),
+		log:            hclog.NewNullLogger(),
 	}
 
 	// This lets us do this without having hooks loaded, we just
