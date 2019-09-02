@@ -25,6 +25,7 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/google/renameio v0.1.0
 	github.com/hashicorp/go-hclog v0.9.2
+	github.com/hashicorp/go-plugin v1.0.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/radovskyb/watcher v1.0.6
