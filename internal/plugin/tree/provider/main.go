@@ -14,7 +14,7 @@ var handshakeConfig = plugin.HandshakeConfig{
 
 func Main() {
 	var pluginMap = map[string]plugin.Plugin{
-		"treep": &common.GoPluginServer{},
+		"treep": &common.GoPluginRPC{},
 	}
 
 	plugin.Serve(&plugin.ServeConfig{

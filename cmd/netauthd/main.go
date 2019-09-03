@@ -14,6 +14,7 @@ import (
 	_ "github.com/NetAuth/NetAuth/internal/db/all"
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
+	plugin "github.com/NetAuth/NetAuth/internal/plugin/tree/manager"
 
 	"github.com/NetAuth/NetAuth/internal/rpc"
 	"github.com/NetAuth/NetAuth/internal/tree"
@@ -209,8 +210,27 @@ func main() {
 		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
 
+	// Get a plugin manager for extensibility
+	p, err := plugin.New()
+	if err != nil {
+		appLogger.Warn("Problem initializing plugin manager", "error", err)
+	}
+	if viper.GetBool("plugin.enabled") {
+		appLogger.Debug("Initializing tree plugins")
+		p.LoadPlugins()
+		p.RegisterEntityHooks()
+		p.RegisterGroupHooks()
+	} else {
+		appLogger.Debug("Not running with plguins")
+	}
+
 	// Init the new server instance
 	srv := newServer()
+
+	if viper.GetBool("plugin.enabled") {
+		p.ConfigureEntityChains(srv.Tree.RegisterEntityHookToChain)
+		p.ConfigureGroupChains(srv.Tree.RegisterGroupHookToChain)
+	}
 
 	// Attempt to bootstrap a superuser
 	if len(*bootstrap) != 0 {

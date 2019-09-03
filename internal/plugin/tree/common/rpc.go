@@ -3,24 +3,26 @@ package common
 import (
 	"net/rpc"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 )
 
-func (p *GoPluginServer) Server(*plugin.MuxBroker) (interface{}, error) {
+func (p *GoPluginRPC) Server(*plugin.MuxBroker) (interface{}, error) {
 	return &GoPluginServer{}, nil
 }
 
-func (GoPluginServer) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
+func (GoPluginRPC) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, error) {
 	return &GoPluginClient{client: c}, nil
 }
 
 func (p *GoPluginServer) ProcessEntity(opts PluginOpts, res *PluginResult) error {
-	res.Entity = opts.Entity
+	hclog.L().Info("ProcessEntity", "entity", opts.Entity)
+	res.Entity = *opts.Entity
 	return nil
 }
 
 func (p *GoPluginServer) ProcessGroup(opts PluginOpts, res *PluginResult) error {
-	res.Group = opts.Group
+	res.Group = *opts.Group
 	return nil
 }
 

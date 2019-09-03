@@ -2,7 +2,6 @@ package tree
 
 import (
 	"sort"
-	"fmt"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -64,21 +63,26 @@ func (m *Manager) InitializeEntityChains(c ChainConfig) error {
 	for chain, hooks := range c {
 		m.log.Debug("Initializing Entity Chain", "chain", chain)
 		for _, h := range hooks {
-			eph, ok := m.entityHooks[h]
-			if !ok {
-				m.log.Warn("Missing hook during chain initializtion", "chain", chain, "hook", h)
-				return ErrUnknownHook
+			if err := m.RegisterEntityHookToChain(h, chain); err != nil {
+				return err
 			}
-			m.entityProcesses[chain] = append(m.entityProcesses[chain], eph)
-		}
-		sort.Slice(m.entityProcesses[chain], func(i, j int) bool {
-			return m.entityProcesses[chain][i].Priority() < m.entityProcesses[chain][j].Priority()
-		})
-		m.log.Trace("Chain contains")
-		for _, hook := range m.entityProcesses[chain] {
-			m.log.Trace(fmt.Sprintf("  %s", hook.Name()))
 		}
 	}
+	return nil
+}
+
+// RegisterEntityHookToChain registers a hook to a given chain.
+func (m *Manager) RegisterEntityHookToChain(hook, chain string) error {
+	eph, ok := m.entityHooks[hook]
+	if !ok {
+		m.log.Warn("Missing hook during chain initializtion", "chain", chain, "hook", hook)
+		return ErrUnknownHook
+	}
+	m.entityProcesses[chain] = append(m.entityProcesses[chain], eph)
+	sort.Slice(m.entityProcesses[chain], func(i, j int) bool {
+		return m.entityProcesses[chain][i].Priority() < m.entityProcesses[chain][j].Priority()
+	})
+	m.log.Trace("Registered hook to chain", "chain", chain, "hook", hook)
 	return nil
 }
 

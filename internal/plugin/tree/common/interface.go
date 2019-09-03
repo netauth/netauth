@@ -1,17 +1,21 @@
 package common
 
+//go:generate stringer -type=PluginAction
+
 import (
 	"net/rpc"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
-type pluginAction int
+// PluginAction is used to swich handlers inside a ProcessEntity or
+// ProcessGroup handler.
+type PluginAction int
 
 // These constants are used to switch actions inside the plugins
 // themselves.
 const (
-	EntityCreate pluginAction = iota
+	EntityCreate PluginAction = iota
 	EntityUpdate
 	EntityLock
 	EntityUnlock
@@ -25,8 +29,52 @@ const (
 	PostSecretChange
 	PreAuthCheck
 	PostAuthCheck
-	PreTokenAuth
-	PostTokenAuth
+)
+
+var (
+	// AutoEntityActions is a list of all actions which get
+	// automatically generated hooks inserted into the tree
+	// processing system.
+	AutoEntityActions = [...]PluginAction{
+		EntityCreate,
+		EntityUpdate,
+		EntityLock,
+		EntityUnlock,
+		EntityDestroy,
+
+		PreSecretChange,
+		PostSecretChange,
+		PreAuthCheck,
+		PostAuthCheck,
+	}
+
+	// AutoGroupActions is the same as AutoEntityActions, but has
+	// been split out since entities and groups have different
+	// signatures for their respective hooks.
+	AutoGroupActions = [...]PluginAction{
+		GroupCreate,
+		GroupUpdate,
+		GroupDestroy,
+	}
+
+	// AutoHookPriority is used to determine where a hook is to be
+	// sequenced in to a chain based on priority.
+	AutoHookPriority = map[PluginAction]int{
+		EntityCreate:  70,
+		EntityUpdate:  70,
+		EntityLock:    70,
+		EntityUnlock:  70,
+		EntityDestroy: 70,
+
+		GroupCreate:  70,
+		GroupUpdate:  70,
+		GroupDestroy: 70,
+
+		PreSecretChange:  40,
+		PostSecretChange: 60,
+		PreAuthCheck:     15,
+		PostAuthCheck:    60,
+	}
 )
 
 // Plugin is the type for plugins that extend the functionality of the
@@ -47,8 +95,6 @@ type Plugin interface {
 	PostSecretChange(pb.Entity) (pb.Entity, error)
 	PreAuthCheck(pb.Entity) (pb.Entity, error)
 	PostAuthCheck(pb.Entity) (pb.Entity, error)
-	PreTokenAuth(pb.Entity) (pb.Entity, error)
-	PostTokenAuth(pb.Entity) (pb.Entity, error)
 }
 
 // GoPlugin is the actual interface that's exposed across the link.
@@ -65,10 +111,12 @@ type GoPluginClient struct {
 	client *rpc.Client
 }
 
+type GoPluginRPC struct{}
+
 type PluginOpts struct {
-	Action pluginAction
-	Entity pb.Entity
-	Group  pb.Group
+	Action PluginAction
+	Entity *pb.Entity
+	Group  *pb.Group
 }
 
 type PluginResult struct {

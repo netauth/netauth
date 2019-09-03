@@ -2,7 +2,6 @@ package tree
 
 import (
 	"sort"
-	"fmt"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -64,21 +63,26 @@ func (m *Manager) InitializeGroupChains(c ChainConfig) error {
 	for chain, hooks := range c {
 		m.log.Debug("Initializing Group Chain", "chain", chain)
 		for _, h := range hooks {
-			eph, ok := m.groupHooks[h]
-			if !ok {
-				m.log.Warn("Missing hook during chain initializtion", "chain", chain, "hook", h)
-				return ErrUnknownHook
+			if err := m.RegisterGroupHookToChain(h, chain); err != nil {
+				return err
 			}
-			m.groupProcesses[chain] = append(m.groupProcesses[chain], eph)
-		}
-		sort.Slice(m.groupProcesses[chain], func(i, j int) bool {
-			return m.groupProcesses[chain][i].Priority() < m.groupProcesses[chain][j].Priority()
-		})
-		m.log.Trace("Chain contains")
-		for _, hook := range m.groupProcesses[chain] {
-			m.log.Trace(fmt.Sprintf("  %s", hook.Name()))
 		}
 	}
+	return nil
+}
+
+// RegisterGroupHookToChain registers a hook to a given chain.
+func (m *Manager) RegisterGroupHookToChain(hook, chain string) error {
+	eph, ok := m.groupHooks[hook]
+	if !ok {
+		m.log.Warn("Missing hook during chain initializtion", "chain", chain, "hook", hook)
+		return ErrUnknownHook
+	}
+	m.groupProcesses[chain] = append(m.groupProcesses[chain], eph)
+	sort.Slice(m.groupProcesses[chain], func(i, j int) bool {
+		return m.groupProcesses[chain][i].Priority() < m.groupProcesses[chain][j].Priority()
+	})
+	m.log.Trace("Registered hook to chain", "chain", chain, "hook", hook)
 	return nil
 }
 

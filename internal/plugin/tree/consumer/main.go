@@ -17,7 +17,7 @@ var (
 	}
 
 	pluginMap = map[string]plugin.Plugin{
-		"treep": &common.GoPluginServer{},
+		"treep": &common.GoPluginRPC{},
 	}
 )
 

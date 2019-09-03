@@ -12,6 +12,9 @@ import (
 // An EntityTree is a mechanism for storing entities and information
 // about them.
 type EntityTree interface {
+	RegisterEntityHookToChain(string, string) error
+	RegisterGroupHookToChain(string, string) error
+
 	Bootstrap(string, string)
 	DisableBootstrap()
 
