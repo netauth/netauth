@@ -12,6 +12,8 @@ var handshakeConfig = plugin.HandshakeConfig{
 	MagicCookieValue: "treehello",
 }
 
+// Main is used to drop into the plugin serving loop that will expose
+// this plugin's functions via RPC.
 func Main() {
 	var pluginMap = map[string]plugin.Plugin{
 		"treep": &common.GoPluginRPC{},

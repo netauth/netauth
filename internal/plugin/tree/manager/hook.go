@@ -35,8 +35,9 @@ func (h EntityHook) Priority() int {
 // actions will be called in the same place in the chain each time.
 func (h EntityHook) Run(e, de *pb.Entity) error {
 	opts := common.PluginOpts{
-		Action: h.action,
-		Entity: e,
+		Action:     h.action,
+		Entity:     e,
+		DataEntity: de,
 	}
 
 	res, err := h.mref.InvokeEntityProcessing(opts)
@@ -81,8 +82,9 @@ func (h GroupHook) Priority() int {
 // actions will be called in the same place in the chain each time.
 func (h GroupHook) Run(g, dg *pb.Group) error {
 	opts := common.PluginOpts{
-		Action: h.action,
-		Group:  g,
+		Action:    h.action,
+		Group:     g,
+		DataGroup: dg,
 	}
 
 	res, err := h.mref.InvokeGroupProcessing(opts)

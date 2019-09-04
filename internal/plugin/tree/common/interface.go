@@ -91,10 +91,10 @@ type Plugin interface {
 	GroupUpdate(pb.Group) (pb.Group, error)
 	GroupDestroy(pb.Group) error
 
-	PreSecretChange(pb.Entity) (pb.Entity, error)
-	PostSecretChange(pb.Entity) (pb.Entity, error)
-	PreAuthCheck(pb.Entity) (pb.Entity, error)
-	PostAuthCheck(pb.Entity) (pb.Entity, error)
+	PreSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
+	PostSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
+	PreAuthCheck(pb.Entity, pb.Entity) (pb.Entity, error)
+	PostAuthCheck(pb.Entity, pb.Entity) (pb.Entity, error)
 }
 
 // GoPlugin is the actual interface that's exposed across the link.
@@ -111,14 +111,24 @@ type GoPluginClient struct {
 	client *rpc.Client
 }
 
+// GoPluginRPC is a binding only type that's used to provide the
+// interface required by go-plugin.
 type GoPluginRPC struct{}
 
+// PluginOpts provides a clean transport for data that needs to be fed
+// into a plugin.  Note that this is used for both group and entity
+// operations, but not all fields are required to be populated.
 type PluginOpts struct {
-	Action PluginAction
-	Entity *pb.Entity
-	Group  *pb.Group
+	Action     PluginAction
+	Entity     *pb.Entity
+	DataEntity *pb.Entity
+	Group      *pb.Group
+	DataGroup  *pb.Group
 }
 
+// PluginResult is returned by group and entity operations in plugins
+// and provides a container for data to be passed back along the RPC
+// connection.
 type PluginResult struct {
 	Entity pb.Entity
 	Group  pb.Group
