@@ -1,4 +1,4 @@
-package common
+package tree
 
 import (
 	pb "github.com/NetAuth/Protocol"
