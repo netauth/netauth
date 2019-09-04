@@ -7,6 +7,7 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
+	"github.com/NetAuth/NetAuth/internal/tree/util"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -45,6 +46,15 @@ func (h EntityHook) Run(e, de *pb.Entity) error {
 
 	proto.Merge(e, &res.Entity)
 
+	// This step is silly, but is needed to ensure that
+	// proto.Merge hasn't done something silly above.
+	if e.Meta != nil {
+		e.Meta.Groups = util.DedupStringSlice(e.Meta.Groups)
+		e.Meta.Keys = util.DedupStringSlice(e.Meta.Keys)
+		e.Meta.UntypedMeta = util.DedupStringSlice(e.Meta.UntypedMeta)
+		e.Meta.Capabilities = util.DedupCapabilitySlice(e.Meta.Capabilities)
+	}
+
 	return nil
 }
 
@@ -72,7 +82,7 @@ func (h GroupHook) Priority() int {
 func (h GroupHook) Run(g, dg *pb.Group) error {
 	opts := common.PluginOpts{
 		Action: h.action,
-		Group: g,
+		Group:  g,
 	}
 
 	res, err := h.mref.InvokeGroupProcessing(opts)
@@ -81,6 +91,12 @@ func (h GroupHook) Run(g, dg *pb.Group) error {
 	}
 
 	proto.Merge(g, &res.Group)
+
+	// This step is silly, but is needed to ensure that
+	// proto.Merge hasn't done something silly above.
+	g.Expansions = util.DedupStringSlice(g.Expansions)
+	g.UntypedMeta = util.DedupStringSlice(g.UntypedMeta)
+	g.Capabilities = util.DedupCapabilitySlice(g.Capabilities)
 
 	return nil
 }

@@ -3,6 +3,8 @@ package util
 import (
 	"sort"
 	"testing"
+
+	pb "github.com/NetAuth/Protocol"
 )
 
 func TestPatchStringSlice(t *testing.T) {
@@ -87,6 +89,55 @@ func TestStringMatcher(t *testing.T) {
 			t.Errorf("%d: Got %v; Want %v (%v != %v)", i, got, c.want, c.str, c.substr)
 		}
 	}
+}
+
+func TestDedupCapabilitySlice(t *testing.T) {
+	cases := []struct{
+		in []pb.Capability
+		want []pb.Capability
+	}{
+		{
+			in: []pb.Capability{},
+			want: []pb.Capability{},
+		},
+		{
+			in: []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_CREATE_ENTITY},
+			want: []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_CREATE_ENTITY},
+		},
+		{
+			in: []pb.Capability{pb.Capability_GLOBAL_ROOT,pb.Capability_GLOBAL_ROOT},
+			want: []pb.Capability{pb.Capability_GLOBAL_ROOT},
+		},
+	}
+
+	for i, c := range cases {
+		got := DedupCapabilitySlice(c.in)
+		if !capSlicesAreEqual(got, c.want) {
+			t.Errorf("%d: Got %v; Want %v", i, got, c.want)
+		}
+	}
+}
+
+
+func capSlicesAreEqual(left, right []pb.Capability) bool {
+	if len(left) != len(right) {
+		return false
+	}
+
+	sort.Slice(left, func(i, j int) bool {
+		return left[i] < left[j]
+	})
+
+	sort.Slice(right, func(i, j int) bool {
+		return right[i] < right[j]
+	})
+
+	for i, v := range left {
+		if v != right[i] {
+			return false
+		}
+	}
+	return true
 }
 
 func slicesAreEqual(left, right []string) bool {

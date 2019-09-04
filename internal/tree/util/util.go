@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	pb "github.com/NetAuth/Protocol"
 )
 
 // PatchStringSlice patches a string into or out of a slice of other
@@ -34,7 +36,7 @@ func PatchStringSlice(in []string, patch string, insert bool, matchExact bool) [
 	// We return the dedup'd version rather than the normal as the
 	// above process doesn't remove dups that may have gotten into
 	// the slice in previous versions of NetAuth.
-	return dedupStringSlice(retSlice)
+	return DedupStringSlice(retSlice)
 }
 
 // PatchKeyValueSlice patches slices that use key/value pairs.  Its
@@ -60,7 +62,7 @@ func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 			newSlice = append(newSlice, fmt.Sprintf("%s:%s", key, value))
 		}
 
-		newSlice = dedupStringSlice(newSlice)
+		newSlice = DedupStringSlice(newSlice)
 		sort.Strings(newSlice)
 		return newSlice
 	case "CLEARFUZZY":
@@ -77,7 +79,7 @@ func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 			}
 		}
 
-		newSlice = dedupStringSlice(newSlice)
+		newSlice = DedupStringSlice(newSlice)
 		sort.Strings(newSlice)
 		return newSlice
 	case "CLEAREXACT":
@@ -90,7 +92,7 @@ func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 			}
 		}
 
-		newSlice = dedupStringSlice(newSlice)
+		newSlice = DedupStringSlice(newSlice)
 		sort.Strings(newSlice)
 		return newSlice
 	case "READ":
@@ -137,10 +139,33 @@ func stringMatcher(test, match string, matchExact bool) bool {
 	return strings.Contains(test, match)
 }
 
-// dedupStringSlice converts to a map and then back to a string slice
+// DedupStringSlice converts to a map and then back to a string slice
 // to dedup strings by exact matches.
-func dedupStringSlice(list []string) []string {
-	tmp := make(map[string]int)
+func DedupStringSlice(list []string) []string {
+	tmp := make(map[string]int, len(list))
+
+	// Into a map
+	for _, s := range list {
+		if len(s) == 0 {
+			continue
+		}
+		tmp[s]++
+	}
+
+	// Out of the map
+	out := make([]string, len(tmp))
+	var i = 0
+	for k := range tmp {
+		out[i] = k
+		i++
+	}
+	return out
+}
+
+// DedupCapabilitySlice converts to a map and then back to a pb.Capability slice
+// to dedup pb.Capabilitys by exact matches.
+func DedupCapabilitySlice(list []pb.Capability) []pb.Capability {
+	tmp := make(map[pb.Capability]int, len(list))
 
 	// Into a map
 	for _, s := range list {
@@ -148,9 +173,12 @@ func dedupStringSlice(list []string) []string {
 	}
 
 	// Out of the map
-	var out []string
+	out := make([]pb.Capability, len(tmp))
+	var i = 0
 	for k := range tmp {
-		out = append(out, k)
+		out[i] = k
+		i++
 	}
+
 	return out
 }
