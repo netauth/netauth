@@ -2,10 +2,12 @@ package consumer
 
 import (
 	"os/exec"
+	"path/filepath"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
+	"github.com/NetAuth/NetAuth/internal/health"
 	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
 )
 
@@ -38,6 +40,8 @@ func (r *Ref) Shutdown() {
 // Init sets up the plugin and gets it running, an expectation exists
 // that the ref will be stored during the lifetime of the server.
 func (r *Ref) Init() error {
+	health.RegisterCheck("plugin-"+r.Name(), r.healthCheck)
+
 	r.cfg = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshakeConfig,
 		Plugins:         pluginMap,
@@ -60,4 +64,25 @@ func (r *Ref) Init() error {
 	r.GoPluginClient = impl
 
 	return nil
+}
+
+// Name returns a usable name for the plugin
+func (r *Ref) Name() string {
+	return filepath.Base(r.path)
+}
+
+func (r *Ref) healthCheck() health.SubsystemStatus {
+	status := health.SubsystemStatus{
+		Name:   "plugin-" + r.Name(),
+		OK:     true,
+		Status: "Plugin is OK",
+	}
+
+	err := r.client.Ping()
+	if err != nil {
+		status.OK = false
+		status.Status = err.Error()
+	}
+
+	return status
 }
