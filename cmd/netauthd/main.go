@@ -76,6 +76,7 @@ func init() {
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("tls.key", "keys/tls.key")
+	viper.SetDefault("plugin.path", filepath.Join(viper.GetString("core.home"), "plugins"))
 }
 
 func newServer() *rpc.NetAuthServer {
@@ -146,6 +147,7 @@ func main() {
 	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
 	appLogger.Info("NetAuth server is starting!")
+	appLogger.Debug("Server home directory", "directory", viper.GetString("core.home"))
 	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 
 	// Bind early so that if this fails we can just bail out.

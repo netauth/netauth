@@ -2,8 +2,10 @@ package manager
 
 import (
 	"strings"
+	"path/filepath"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hashicorp/go-plugin"
 	"github.com/spf13/viper"
 
 	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
@@ -33,20 +35,33 @@ func New() (Manager, error) {
 // LoadPlugins loads all plugins either directly from a dynamic
 // discovery, or from a statically defined list.
 func (m *Manager) LoadPlugins() {
+	list := []string{}
 	if viper.GetBool("plugin.loadstatic") {
-		for _, p := range viper.GetStringSlice("plugin.list") {
-			m.logger.Trace("Loading new plugin", "plugin", p)
-			im, err := consumer.New(p)
-			if err != nil {
-				m.logger.Warn("Error loading plugin", "error", err)
-				continue
-			}
-			if err := im.Init(); err != nil {
-				m.logger.Warn("Error initializing plugin", "error", err)
-				continue
-			}
-			m.plugins[p] = im
+		list = viper.GetStringSlice("plugin.list")
+	} else {
+		m.logger.Debug("Autoloading plugins", "path", viper.GetString("plugin.path"))
+		var err error
+		path := viper.GetString("plugin.path")
+		if !filepath.IsAbs(path) {
+			path = filepath.Join(viper.GetString("core.home"), path)
 		}
+		list, err = plugin.Discover("*.treeplugin", path)
+		if err != nil {
+			m.logger.Error("Error loading plugins", "error", err)
+		}
+	}
+	for _, p := range list {
+		m.logger.Trace("Loading new plugin", "plugin", p)
+		im, err := consumer.New(p)
+		if err != nil {
+			m.logger.Warn("Error loading plugin", "error", err)
+			continue
+		}
+		if err := im.Init(); err != nil {
+			m.logger.Warn("Error initializing plugin", "error", err)
+			continue
+		}
+		m.plugins[p] = im
 	}
 }
 

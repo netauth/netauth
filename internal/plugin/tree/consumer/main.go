@@ -3,6 +3,7 @@ package consumer
 import (
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
@@ -68,7 +69,8 @@ func (r *Ref) Init() error {
 
 // Name returns a usable name for the plugin
 func (r *Ref) Name() string {
-	return filepath.Base(r.path)
+	base := filepath.Base(r.path)
+	return strings.TrimSuffix(base, filepath.Ext(base))
 }
 
 func (r *Ref) healthCheck() health.SubsystemStatus {
