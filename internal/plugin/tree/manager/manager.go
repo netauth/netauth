@@ -53,7 +53,9 @@ func (m *Manager) LoadPlugins() {
 // Shutdown calls shutdown in each plugin and should be called during
 // server shutdown to prevent leaking processes.
 func (m *Manager) Shutdown() {
-	for _, p := range m.plugins {
+	m.logger.Debug("Shutting down plugins")
+	for n, p := range m.plugins {
+		m.logger.Debug("Plugin shutdown", "plugin", n)
 		p.Shutdown()
 	}
 }

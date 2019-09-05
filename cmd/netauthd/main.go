@@ -4,17 +4,19 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/NetAuth/NetAuth/internal/crypto"
 	_ "github.com/NetAuth/NetAuth/internal/crypto/all"
 	"github.com/NetAuth/NetAuth/internal/db"
 	_ "github.com/NetAuth/NetAuth/internal/db/all"
+	plugin "github.com/NetAuth/NetAuth/internal/plugin/tree/manager"
 	"github.com/NetAuth/NetAuth/internal/token"
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
-	plugin "github.com/NetAuth/NetAuth/internal/plugin/tree/manager"
 
 	"github.com/NetAuth/NetAuth/internal/rpc"
 	"github.com/NetAuth/NetAuth/internal/tree"
@@ -110,7 +112,7 @@ func newServer() *rpc.NetAuthServer {
 	return &rpc.NetAuthServer{
 		Tree:  tree,
 		Token: tokenService,
-		Log: appLogger.Named("rpc"),
+		Log:   appLogger.Named("rpc"),
 	}
 }
 
@@ -254,6 +256,25 @@ func main() {
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
 
+	// Register shutdown machinery
+	c := make(chan os.Signal, 1)
+	go func() {
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	}()
+
+	done := make(chan struct{}, 1)
+	go func() {
+		<-c
+		appLogger.Info("Shutting down...")
+		grpcServer.GracefulStop()
+		p.Shutdown()
+		close(done)
+	}()
+
 	// Commence serving
 	grpcServer.Serve(sock)
+
+	appLogger.Info("Waiting for shutdown to complete")
+	<-done
+	appLogger.Info("Goodbye!")
 }

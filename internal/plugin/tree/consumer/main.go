@@ -25,7 +25,7 @@ var (
 func New(path string) (Ref, error) {
 	return Ref{
 		path: path,
-		log:  hclog.L().Named(path),
+		log:  hclog.L().Named("plugin"),
 	}, nil
 }
 
