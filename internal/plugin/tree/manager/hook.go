@@ -7,7 +7,6 @@ import (
 	"github.com/golang/protobuf/proto"
 
 	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
-	"github.com/NetAuth/NetAuth/internal/tree/util"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -45,16 +44,11 @@ func (h EntityHook) Run(e, de *pb.Entity) error {
 		return err
 	}
 
+	// Danger will robinson!  This Reset makes this merge behave
+	// like a first time load event which is what is needed to
+	// allow the plugins to write to parts of the entities.
+	e.Reset()
 	proto.Merge(e, &res.Entity)
-
-	// This step is silly, but is needed to ensure that
-	// proto.Merge hasn't done something silly above.
-	if e.Meta != nil {
-		e.Meta.Groups = util.DedupStringSlice(e.Meta.Groups)
-		e.Meta.Keys = util.DedupStringSlice(e.Meta.Keys)
-		e.Meta.UntypedMeta = util.DedupStringSlice(e.Meta.UntypedMeta)
-		e.Meta.Capabilities = util.DedupCapabilitySlice(e.Meta.Capabilities)
-	}
 
 	return nil
 }
@@ -92,13 +86,8 @@ func (h GroupHook) Run(g, dg *pb.Group) error {
 		return err
 	}
 
+	g.Reset()
 	proto.Merge(g, &res.Group)
-
-	// This step is silly, but is needed to ensure that
-	// proto.Merge hasn't done something silly above.
-	g.Expansions = util.DedupStringSlice(g.Expansions)
-	g.UntypedMeta = util.DedupStringSlice(g.UntypedMeta)
-	g.Capabilities = util.DedupCapabilitySlice(g.Capabilities)
 
 	return nil
 }
