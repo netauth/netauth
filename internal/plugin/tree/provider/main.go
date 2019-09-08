@@ -43,7 +43,7 @@ func (m mux) HandleEntity(o common.PluginOpts) (common.PluginResult, error) {
 
 	switch o.Action {
 	case common.EntityCreate:
-		res.Entity, err = m.impl.EntityCreate(e)
+		res.Entity, err = m.impl.EntityCreate(e, de)
 	case common.EntityUpdate:
 		res.Entity, err = m.impl.EntityUpdate(e)
 	case common.EntityLock:

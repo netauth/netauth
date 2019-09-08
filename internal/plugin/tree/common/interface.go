@@ -12,7 +12,7 @@ import (
 // built in tree management system.  The most common type of plugin is
 // one that will propogate changes to a system external to NetAuth.
 type Plugin interface {
-	EntityCreate(pb.Entity) (pb.Entity, error)
+	EntityCreate(pb.Entity, pb.Entity) (pb.Entity, error)
 	EntityUpdate(pb.Entity) (pb.Entity, error)
 	EntityLock(pb.Entity) (pb.Entity, error)
 	EntityUnlock(pb.Entity) (pb.Entity, error)
