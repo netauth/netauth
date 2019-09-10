@@ -31,7 +31,7 @@ Fields are updated with the flags from this command, and are
 overwritten with anything specified.
 `
 
-	groupUpdateExample = `netuath group update example-group --display-name "Example Group"
+	groupUpdateExample = `netauth group update example-group --display-name "Example Group"
 Group modified successfully
 `
 )
