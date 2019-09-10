@@ -10,6 +10,7 @@ var (
 			"save-entity",
 		},
 		"DESTROY": []string{
+			"load-entity",
 			"destroy-entity",
 		},
 		"FETCH": []string{
@@ -118,6 +119,7 @@ var (
 			"save-group",
 		},
 		"DESTROY": []string{
+			"load-group",
 			"destroy-group",
 		},
 		"FETCH": []string{
