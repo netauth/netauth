@@ -18,7 +18,7 @@ var (
 
 	groupChainConfig = []string{
 		"CREATE:plugin-groupcreate",
-		"UPDATE:plugin-groupupdate",
+		"MERGE-METADATA:plugin-groupupdate",
 		"UGM-UPSERT:plugin-groupupdate",
 		"UGM-CLEARFUZZY:plugin-groupupdate",
 		"UGM-CLEAREXACT:plugin-groupupdate",
