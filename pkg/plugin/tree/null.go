@@ -43,8 +43,8 @@ func (NullPlugin) EntityUnlock(e pb.Entity) (pb.Entity, error) {
 // from the system.  At this point in the call chain the entity has
 // not been fully removed, but removal will continue if no errors are
 // encountered in the processing chain.
-func (NullPlugin) EntityDestroy(e pb.Entity) error {
-	return nil
+func (NullPlugin) EntityDestroy(e pb.Entity) (pb.Entity, error) {
+	return e, nil
 }
 
 // GroupCreate is called when a group has been created, but not yet
@@ -66,8 +66,8 @@ func (NullPlugin) GroupUpdate(g pb.Group) (pb.Group, error) {
 // the server.  Groups should never be fully removed, but if they are
 // to be destroyed then this function will allow you to propogate this
 // destruction to other systems.
-func (NullPlugin) GroupDestroy(g pb.Group) error {
-	return nil
+func (NullPlugin) GroupDestroy(g pb.Group) (pb.Group, error) {
+	return g, nil
 }
 
 // PreSecretChange change is called before an entity has completed a

@@ -51,7 +51,7 @@ func (m mux) HandleEntity(o common.PluginOpts) (common.PluginResult, error) {
 	case common.EntityUnlock:
 		res.Entity, err = m.impl.EntityUnlock(e)
 	case common.EntityDestroy:
-		err = m.impl.EntityDestroy(e)
+		res.Entity, err = m.impl.EntityDestroy(e)
 	case common.PreSecretChange:
 		res.Entity, err = m.impl.PreSecretChange(e, de)
 	case common.PostSecretChange:
@@ -82,7 +82,7 @@ func (m mux) HandleGroup(o common.PluginOpts) (common.PluginResult, error) {
 	case common.GroupUpdate:
 		res.Group, err = m.impl.GroupUpdate(g)
 	case common.GroupDestroy:
-		err = m.impl.GroupDestroy(g)
+		res.Group, err = m.impl.GroupDestroy(g)
 	default:
 		res.Group = g
 		err = nil

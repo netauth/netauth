@@ -16,11 +16,11 @@ type Plugin interface {
 	EntityUpdate(pb.Entity) (pb.Entity, error)
 	EntityLock(pb.Entity) (pb.Entity, error)
 	EntityUnlock(pb.Entity) (pb.Entity, error)
-	EntityDestroy(pb.Entity) error
+	EntityDestroy(pb.Entity) (pb.Entity, error)
 
 	GroupCreate(pb.Group) (pb.Group, error)
 	GroupUpdate(pb.Group) (pb.Group, error)
-	GroupDestroy(pb.Group) error
+	GroupDestroy(pb.Group) (pb.Group, error)
 
 	PreSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
 	PostSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
