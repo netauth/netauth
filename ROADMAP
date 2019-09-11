@@ -120,11 +120,8 @@ v0.1.0:
 
 v0.2.0:
   * Externally loadable plugins via go-plugin
-  * Plugin chain configuration with dynamic insertion
-  * Example Policy Hooks
-    * Secret complexity engine
-    * Secret dictionary check
-    * Secret character class check
+  * Example Policy Hook
+    * Secret check rate limiter
 
 v0.3.0:
   * BoltDB backend
