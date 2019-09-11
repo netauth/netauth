@@ -12,7 +12,7 @@ type NullPlugin struct {}
 // EntityCreate is called after an entity has been fully created, but
 // before the entity has been written to disk.  This hook is an
 // excellent time to create entities in other systems.
-func (NullPlugin) EntityCreate(e pb.Entity) (pb.Entity, error) {
+func (NullPlugin) EntityCreate(e, de pb.Entity) (pb.Entity, error) {
 	return e, nil
 }
 
