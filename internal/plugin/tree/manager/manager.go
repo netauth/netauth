@@ -1,8 +1,8 @@
 package manager
 
 import (
-	"strings"
 	"path/filepath"
+	"strings"
 
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
@@ -105,6 +105,9 @@ func (m *Manager) InvokeEntityProcessing(opts common.PluginOpts) (common.PluginR
 	var res = common.PluginResult{}
 	var err error
 
+	// For when there are no plugins loaded
+	res.Entity = *opts.Entity
+
 	for p, r := range m.plugins {
 		m.logger.Trace("Calling plugin", "plugin", p, "action", opts.Action)
 		res, err = r.ProcessEntity(opts)
@@ -145,6 +148,9 @@ func (m *Manager) ConfigureGroupChains(h hookInserter) {
 func (m *Manager) InvokeGroupProcessing(opts common.PluginOpts) (common.PluginResult, error) {
 	var res = common.PluginResult{}
 	var err error
+
+	// For when there are no plugins loaded.
+	res.Group = *opts.Group
 
 	for p, r := range m.plugins {
 		m.logger.Trace("Calling plugin", "plugin", p, "action", opts.Action)
