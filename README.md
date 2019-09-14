@@ -67,6 +67,10 @@ hosts you can use
 ssh keys, then you probably want
 [NetKeys](https://github.com/NetAuth/NetKeys).
 
+If you use Okta, you'll probably be interested in the
+[Okta Plugin](https://github.com/NetAuth/plugin-okta) which can
+automatically mirror your NetAuth entities and groups into Okta.
+
 Other modules are coming, if you want to help out, reach out in
 `#netauth-dev` on freenode.
 
