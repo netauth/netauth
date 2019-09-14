@@ -70,19 +70,6 @@ ssh keys, then you probably want
 Other modules are coming, if you want to help out, reach out in
 `#netauth-dev` on freenode.
 
-Do you recommend using NetAuth for super important things?
-----------------------------------------------------------
-
-Probably not.  I am a single engineer working with my own body of
-knowledge.  I do not have a background in crypto or auth systems, and
-so I am depending on authors of the libraries I have chosen to use.
-If you see a problem or have such a background, please reach out to
-me.  For security bugs please take care that you do not accidentally
-disclose security issues before they are made public.
-
-That being said, there are a few installations of NetAuth in the "real
-world" that have "real users".  These users seem reasonably satisfied.
-
 Why wouldn't you use LDAP and Kerberos?  Why did you build this?
 ----------------------------------------------------------------
 
