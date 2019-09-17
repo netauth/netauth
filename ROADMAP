@@ -122,7 +122,3 @@ v0.2.0:
   * Externally loadable plugins via go-plugin
   * Example Policy Hook
     * Secret check rate limiter
-
-v0.3.0:
-  * BoltDB backend
-  * DB Migrator
