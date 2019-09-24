@@ -19,6 +19,7 @@ import (
 	_ "github.com/NetAuth/NetAuth/internal/token/all"
 
 	"github.com/NetAuth/NetAuth/internal/rpc"
+	"github.com/NetAuth/NetAuth/internal/rpc2"
 	"github.com/NetAuth/NetAuth/internal/tree"
 	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
 
@@ -29,6 +30,7 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	pb "github.com/NetAuth/Protocol"
+	rpb "github.com/NetAuth/Protocol/v2"
 )
 
 var (
@@ -79,37 +81,7 @@ func init() {
 	viper.SetDefault("plugin.path", filepath.Join(viper.GetString("core.home"), "plugins"))
 }
 
-func newServer() *rpc.NetAuthServer {
-	// Need to setup the Database for use with the entity tree
-	db, err := db.New()
-	if err != nil {
-		appLogger.Error("Fatal database error", "error", err)
-		os.Exit(1)
-	}
-	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
-
-	crypto, err := crypto.New()
-	if err != nil {
-		appLogger.Error("Fatal crypto error", "error", err)
-		os.Exit(1)
-	}
-	appLogger.Info("Cryptography system initialized", "backend", viper.GetString("crypto.backend"))
-
-	// Initialize the entity tree
-	tree, err := tree.New(db, crypto)
-	if err != nil {
-		appLogger.Error("Fatal initialization error", "error", err)
-		os.Exit(1)
-	}
-
-	// Initialize the token service
-	tokenService, err := token.New()
-	if err != nil {
-		appLogger.Error("Fatal token error", "error", err)
-		os.Exit(1)
-	}
-	appLogger.Info("Token backend successfully initialized", "backend", viper.GetString("token.backend"))
-
+func newServer(tree *tree.Manager, tokenService token.Service) *rpc.NetAuthServer {
 	return &rpc.NetAuthServer{
 		Tree:  tree,
 		Token: tokenService,
@@ -228,12 +200,27 @@ func main() {
 		appLogger.Debug("Not running with plguins")
 	}
 
-	// Init the new server instance
-	srv := newServer()
+	// Need to setup the Database for use with the entity tree
+	dbImpl, err := db.New()
+	if err != nil {
+		appLogger.Error("Fatal database error", "error", err)
+		os.Exit(1)
+	}
+	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
 
-	if viper.GetBool("plugin.enabled") {
-		p.ConfigureEntityChains(srv.Tree.RegisterEntityHookToChain)
-		p.ConfigureGroupChains(srv.Tree.RegisterGroupHookToChain)
+	cryptoImpl, err := crypto.New()
+	if err != nil {
+		appLogger.Error("Fatal crypto error", "error", err)
+		os.Exit(1)
+	}
+	appLogger.Info("Cryptography system initialized", "backend", viper.GetString("crypto.backend"))
+
+
+	// Initialize the entity tree
+	tree, err := tree.New(dbImpl, cryptoImpl)
+	if err != nil {
+		appLogger.Error("Fatal initialization error", "error", err)
+		os.Exit(1)
 	}
 
 	// Attempt to bootstrap a superuser
@@ -244,19 +231,41 @@ func main() {
 		}
 		appLogger.Info("Beginning Bootstrap")
 		eParts := strings.Split(*bootstrap, ":")
-		srv.Tree.Bootstrap(eParts[0], eParts[1])
+		tree.Bootstrap(eParts[0], eParts[1])
 		appLogger.Info("Bootstrap complete")
 	}
 
 	// If it wasn't used make sure its disabled since it can
 	// create arbitrary root users.
-	srv.Tree.DisableBootstrap()
+	tree.DisableBootstrap()
+
+	// Initialize the token service
+	tokenService, err := token.New()
+	if err != nil {
+		appLogger.Error("Fatal token error", "error", err)
+		os.Exit(1)
+	}
+	appLogger.Info("Token backend successfully initialized", "backend", viper.GetString("token.backend"))
+
+	// Init the new server instance
+	srv := newServer(tree, tokenService)
+
+	if viper.GetBool("plugin.enabled") {
+		p.ConfigureEntityChains(srv.Tree.RegisterEntityHookToChain)
+		p.ConfigureGroupChains(srv.Tree.RegisterGroupHookToChain)
+	}
 
 	// Instantiate and launch.  This will block and the server
 	// will serve forever.
 	appLogger.Info("Ready to Serve...")
 	grpcServer := grpc.NewServer(opts...)
 	pb.RegisterNetAuthServer(grpcServer, srv)
+
+	srv2 := rpc2.New(rpc2.Refs{
+		TokenService: tokenService,
+		Tree: *tree,
+	})
+	rpb.RegisterNetAuth2Server(grpcServer, srv2)
 
 	// Register shutdown machinery
 	c := make(chan os.Signal, 1)
