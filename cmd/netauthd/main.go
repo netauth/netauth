@@ -81,7 +81,7 @@ func init() {
 	viper.SetDefault("plugin.path", filepath.Join(viper.GetString("core.home"), "plugins"))
 }
 
-func newServer(tree *tree.Manager, tokenService token.Service) *rpc.NetAuthServer {
+func newServer(tree rpc.EntityTree, tokenService token.Service) *rpc.NetAuthServer {
 	return &rpc.NetAuthServer{
 		Tree:  tree,
 		Token: tokenService,
@@ -263,7 +263,7 @@ func main() {
 
 	srv2 := rpc2.New(rpc2.Refs{
 		TokenService: tokenService,
-		Tree: *tree,
+		Tree: tree,
 	})
 	rpb.RegisterNetAuth2Server(grpcServer, srv2)
 
