@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/go-hclog"
+
+	pb "github.com/NetAuth/Protocol/v2"
 )
 
 var (
@@ -30,6 +32,16 @@ func (s SubsystemStatus) String() string {
 		statword,
 		s.Name,
 		s.Status)
+}
+
+// Proto returns the proto version of the subsystem status.
+func (s SubsystemStatus) Proto() *pb.SubSystemStatus {
+	sub := pb.SubSystemStatus{
+		Name:         &s.Name,
+		OK:           &s.OK,
+		FaultMessage: &s.Status,
+	}
+	return &sub
 }
 
 // A SubsystemCheck is a function that is supplied by a particular
@@ -69,6 +81,20 @@ func (s SystemStatus) String() string {
 	}
 
 	return out
+}
+
+// Proto returns the complete system status
+func (s SystemStatus) Proto() *pb.ServerStatus {
+	stat := pb.ServerStatus{}
+	stat.SystemOK = func(b bool) *bool { return &b }(true)
+	for i := range s.Subsystems {
+		if !s.Subsystems[i].OK && stat.FirstFailure == nil {
+			stat.FirstFailure = s.Subsystems[i].Proto()
+			stat.SystemOK = func(b bool) *bool { return &b }(false)
+		}
+		stat.SubSystems = append(stat.SubSystems, s.Subsystems[i].Proto())
+	}
+	return &stat
 }
 
 func init() {
