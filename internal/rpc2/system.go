@@ -3,6 +3,8 @@ package rpc2
 import (
 	"context"
 
+	"github.com/NetAuth/NetAuth/internal/health"
+
 	pb "github.com/NetAuth/Protocol/v2"
 )
 
@@ -22,5 +24,6 @@ func (s *Server) SystemPing(ctx context.Context, r *pb.Empty) (*pb.Empty, error)
 
 // SystemStatus returns detailed status information on the server.
 func (s *Server) SystemStatus(ctx context.Context, r *pb.Empty) (*pb.ServerStatus, error) {
-	return &pb.ServerStatus{}, nil
+	status := health.Check()
+	return status.Proto(), nil
 }
