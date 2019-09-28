@@ -6,6 +6,16 @@ import (
 	"github.com/NetAuth/NetAuth/internal/token"
 )
 
+var (
+	// ValidToken is a valid token for entity1 which has
+	// GLOBAL_ROOT capability.
+	ValidToken = "{\"EntityID\":\"valid\",\"Capabilities\":[\"GLOBAL_ROOT\"]}"
+
+	// InvalidToken is a token which will always return a in
+	// ErrTokenInvalid error.
+	InvalidToken = "invalid"
+)
+
 // Service binds the methods of the null token implementation.
 type Service struct{}
 

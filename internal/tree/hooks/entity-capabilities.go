@@ -19,6 +19,9 @@ type ManageEntityCapabilities struct {
 // capabilities stored in de will be copied to e if they are not
 // already present.  In false capabilities will be subtracted.
 func (mec *ManageEntityCapabilities) Run(e, de *pb.Entity) error {
+	if de.Meta == nil || len(de.Meta.Capabilities) == 0 {
+		return tree.ErrUnknownCapability
+	}
 	for _, cap := range de.Meta.Capabilities {
 		if mec.mode {
 			// Add mode

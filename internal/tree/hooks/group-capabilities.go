@@ -19,6 +19,9 @@ type ManageGroupCapabilities struct {
 // capabilities stored in de will be copied to e if they are not
 // already present.  In false capabilities will be subtracted.
 func (mec *ManageGroupCapabilities) Run(g, dg *pb.Group) error {
+	if len(dg.Capabilities) == 0 {
+		return tree.ErrUnknownCapability
+	}
 	for _, cap := range dg.Capabilities {
 		if mec.mode {
 			// Add mode

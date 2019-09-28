@@ -1,8 +1,10 @@
 package rpc2
 
 import (
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -12,6 +14,9 @@ import (
 type Server struct {
 	token.Service
 	Manager
+
+	readonly bool
+	log      hclog.Logger
 }
 
 // Refs is the container that is used to provide references to the RPC
@@ -54,8 +59,8 @@ type Manager interface {
 	GetMemberships(*pb.Entity, bool) []string
 	ModifyGroupExpansions(string, string, pb.ExpansionMode) error
 
-	SetEntityCapability(string, string) error
-	DropEntityCapability(string, string) error
-	SetGroupCapability(string, string) error
-	DropGroupCapability(string, string) error
+	SetEntityCapability2(string, *pb.Capability) error
+	DropEntityCapability2(string, *pb.Capability) error
+	SetGroupCapability2(string, *pb.Capability) error
+	DropGroupCapability2(string, *pb.Capability) error
 }

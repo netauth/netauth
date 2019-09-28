@@ -82,11 +82,21 @@ func (m *Manager) SetEntityCapability(ID string, c string) error {
 	if !ok {
 		return ErrUnknownCapability
 	}
+	cap := pb.Capability(capIndex)
+	return m.SetEntityCapability2(ID, &cap)
+}
+
+// SetEntityCapability2 adds a capability to an entity directly, and
+// does so with a strongly typed capability pointer.
+func (m *Manager) SetEntityCapability2(ID string, c *pb.Capability) error {
+	if c == nil {
+		return ErrUnknownCapability
+	}
 
 	de := &pb.Entity{
 		ID: &ID,
 		Meta: &pb.EntityMeta{
-			Capabilities: []pb.Capability{pb.Capability(capIndex)},
+			Capabilities: []pb.Capability{*c},
 		},
 	}
 
@@ -94,18 +104,27 @@ func (m *Manager) SetEntityCapability(ID string, c string) error {
 	return err
 }
 
-// DropEntityCapability is a convenience function to get the entity
-// and hand it off to the actual removeEntityCapability function
+// DropEntityCapability adds a capability to an entry directly.
 func (m *Manager) DropEntityCapability(ID string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
+		return ErrUnknownCapability
+	}
+	cap := pb.Capability(capIndex)
+	return m.DropEntityCapability2(ID, &cap)
+}
+
+// DropEntityCapability2 adds a capability to an entity directly, and
+// does so with a strongly typed capability pointer.
+func (m *Manager) DropEntityCapability2(ID string, c *pb.Capability) error {
+	if c == nil {
 		return ErrUnknownCapability
 	}
 
 	de := &pb.Entity{
 		ID: &ID,
 		Meta: &pb.EntityMeta{
-			Capabilities: []pb.Capability{pb.Capability(capIndex)},
+			Capabilities: []pb.Capability{*c},
 		},
 	}
 

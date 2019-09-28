@@ -8,6 +8,20 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+func TestEntityCapabilitiesEmptyList(t *testing.T) {
+	hook, err := NewSetEntityCapability(tree.RefContext{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	g := &pb.Entity{}
+	dg := &pb.Entity{}
+
+	if err := hook.Run(g, dg); err != tree.ErrUnknownCapability {
+		t.Fatal(err)
+	}
+}
+
 func TestAddEntityCapabilities(t *testing.T) {
 	hook, err := NewSetEntityCapability(tree.RefContext{})
 	if err != nil {

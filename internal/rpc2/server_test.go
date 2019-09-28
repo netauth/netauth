@@ -5,9 +5,11 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
 	"github.com/NetAuth/NetAuth/internal/db/memdb"
+	"github.com/NetAuth/NetAuth/internal/token/null"
 	"github.com/NetAuth/NetAuth/internal/tree"
 	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
-	"github.com/NetAuth/NetAuth/internal/token/null"
+
+	types "github.com/NetAuth/Protocol"
 )
 
 func newServer(t *testing.T) *Server {
@@ -29,6 +31,16 @@ func newServer(t *testing.T) *Server {
 	n := null.New()
 
 	return New(Refs{TokenService: n, Tree: m})
+}
+
+func initTree(t *testing.T, m Manager) {
+	m.CreateEntity("admin", -1, "secret")
+	m.CreateEntity("entity1", -1, "secret")
+	m.CreateEntity("unprivileged", -1, "secret")
+
+	m.CreateGroup("group1", "", "", -1)
+
+	m.SetEntityCapability2("admin", types.Capability_GLOBAL_ROOT.Enum())
 }
 
 func TestNew(t *testing.T) {

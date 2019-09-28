@@ -4,8 +4,158 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
+
+	"github.com/NetAuth/NetAuth/internal/token/null"
+
+	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
+
+func TestSystemCapabilitiesReadOnly(t *testing.T) {
+	s := newServer(t)
+	s.readonly = true
+
+	_, err := s.SystemCapabilities(context.Background(), &pb.CapabilityRequest{})
+	if err == nil {
+		t.Error("Server willing to perform in read-only mode")
+	}
+}
+
+func TestSsytemCapabilitiesNoAuthentication(t *testing.T) {
+	s := newServer(t)
+
+	req := pb.CapabilityRequest{
+		Auth: &pb.AuthData{
+			Token: &null.InvalidToken,
+		},
+		Target:     proto.String("group1"),
+		Action:     pb.Action_ADD.Enum(),
+		Capability: types.Capability_CREATE_ENTITY.Enum(),
+	}
+
+	_, err := s.SystemCapabilities(context.Background(), &req)
+	if err == nil {
+		t.Log(err)
+		t.Error("Request with invalidated token was accepted")
+	}
+}
+
+func TestSystemCapabilitiesEntity(t *testing.T) {
+	s := newServer(t)
+	initTree(t, s.Manager)
+
+	req := pb.CapabilityRequest{
+		Auth: &pb.AuthData{
+			Token: &null.ValidToken,
+		},
+		Target:     proto.String("entity1"),
+		Direct:     proto.Bool(true),
+		Action:     pb.Action_ADD.Enum(),
+		Capability: types.Capability_CREATE_ENTITY.Enum(),
+	}
+
+	_, err := s.SystemCapabilities(context.Background(), &req)
+	if err != nil {
+		t.Log(err)
+		t.Fatal("Request with validated token was rejected")
+	}
+
+	e, _ := s.FetchEntity("entity1")
+	if e.GetMeta() == nil {
+		t.Fatal("Failed to set capability on entity (no meta)")
+	}
+	if len(e.Meta.Capabilities) != 1 || e.Meta.Capabilities[0] != types.Capability_CREATE_ENTITY {
+		t.Error("Failed to set capability on entity")
+	}
+
+	req.Action = pb.Action_DROP.Enum()
+	_, err = s.SystemCapabilities(context.Background(), &req)
+	if err != nil {
+		t.Log(err)
+		t.Error("Request with validated token was rejected")
+	}
+
+	e, _ = s.FetchEntity("entity1")
+	if len(e.Meta.Capabilities) != 0 {
+		t.Error("Failed to remove capability from entity")
+	}
+
+}
+
+func TestSystemCapabilitiesGroup(t *testing.T) {
+	s := newServer(t)
+	initTree(t, s.Manager)
+
+	req := pb.CapabilityRequest{
+		Auth: &pb.AuthData{
+			Token: &null.ValidToken,
+		},
+		Target:     proto.String("group1"),
+		Action:     pb.Action_ADD.Enum(),
+		Capability: types.Capability_GLOBAL_ROOT.Enum(),
+	}
+
+	_, err := s.SystemCapabilities(context.Background(), &req)
+	if err != nil {
+		t.Log(err)
+		t.Error("Request with validated token was rejected")
+	}
+
+	g, _ := s.FetchGroup("group1")
+	if len(g.Capabilities) != 1 || g.Capabilities[0] != types.Capability_GLOBAL_ROOT {
+		t.Error("Failed to set capability on group")
+	}
+
+	req.Action = pb.Action_DROP.Enum()
+	_, err = s.SystemCapabilities(context.Background(), &req)
+	if err != nil {
+		t.Log(err)
+		t.Error("Request with validated token was rejected")
+	}
+
+	g, _ = s.FetchGroup("group1")
+	if len(g.Capabilities) != 0 {
+		t.Error("Failed to remove capability from group")
+	}
+
+}
+
+func TestSystemCapabilitiesMalformedRequest(t *testing.T) {
+	s := newServer(t)
+
+	req := pb.CapabilityRequest{
+		Auth: &pb.AuthData{
+			Token: &null.ValidToken,
+		},
+	}
+
+	_, err := s.SystemCapabilities(context.Background(), &req)
+	if err != ErrMalformedRequest {
+		t.Log(err)
+		t.Error("Request with invalidated token was accepted")
+	}
+}
+
+func TestSystemCapabilitiesManipulationError(t *testing.T) {
+	s := newServer(t)
+	initTree(t, s.Manager)
+
+	req := pb.CapabilityRequest{
+		Auth: &pb.AuthData{
+			Token: &null.ValidToken,
+		},
+		Direct: proto.Bool(true),
+		Target: proto.String("entity1"),
+	}
+
+	_, err := s.SystemCapabilities(context.Background(), &req)
+	if err != ErrInternal {
+		t.Log(req.Capability)
+		t.Log(err)
+		t.Error("Malformed request returned no error")
+	}
+}
 
 func TestSystemPing(t *testing.T) {
 	s := newServer(t)

@@ -99,27 +99,49 @@ func (m *Manager) SetGroupCapability(name string, c string) error {
 		return ErrUnknownCapability
 	}
 
+	cap := pb.Capability(capIndex)
+	return m.SetGroupCapability2(name, &cap)
+}
+
+// SetGroupCapability2 adds a capability to an existing group, and
+// does so with a strongly typed capability pointer.  It should be
+// preferred to add capabilities to groups rather than to entities
+// directly.
+func (m *Manager) SetGroupCapability2(name string, c *pb.Capability) error {
+	if c == nil {
+		return ErrUnknownCapability
+	}
+
 	rg := &pb.Group{
 		Name:         &name,
-		Capabilities: []pb.Capability{pb.Capability(capIndex)},
+		Capabilities: []pb.Capability{*c},
 	}
 
 	_, err := m.RunGroupChain("SET-CAPABILITY", rg)
 	return err
 }
 
-// DropGroupCapability removes capabilities from groups.  It should be
-// preferred  to add/remove  capabilities  to groups,  rather than  to
-// entities directly.
+// DropGroupCapability drops a capability from an existing group.
 func (m *Manager) DropGroupCapability(name string, c string) error {
 	capIndex, ok := pb.Capability_value[c]
 	if !ok {
 		return ErrUnknownCapability
 	}
 
+	cap := pb.Capability(capIndex)
+	return m.DropGroupCapability2(name, &cap)
+}
+
+// DropGroupCapability2 drops a capability from an existing group, and
+// does so with a strongly typed capability pointer.
+func (m *Manager) DropGroupCapability2(name string, c *pb.Capability) error {
+	if c == nil {
+		return ErrUnknownCapability
+	}
+
 	rg := &pb.Group{
 		Name:         &name,
-		Capabilities: []pb.Capability{pb.Capability(capIndex)},
+		Capabilities: []pb.Capability{*c},
 	}
 
 	_, err := m.RunGroupChain("DROP-CAPABILITY", rg)

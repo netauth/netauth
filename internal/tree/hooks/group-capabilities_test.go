@@ -8,6 +8,20 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+func TestGroupCapabilitiesEmptyList(t *testing.T) {
+	hook, err := NewSetGroupCapability(tree.RefContext{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	g := &pb.Group{}
+	dg := &pb.Group{}
+
+	if err := hook.Run(g, dg); err != tree.ErrUnknownCapability {
+		t.Fatal(err)
+	}
+}
+
 func TestAddGroupCapabilities(t *testing.T) {
 	hook, err := NewSetGroupCapability(tree.RefContext{})
 	if err != nil {
