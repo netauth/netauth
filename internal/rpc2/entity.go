@@ -3,6 +3,9 @@ package rpc2
 import (
 	"context"
 
+	"github.com/NetAuth/NetAuth/internal/tree"
+
+	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
 
@@ -10,7 +13,69 @@ import (
 // correct token is held, which must contain either CREATE_ENTITY or
 // GLOBAL_ROOT permissions.
 func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	e := r.GetEntity()
+	client := r.GetInfo()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "EntityCreate",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "EntityCreate",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_CREATE_ENTITY) {
+		s.log.Info("Permission Denied",
+			"method", "EntityCreate",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.CreateEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err {
+	case tree.ErrDuplicateEntityID, tree.ErrDuplicateNumber:
+		s.log.Warn("Attempt to create duplicate entity",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrExists
+	case nil:
+		s.log.Info("Entity Created",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Creating Entity",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // EntityUpdate provides a change to specific entity metadata that is

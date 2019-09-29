@@ -35,4 +35,11 @@ var (
 	// so we return that the feature is unimplemented as in this
 	// node it might as well be.
 	ErrReadOnly = status.Errorf(codes.Unimplemented, "Server is in read-only mode")
+
+	// ErrExists iis returned when creation would create a
+	// duplicate resource and this is not handled internally via
+	// automatic deduplication.  Examples include trying to create
+	// an entity with an existing ID, or a group with an already
+	// used number.
+	ErrExists = status.Errorf(codes.AlreadyExists, "One or more parameters collides with an existing item")
 )

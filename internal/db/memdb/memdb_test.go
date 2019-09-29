@@ -335,3 +335,31 @@ func TestHealthCheck(t *testing.T) {
 		t.Error("hard coded health check somehow changed")
 	}
 }
+
+func TestLoadSaveEntityErrors(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := x.LoadEntity("load-error"); err != db.ErrInternalError {
+		t.Error("Didn't return an error when should have")
+	}
+	if err := x.SaveEntity(&pb.Entity{ID: proto.String("save-error")}); err != db.ErrInternalError {
+		t.Error("Didn't return an error when should have")
+	}
+}
+
+func TestLoadSaveGroupErrors(t *testing.T) {
+	x, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := x.LoadGroup("load-error"); err != db.ErrInternalError {
+		t.Error("Didn't return an error when should have")
+	}
+	if err := x.SaveGroup(&pb.Group{Name: proto.String("save-error")}); err != db.ErrInternalError {
+		t.Error("Didn't return an error when should have")
+	}
+}

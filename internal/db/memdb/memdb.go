@@ -50,6 +50,9 @@ func (m *MemDB) DiscoverEntityIDs() ([]string, error) {
 
 // LoadEntity loads an entity from the "database".
 func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
+	if ID == "load-error" {
+		return nil, db.ErrInternalError
+	}
 	e, ok := m.eMap[ID]
 	if !ok {
 		return nil, db.ErrUnknownEntity
@@ -59,6 +62,9 @@ func (m *MemDB) LoadEntity(ID string) (*pb.Entity, error) {
 
 // SaveEntity saves an entity to the "database".
 func (m *MemDB) SaveEntity(e *pb.Entity) error {
+	if e.GetID() == "save-error" {
+		return db.ErrInternalError
+	}
 	m.eMap[e.GetID()] = e
 	return m.idx.IndexEntity(e)
 }
@@ -99,6 +105,9 @@ func (m *MemDB) DiscoverGroupNames() ([]string, error) {
 
 // LoadGroup loads a group from the "database".
 func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
+	if name == "load-error" {
+		return nil, db.ErrInternalError
+	}
 	g, ok := m.gMap[name]
 	if !ok {
 		return nil, db.ErrUnknownGroup
@@ -108,6 +117,9 @@ func (m *MemDB) LoadGroup(name string) (*pb.Group, error) {
 
 // SaveGroup saves a group to the "database".
 func (m *MemDB) SaveGroup(g *pb.Group) error {
+	if g.GetName() == "save-error" {
+		return db.ErrInternalError
+	}
 	m.gMap[g.GetName()] = g
 	return m.idx.IndexGroup(g)
 }
