@@ -103,7 +103,7 @@ func printEntity(entity *pb.Entity, fields string) {
 			if entity.Meta != nil && len(entity.GetMeta().GetCapabilities()) != 0 {
 				fmt.Printf("Capabilities (Direct):\n")
 				for i := range entity.GetMeta().GetCapabilities() {
-					fmt.Printf("  - %s\n", entity.GetMeta().GetCapabilities()[i])
+					fmt.Printf("  - %s\n", entity.GetMeta().GetCapabilities()[i].String())
 				}
 			}
 		}

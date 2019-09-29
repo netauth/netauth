@@ -9,6 +9,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/health"
 
 	pb "github.com/NetAuth/Protocol/v2"
+	types "github.com/NetAuth/Protocol"
 )
 
 // SystemCapabilities adjusts the capabilities that are on groups by
@@ -34,7 +35,7 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 	// say that you need to be a global superuser to be able to
 	// add more capabilities.
 	c, err := s.Validate(authdata.GetToken())
-	if err != nil || !c.HasCapability("GLOBAL_ROOT") {
+	if err != nil || !c.HasCapability(types.Capability_GLOBAL_ROOT) {
 		return nil, ErrRequestorUnqualified
 	}
 

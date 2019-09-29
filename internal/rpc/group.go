@@ -37,7 +37,7 @@ func (s *NetAuthServer) NewGroup(ctx context.Context, r *pb.ModGroupRequest) (*p
 	}
 
 	// Verify the correct capability is present in the token.
-	if !c.HasCapability("CREATE_GROUP") {
+	if !c.HasCapability(pb.Capability_CREATE_GROUP) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -85,7 +85,7 @@ func (s *NetAuthServer) DeleteGroup(ctx context.Context, r *pb.ModGroupRequest) 
 	}
 
 	// Verify the correct capability is present in the token.
-	if !c.HasCapability("DESTROY_GROUP") {
+	if !c.HasCapability(pb.Capability_DESTROY_GROUP) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -164,7 +164,7 @@ func (s *NetAuthServer) ModifyGroupMeta(ctx context.Context, r *pb.ModGroupReque
 	// Either the entity must posses the right capability, or they
 	// must be in the a group that is permitted to manage this one
 	// based on membership.  Either is sufficient.
-	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability("MODIFY_GROUP_META") {
+	if !s.manageByMembership(c.EntityID, g.GetName()) && !c.HasCapability(pb.Capability_MODIFY_GROUP_META) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -213,7 +213,7 @@ func (s *NetAuthServer) ModifyUntypedGroupMeta(ctx context.Context, r *pb.ModGro
 
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
-		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+		if !c.HasCapability(pb.Capability_MODIFY_GROUP_META) {
 			return nil, toWireError(ErrRequestorUnqualified)
 		}
 	}

@@ -1,16 +1,20 @@
 package token
 
-import "testing"
+import (
+	"testing"
+
+	pb "github.com/NetAuth/Protocol"
+)
 
 func TestHasCapability(t *testing.T) {
 	cases := []struct {
-		c     []string
-		check string
+		c     []pb.Capability
+		check pb.Capability
 		want  bool
 	}{
-		{[]string{"CREATE_ENTITY"}, "CREATE_ENTITY", true},
-		{[]string{"GLOBAL_ROOT"}, "CREATE_ENTITY", true},
-		{[]string{"DESTROY_ENTITY"}, "CREATE_ENTITY", false},
+		{[]pb.Capability{pb.Capability_CREATE_ENTITY}, pb.Capability_CREATE_ENTITY, true},
+		{[]pb.Capability{pb.Capability_GLOBAL_ROOT}, pb.Capability_CREATE_ENTITY, true},
+		{[]pb.Capability{pb.Capability_DESTROY_ENTITY}, pb.Capability_CREATE_ENTITY, false},
 	}
 
 	for i, c := range cases {

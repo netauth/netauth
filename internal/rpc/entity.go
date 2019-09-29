@@ -35,7 +35,7 @@ func (s *NetAuthServer) NewEntity(ctx context.Context, r *pb.ModEntityRequest) (
 	}
 
 	// Verify the correct capability is present in the token.
-	if !c.HasCapability("CREATE_ENTITY") {
+	if !c.HasCapability(pb.Capability_CREATE_ENTITY) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -79,7 +79,7 @@ func (s *NetAuthServer) RemoveEntity(ctx context.Context, r *pb.ModEntityRequest
 	}
 
 	// Verify the correct capability is present in the token.
-	if !c.HasCapability("DESTROY_ENTITY") {
+	if !c.HasCapability(pb.Capability_DESTROY_ENTITY) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -142,7 +142,7 @@ func (s *NetAuthServer) ModifyEntityMeta(ctx context.Context, r *pb.ModEntityReq
 	}
 
 	// Verify the correct capability is present in the token.
-	if !c.HasCapability("MODIFY_ENTITY_META") {
+	if !c.HasCapability(pb.Capability_MODIFY_ENTITY_META) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -191,7 +191,7 @@ func (s *NetAuthServer) ModifyEntityKeys(ctx context.Context, r *pb.ModEntityKey
 
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
-		if !c.HasCapability("MODIFY_ENTITY_KEYS") && c.EntityID != e.GetID() {
+		if !c.HasCapability(pb.Capability_MODIFY_ENTITY_KEYS) && c.EntityID != e.GetID() {
 			return nil, toWireError(ErrRequestorUnqualified)
 		}
 	}
@@ -246,7 +246,7 @@ func (s *NetAuthServer) ModifyUntypedEntityMeta(ctx context.Context, r *pb.ModEn
 
 		// Verify the correct capability is present in the token or
 		// that this is not a read only query.
-		if !c.HasCapability("MODIFY_ENTITY_KEYS") {
+		if !c.HasCapability(pb.Capability_MODIFY_ENTITY_META) {
 			return nil, toWireError(ErrRequestorUnqualified)
 		}
 	}

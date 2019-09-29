@@ -62,10 +62,10 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 
 	// First get the capabilities that are provided by the entity
 	// itself.
-	caps := make(map[string]int)
+	caps := make(map[pb.Capability]int)
 	if e.GetMeta() != nil {
 		for _, c := range e.GetMeta().GetCapabilities() {
-			caps[pb.Capability_name[int32(c)]]++
+			caps[c]++
 		}
 	}
 
@@ -80,12 +80,12 @@ func (s *NetAuthServer) GetToken(ctx context.Context, r *pb.NetAuthRequest) (*pb
 			continue
 		}
 		for _, c := range g.GetCapabilities() {
-			caps[pb.Capability_name[int32(c)]]++
+			caps[c]++
 		}
 	}
 
 	// Flatten the capabilities out into a list
-	var capabilities []string
+	var capabilities []pb.Capability
 	for c := range caps {
 		capabilities = append(capabilities, c)
 	}
@@ -192,7 +192,7 @@ func (s *NetAuthServer) ChangeSecret(ctx context.Context, r *pb.ModEntityRequest
 	// This change is being done administratively since modself
 	// was false, so this needs a valid token to proceed.
 	c, err := s.Token.Validate(t)
-	if err != nil || !c.HasCapability("CHANGE_ENTITY_SECRET") {
+	if err != nil || !c.HasCapability(pb.Capability_CHANGE_ENTITY_SECRET) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -242,7 +242,7 @@ func (s *NetAuthServer) ManageCapabilities(ctx context.Context, r *pb.ModCapabil
 	// say that you need to be a global superuser to be able to
 	// add more capabilities.
 	c, err := s.Token.Validate(t)
-	if err != nil || !c.HasCapability("GLOBAL_ROOT") {
+	if err != nil || !c.HasCapability(pb.Capability_GLOBAL_ROOT) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -326,7 +326,7 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	if err != nil {
 		return nil, toWireError(err)
 	}
-	if !c.HasCapability("LOCK_ENTITY") {
+	if !c.HasCapability(pb.Capability_LOCK_ENTITY) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
@@ -371,7 +371,7 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 	if err != nil {
 		return nil, toWireError(err)
 	}
-	if !c.HasCapability("LOCK_ENTITY") {
+	if !c.HasCapability(pb.Capability_UNLOCK_ENTITY) {
 		return nil, toWireError(ErrRequestorUnqualified)
 	}
 
