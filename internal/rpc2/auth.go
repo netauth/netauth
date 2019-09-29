@@ -3,6 +3,8 @@ package rpc2
 import (
 	"context"
 
+	"github.com/NetAuth/NetAuth/internal/token"
+
 	pb "github.com/NetAuth/Protocol/v2"
 )
 
@@ -29,7 +31,40 @@ func (s *Server) AuthEntity(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, 
 // AuthGetToken performs entity authentication and issues a token if
 // this authentication is successful.
 func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthResult, error) {
-	return &pb.AuthResult{}, nil
+	// Check Authentication using the same flow as above.
+	_, err := s.AuthEntity(ctx, r)
+	if err != nil {
+		return &pb.AuthResult{}, err
+	}
+
+	caps := s.getCapabilitiesForEntity(*r.Entity.ID)
+
+	// Generate Token
+	tkn, err := s.Generate(
+		token.Claims{
+			EntityID:     r.GetEntity().GetID(),
+			Capabilities: caps,
+		},
+		token.GetConfig(),
+	)
+	if err != nil {
+		s.log.Warn("Error Issuing Token",
+			"entity", r.Entity.ID,
+			"capabilities", caps,
+			"service", r.GetInfo().GetService(),
+			"client", r.GetInfo().GetID(),
+			"error", err,
+		)
+		return &pb.AuthResult{}, ErrInternal
+	}
+
+	s.log.Info("Token Issued",
+		"entity", r.Entity.ID,
+		"capabilities", caps,
+		"service", r.GetInfo().GetService(),
+		"client", r.GetInfo().GetID(),
+	)
+	return &pb.AuthResult{Token: &tkn}, nil
 }
 
 // AuthValidateToken performs server-side verification of a previously
