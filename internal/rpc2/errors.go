@@ -21,4 +21,11 @@ var (
 	// *should* succeed, but don't for some not automatically
 	// detectable error.
 	ErrInternal = status.Errorf(codes.Internal, "An internal error has occured and the request could not be processed")
+
+	// ErrUnauthenticated is returned if authentication
+	// information cannot be derived, loaded, or validated for a
+	// given request.  This is distinct from when authentication
+	// information can be derived, but it is insuffucient to
+	// perform the requested action.
+	ErrUnauthenticated = status.Errorf(codes.Unauthenticated, "Authentication failed")
 )

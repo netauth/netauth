@@ -9,6 +9,20 @@ import (
 // AuthEntity handles the process of actually authenticating an
 // entity, but does not issue a token.
 func (s *Server) AuthEntity(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {
+	e := r.GetEntity()
+	info := r.GetInfo()
+
+	if err := s.ValidateSecret(e.GetID(), r.GetSecret()); err != nil {
+		s.log.Info("Authentication Failed",
+			"entity", e.GetID(),
+			"service", info.GetService(),
+			"client", info.GetID())
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	s.log.Info("Authentication Succeeded",
+		"entity", e.GetID(),
+		"service", info.GetService(),
+		"client", info.GetID())
 	return &pb.Empty{}, nil
 }
 

@@ -3,7 +3,7 @@ module github.com/NetAuth/NetAuth
 go 1.11
 
 require (
-	github.com/NetAuth/Protocol v0.0.0-20190927052332-36bb4ef0bffe
+	github.com/NetAuth/Protocol v0.0.0-20190929030930-e95f33db62e8
 	github.com/RoaringBitmap/roaring v0.4.17 // indirect
 	github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 // indirect
 	github.com/bgentry/speakeasy v0.1.0
