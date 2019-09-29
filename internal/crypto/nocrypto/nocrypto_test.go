@@ -16,6 +16,11 @@ func TestSecureSecret(t *testing.T) {
 	if h != s && err != nil {
 		t.Errorf("NoCrypto wtf!? %s != %s | %s", h, s, err)
 	}
+
+	h, err = e.SecureSecret("return-error")
+	if h != "" || err != crypto.ErrInternalError {
+		t.Errorf("Trigger secret failed to trigger an error")
+	}
 }
 
 func TestSecureSecretBadAuth(t *testing.T) {

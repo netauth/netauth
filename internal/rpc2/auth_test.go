@@ -114,3 +114,122 @@ func TestAuthValidateToken(t *testing.T) {
 		}
 	}
 }
+
+func TestAuthChangeSecret(t *testing.T) {
+	cases := []struct {
+		req      pb.EntityRequest
+		readonly bool
+		wantErr  error
+	}{
+		{
+			// Works, and changes own secret
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret"),
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: false,
+			wantErr:  nil,
+		},
+		{
+			// Fails, original secret not available
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("incorrect-secret"),
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: false,
+			wantErr:  ErrUnauthenticated,
+		},
+		{
+			// Fails, read-only
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret"),
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: true,
+			wantErr:  ErrReadOnly,
+		},
+		{
+			// Works, auth'd via token
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: false,
+			wantErr:  nil,
+		},
+		{
+			// Fails: bad token
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: false,
+			wantErr:  ErrUnauthenticated,
+		},
+		{
+			// Fails: bad permissions
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("secret1"),
+				},
+			},
+			readonly: false,
+			wantErr:  ErrRequestorUnqualified,
+		},
+		{
+			// Fails: manipulation error
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID:     proto.String("entity1"),
+					Secret: proto.String("return-error"),
+				},
+			},
+			readonly: false,
+			wantErr:  ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.AuthChangeSecret(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}

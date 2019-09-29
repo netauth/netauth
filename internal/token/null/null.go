@@ -11,6 +11,10 @@ var (
 	// GLOBAL_ROOT capability.
 	ValidToken = "{\"EntityID\":\"valid\",\"Capabilities\":[\"GLOBAL_ROOT\"]}"
 
+	// ValidEmptyToken is a valid token, but contains no
+	// capabilities.
+	ValidEmptyToken = "{\"EntityID\":\"valid\",\"Capabilities\":[]}"
+
 	// InvalidToken is a token which will always return a in
 	// ErrTokenInvalid error.
 	InvalidToken = "invalid"

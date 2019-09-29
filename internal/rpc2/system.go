@@ -3,13 +3,10 @@ package rpc2
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"github.com/NetAuth/NetAuth/internal/health"
 
-	pb "github.com/NetAuth/Protocol/v2"
 	types "github.com/NetAuth/Protocol"
+	pb "github.com/NetAuth/Protocol/v2"
 )
 
 // SystemCapabilities adjusts the capabilities that are on groups by
@@ -25,7 +22,7 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 			"client", client.GetID(),
 			"service", client.GetService(),
 		)
-		return &pb.Empty{}, status.Errorf(codes.FailedPrecondition, "Server is in read-only mode")
+		return &pb.Empty{}, ErrReadOnly
 	}
 
 	// Validate the token and confirm the holder posses

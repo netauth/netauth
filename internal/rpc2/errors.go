@@ -28,4 +28,11 @@ var (
 	// information can be derived, but it is insuffucient to
 	// perform the requested action.
 	ErrUnauthenticated = status.Errorf(codes.Unauthenticated, "Authentication failed")
+
+	// ErrReadOnly is returned if the server is in read-only mode
+	// and a mutating request is recieved.  In this case the
+	// server cannot comply, and the behavior cannot be retried,
+	// so we return that the feature is unimplemented as in this
+	// node it might as well be.
+	ErrReadOnly = status.Errorf(codes.Unimplemented, "Server is in read-only mode")
 )
