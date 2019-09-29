@@ -6,6 +6,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/NetAuth/NetAuth/internal/token/null"
+
 	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
@@ -90,6 +92,25 @@ func TestAuthGetToken(t *testing.T) {
 		res, err := s.AuthGetToken(context.Background(), &c.req)
 		if res.GetToken() != c.wantToken || err != c.wantErr {
 			t.Errorf("%d: Want %s %v; Got %s %v", i, c.wantToken, c.wantErr, res.GetToken(), err)
+		}
+	}
+}
+
+func TestAuthValidateToken(t *testing.T) {
+	cases := []struct {
+		token   string
+		wantErr error
+	}{
+		{null.ValidToken, nil},
+		{null.InvalidToken, ErrUnauthenticated},
+	}
+
+	req := pb.AuthRequest{}
+	s := newServer(t)
+	for i, c := range cases {
+		req.Token = &c.token
+		if _, err := s.AuthValidateToken(context.Background(), &req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
 }

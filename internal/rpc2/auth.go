@@ -70,6 +70,9 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 // AuthValidateToken performs server-side verification of a previously
 // issued token.  This allows symmetric token algorithms to be used.
 func (s *Server) AuthValidateToken(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {
+	if _, err := s.Validate(r.GetToken()); err != nil {
+		return &pb.Empty{}, ErrUnauthenticated
+	}
 	return &pb.Empty{}, nil
 }
 
