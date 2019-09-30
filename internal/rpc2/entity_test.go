@@ -224,3 +224,50 @@ func TestEntityUpdate(t *testing.T) {
 		}
 	}
 }
+
+func TestEntityInfo(t *testing.T) {
+	cases := []struct {
+		req     pb.EntityRequest
+		wantErr error
+		wantLen int
+	}{
+		{
+			// Works
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr: nil,
+			wantLen: 1,
+		},
+		{
+			// Fails, does not exist
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("does-not-exist"),
+				},
+			},
+			wantErr: ErrDoesNotExist,
+			wantLen: 0,
+		},
+		{
+			// Fails, load-error
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("load-error"),
+				},
+			},
+			wantErr: ErrInternal,
+			wantLen: 0,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		if res, err := s.EntityInfo(context.Background(), &c.req); err != c.wantErr || len(res.Entities) != c.wantLen {
+			t.Errorf("%d: Got %d, %v; Want %d, %v", i, len(res.Entities), err, c.wantLen, c.wantErr)
+		}
+	}
+}

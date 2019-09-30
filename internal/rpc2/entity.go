@@ -153,7 +153,34 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // EntityInfo provides information on a single entity.  The list
 // returned is guaranteed to be of length 1.
 func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfEntities, error) {
-	return &pb.ListOfEntities{}, nil
+	e := r.GetEntity()
+	client := r.GetInfo()
+
+	switch ent, err := s.FetchEntity(e.GetID()); err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUpdate",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfEntities{}, ErrDoesNotExist
+	default:
+		s.log.Warn("Error fetching entity",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfEntities{}, ErrInternal
+	case nil:
+		s.log.Info("Dumped Entity Info",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfEntities{Entities: []*types.Entity{ent}}, nil
+	}
 }
 
 // EntitySearch searches all entities and returns the entities that
