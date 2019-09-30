@@ -110,3 +110,117 @@ func TestEntityCreate(t *testing.T) {
 		}
 	}
 }
+
+func TestEntityUpdate(t *testing.T) {
+	cases := []struct {
+		req      pb.EntityRequest
+		readonly bool
+		wantErr  error
+	}{
+		{
+			// Works, will change the metadata DisplayName
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: false,
+			wantErr:  nil,
+		},
+		{
+			// Fails, server is in read-only mode
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: true,
+			wantErr:  ErrReadOnly,
+		},
+		{
+			// Fails, token is invalid
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: false,
+			wantErr:  ErrUnauthenticated,
+		},
+		{
+			// Fails, token has no capabilities
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: false,
+			wantErr:  ErrRequestorUnqualified,
+		},
+		{
+			// Fails, entity does not exist
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("does-not-exist"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: false,
+			wantErr:  ErrDoesNotExist,
+		},
+		{
+			// Fails, db write failure
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Data: &types.Entity{
+					ID: proto.String("load-error"),
+					Meta: &types.EntityMeta{
+						DisplayName: proto.String("First Entity"),
+					},
+				},
+			},
+			readonly: false,
+			wantErr:  ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		s.readonly = c.readonly
+		initTree(t, s)
+		if _, err := s.EntityUpdate(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}

@@ -35,8 +35,8 @@ func newServer(t *testing.T) *Server {
 
 func initTree(t *testing.T, m Manager) {
 	m.CreateEntity("admin", -1, "secret")
-	m.CreateEntity("entity1", -1, "secret")
 	m.CreateEntity("unprivileged", -1, "secret")
+	m.CreateEntity("entity1", -1, "secret")
 
 	m.CreateGroup("group1", "", "", -1)
 

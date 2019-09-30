@@ -42,4 +42,11 @@ var (
 	// an entity with an existing ID, or a group with an already
 	// used number.
 	ErrExists = status.Errorf(codes.AlreadyExists, "One or more parameters collides with an existing item")
+
+	// ErrDoesNotExist is, as the name would imply, returned if an
+	// action calls for a resource that does not exist.  This can
+	// be the case when an update or change is requested on an
+	// entity or group that does not exist, or when an expansion
+	// that doesn't exist is modified.
+	ErrDoesNotExist = status.Errorf(codes.NotFound, "The requested resource does not exist")
 )

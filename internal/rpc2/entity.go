@@ -3,6 +3,7 @@ package rpc2
 import (
 	"context"
 
+	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/tree"
 
 	types "github.com/NetAuth/Protocol"
@@ -84,7 +85,69 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // must be in posession of a token with MODIFY_ENTITY_META
 // capabilities.
 func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	client := r.GetInfo()
+	de := r.GetData()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "EntityUpdate",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "EntityUpdate",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_MODIFY_ENTITY_META) {
+		s.log.Info("Permission Denied",
+			"method", "EntityUpdate",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.UpdateEntityMeta(de.GetID(), de.GetMeta()); err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUpdate",
+			"entity", de.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", de.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", de.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	}
 }
 
 // EntityInfo provides information on a single entity.  The list
