@@ -191,10 +191,16 @@ func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.Lis
 
 	res, err := s.SearchEntities(db.SearchRequest{Expression: expr})
 	if err != nil {
-		
+		s.log.Warn("Search Error",
+			"expr", expr,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfEntities{}, ErrInternal
 	}
 
-	return &pb.ListOfEntities{}, nil
+	return &pb.ListOfEntities{Entities: res}, nil
 }
 
 // EntityUM handles both updates, and reads to the untyped metadata

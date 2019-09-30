@@ -271,3 +271,34 @@ func TestEntityInfo(t *testing.T) {
 		}
 	}
 }
+
+func TestEntitySearch(t *testing.T) {
+	cases := []struct {
+		req     pb.SearchRequest
+		wantErr error
+	}{
+		{
+			// Works, entity1 can be loaded
+			req: pb.SearchRequest{
+				Expression: proto.String("ID:entity1"),
+			},
+			wantErr: nil,
+		},
+		{
+			// Fails, load-error is included in the set of all
+			req: pb.SearchRequest{
+				Expression: proto.String("*"),
+			},
+			wantErr: ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.CreateEntity("load-error", -1, "")
+		if _, err := s.EntitySearch(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}
