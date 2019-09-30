@@ -186,6 +186,14 @@ func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListO
 // EntitySearch searches all entities and returns the entities that
 // had been found.
 func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfEntities, error) {
+	expr := r.GetExpression()
+	client := r.GetInfo()
+
+	res, err := s.SearchEntities(db.SearchRequest{Expression: expr})
+	if err != nil {
+		
+	}
+
 	return &pb.ListOfEntities{}, nil
 }
 
