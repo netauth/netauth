@@ -302,3 +302,149 @@ func TestEntitySearch(t *testing.T) {
 		}
 	}
 }
+
+func TestEntityUM(t *testing.T) {
+	cases := []struct {
+		req      pb.KVRequest
+		wantErr  error
+		readonly bool
+		wantRes  string
+	}{
+		{
+			// Works, is an authorized write
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Target: proto.String("entity1"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  nil,
+			readonly: false,
+			wantRes:  "key1:value1",
+		},
+		{
+			// Works, is a read-only query
+			req: pb.KVRequest{
+				Target: proto.String("entity1"),
+				Action: pb.Action_READ.Enum(),
+				Key:    proto.String("key1"),
+			},
+			wantErr:  nil,
+			readonly: false,
+			wantRes:  "",
+		},
+		{
+			// Fails, Server is read-only
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Target: proto.String("entity1"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrReadOnly,
+			readonly: true,
+			wantRes:  "",
+		},
+		{
+			// Fails, Token is invalid
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Target: proto.String("entity1"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrUnauthenticated,
+			readonly: false,
+			wantRes:  "",
+		},
+		{
+			// Fails, Token has no capability
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Target: proto.String("entity1"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrRequestorUnqualified,
+			readonly: false,
+			wantRes:  "",
+		},
+		{
+			// Fails, entity doesn't exist
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Target: proto.String("does-not-exist"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrDoesNotExist,
+			readonly: false,
+			wantRes:  "",
+		},
+		{
+			// Fails, failure during load
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Target: proto.String("load-error"),
+				Action: pb.Action_UPSERT.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrInternal,
+			readonly: false,
+			wantRes:  "",
+		},
+		{
+			// Fails, bad request
+			req: pb.KVRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Target: proto.String("entity1"),
+				Action: pb.Action_ADD.Enum(),
+				Key:    proto.String("key1"),
+				Value:  proto.String("value1"),
+			},
+			wantErr:  ErrMalformedRequest,
+			readonly: false,
+			wantRes:  "",
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.CreateEntity("load-error", -1, "")
+		s.readonly = c.readonly
+		_, err := s.EntityUM(context.Background(), &c.req)
+		if err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+		c.req.Action = pb.Action_READ.Enum()
+		res, err := s.EntityUM(context.Background(), &c.req)
+		if err != nil && err != c.wantErr {
+			t.Fatalf("%d: Error on readback: %v", i, err)
+		}
+
+		if len(res.GetStrings()) != 0 && res.GetStrings()[0] != c.wantRes {
+			t.Errorf("%d: Got '%s'; Want '%s'", i, res, c.wantRes)
+		}
+	}
+}

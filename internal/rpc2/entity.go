@@ -206,7 +206,81 @@ func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.Lis
 // EntityUM handles both updates, and reads to the untyped metadata
 // that's stored on Entities.
 func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	return &pb.ListOfStrings{}, nil
+	client := r.GetInfo()
+
+	if r.GetAction() != pb.Action_READ &&
+		r.GetAction() != pb.Action_UPSERT &&
+		r.GetAction() != pb.Action_CLEAREXACT &&
+		r.GetAction() != pb.Action_CLEARFUZZY {
+		return &pb.ListOfStrings{}, ErrMalformedRequest
+	}
+
+	authority := ""
+	if r.GetAction() != pb.Action_READ {
+		if s.readonly {
+			s.log.Warn("Mutable request in read-only mode!",
+				"method", "EntityUM",
+				"client", client.GetID(),
+				"service", client.GetService(),
+			)
+			return &pb.ListOfStrings{}, ErrReadOnly
+		}
+
+		c, err := s.Validate(r.GetAuth().GetToken())
+		if err != nil {
+			s.log.Info("Permission Denied",
+				"method", "EntityUpdate",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", err,
+			)
+			return &pb.ListOfStrings{}, ErrUnauthenticated
+		}
+		if !c.HasCapability(types.Capability_MODIFY_ENTITY_META) {
+			s.log.Info("Permission Denied",
+				"method", "EntityUpdate",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", "missing-capability",
+			)
+			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		}
+		authority = c.EntityID
+	}
+
+	// At this point, we're either in a read-only query, or in a
+	// write one that has been authorized.
+	meta, err := s.ManageUntypedEntityMeta(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfStrings{}, ErrInternal
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{Strings: meta}, nil
+	}
 }
 
 // EntityKeys handles updates and reads to keys for entities.

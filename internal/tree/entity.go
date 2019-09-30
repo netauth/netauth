@@ -257,7 +257,7 @@ func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string
 
 	// If this was a read, bail out now with whatever was read
 	if strings.ToUpper(mode) == "READ" {
-		return util.PatchKeyValueSlice(e.GetMeta().UntypedMeta, "READ", key, ""), nil
+		return util.PatchKeyValueSlice(e.GetMeta().GetUntypedMeta(), "READ", key, ""), nil
 	}
 	return nil, nil
 }
