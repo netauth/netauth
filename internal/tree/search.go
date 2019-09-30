@@ -20,9 +20,9 @@ func (m *Manager) SearchEntities(r db.SearchRequest) ([]*pb.Entity, error) {
 		return nil, err
 	}
 
-	out := []*pb.Entity{}
+	out := make([]*pb.Entity, len(entities))
 	for i := range entities {
-		out = append(out, entities[i])
+		out[i] = safeCopyEntity(entities[i])
 	}
 	return out, nil
 }
