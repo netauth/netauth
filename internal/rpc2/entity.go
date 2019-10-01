@@ -285,7 +285,80 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 
 // EntityKeys handles updates and reads to keys for entities.
 func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	return &pb.ListOfStrings{}, nil
+	client := r.GetInfo()
+
+	if r.GetAction() != pb.Action_READ &&
+		r.GetAction() != pb.Action_ADD &&
+		r.GetAction() != pb.Action_DROP {
+		return &pb.ListOfStrings{}, ErrMalformedRequest
+	}
+
+	authority := ""
+	if r.GetAction() != pb.Action_READ {
+		if s.readonly {
+			s.log.Warn("Mutable request in read-only mode!",
+				"method", "EntityUM",
+				"client", client.GetID(),
+				"service", client.GetService(),
+			)
+			return &pb.ListOfStrings{}, ErrReadOnly
+		}
+
+		c, err := s.Validate(r.GetAuth().GetToken())
+		if err != nil {
+			s.log.Info("Permission Denied",
+				"method", "EntityKeys",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", err,
+			)
+			return &pb.ListOfStrings{}, ErrUnauthenticated
+		}
+		if !c.HasCapability(types.Capability_MODIFY_ENTITY_KEYS) && r.GetTarget() != c.EntityID {
+			s.log.Info("Permission Denied",
+				"method", "EntityKeys",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", "missing-capability",
+			)
+			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		}
+		authority = c.EntityID
+	}
+
+	// At this point, we're either in a read-only query, or in a
+	// write one that has been authorized.
+	keys, err := s.UpdateEntityKeys(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfStrings{}, ErrInternal
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{Strings: keys}, nil
+	}
 }
 
 // EntityDestroy will remove an entity from the system.  This is
