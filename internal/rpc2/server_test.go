@@ -40,6 +40,8 @@ func initTree(t *testing.T, m Manager) {
 
 	m.CreateGroup("group1", "", "", -1)
 
+	m.AddEntityToGroup("entity1", "group1")
+
 	m.SetEntityCapability2("admin", types.Capability_GLOBAL_ROOT.Enum())
 }
 

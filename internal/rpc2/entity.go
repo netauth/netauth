@@ -566,5 +566,47 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 
 // EntityGroups returns the full membership for a given entity.
 func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfGroups, error) {
-	return &pb.ListOfGroups{}, nil
+	e := r.GetEntity()
+	client := r.GetInfo()
+
+	ent, err := s.FetchEntity(e.GetID())
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityGroups",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfGroups{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error getting groups for entity",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfGroups{}, ErrInternal
+	case nil:
+		break
+	}
+
+	// Summoning memberhips without indirects is confusing, not
+	// fully understood by the general user, and of exceedingly
+	// limited utility.  As a result of this the feature is being
+	// removed.  Until that happens though, this interface still
+	// needs to be fed a "true" to maintain the feature.
+	groups := s.GetMemberships(ent, true)
+
+	out := make([]*types.Group, len(groups))
+	for i := range groups {
+		// We throw this error out here, as its logged at a
+		// lower level, and the side effect here is that only
+		// a partial result gets returned.
+		tmp, _ := s.FetchGroup(groups[i])
+		out[i] = tmp
+	}
+
+	return &pb.ListOfGroups{Groups: out}, nil
 }

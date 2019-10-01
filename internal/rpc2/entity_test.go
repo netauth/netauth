@@ -898,3 +898,48 @@ func TestEntityUnlock(t *testing.T) {
 		}
 	}
 }
+
+func TestEntityGroups(t *testing.T) {
+	cases := []struct {
+		req     pb.EntityRequest
+		wantErr error
+	}{
+		{
+			// Works
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			// Fails, entity does not exist
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("does-not-exist"),
+				},
+			},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			// Fails, entity can't be loaded
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("load-error"),
+				},
+			},
+			wantErr: ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		res, err := s.EntityGroups(context.Background(), &c.req)
+		if err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+		t.Log(res)
+	}
+}
