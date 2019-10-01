@@ -610,3 +610,99 @@ func TestEntityKeys(t *testing.T) {
 		}
 	}
 }
+
+func TestEntityDestroy(t *testing.T) {
+	cases := []struct {
+		req      pb.EntityRequest
+		wantErr  error
+		readonly bool
+	}{
+		{
+			// Works, entity is created.
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr:  nil,
+			readonly: false,
+		},
+		{
+			// Fails, server is in read-only mode
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr:  ErrReadOnly,
+			readonly: true,
+		},
+		{
+			// Fails, token is invalid
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr:  ErrUnauthenticated,
+			readonly: false,
+		},
+		{
+			// Fails, token lacks capabilities
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr:  ErrRequestorUnqualified,
+			readonly: false,
+		},
+		{
+			// Fails, internal write error
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("load-error"),
+				},
+			},
+			wantErr:  ErrInternal,
+			readonly: false,
+		},
+		{
+			// Fails, unknown user
+			req: pb.EntityRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Entity: &types.Entity{
+					ID: proto.String("does-not-exist"),
+				},
+			},
+			wantErr:  ErrDoesNotExist,
+			readonly: false,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.EntityDestroy(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}

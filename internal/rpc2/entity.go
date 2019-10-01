@@ -365,7 +365,69 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 // generally discouraged, but if you must then this function will do
 // it.
 func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	client := r.GetInfo()
+	e := r.GetEntity()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "EntityDestroy",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "EntityDestroy",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_DESTROY_ENTITY) {
+		s.log.Info("Permission Denied",
+			"method", "EntityDestroy",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.DestroyEntity(e.GetID()); err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityDestroy",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	}
 }
 
 // EntityLock sets the lock flag on an entity.
