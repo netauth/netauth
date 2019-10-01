@@ -499,7 +499,69 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 
 // EntityUnlock clears the lock flag on an entity.
 func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	client := r.GetInfo()
+	e := r.GetEntity()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "EntityUnlock",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "EntityUnlock",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_UNLOCK_ENTITY) {
+		s.log.Info("Permission Denied",
+			"method", "EntityUnlock",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.UnlockEntity(e.GetID()); err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUnlock",
+			"entity", e.GetID(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Unlocking Entity",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	case nil:
+		s.log.Info("Entity Unlocked",
+			"entity", e.GetID(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	}
 }
 
 // EntityGroups returns the full membership for a given entity.
