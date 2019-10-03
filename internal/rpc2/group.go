@@ -148,7 +148,35 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 // GroupInfo returns a group for inspection.  It does not return
 // key/value data.
 func (s *Server) GroupInfo(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfGroups, error) {
-	return &pb.ListOfGroups{}, nil
+	client := r.GetInfo()
+	g := r.GetGroup()
+
+	switch grp, err := s.FetchGroup(g.GetName()); err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Unknown Group",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfGroups{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group Info",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfGroups{Groups: []*types.Group{grp}}, nil
+	default:
+		s.log.Warn("Error Loading Group",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfGroups{}, ErrInternal
+	}
 }
 
 // GroupUM handles updates to untyped metadata for groups.

@@ -203,3 +203,51 @@ func TestGroupUpdate(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupInfo(t *testing.T) {
+	cases := []struct{
+		req pb.GroupRequest
+		wantErr error
+		wantLen int
+	}{
+		{
+			req: pb.GroupRequest{
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+			},
+			wantErr: nil,
+			wantLen: 1,
+		},
+		{
+			req: pb.GroupRequest{
+				Group: &types.Group{
+					Name: proto.String("does-not-exist"),
+				},
+			},
+			wantErr: ErrDoesNotExist,
+			wantLen: 0,
+		},
+		{
+			req: pb.GroupRequest{
+				Group: &types.Group{
+					Name: proto.String("load-error"),
+				},
+			},
+			wantErr: ErrInternal,
+			wantLen: 0,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		resp, err := s.GroupInfo(context.Background(), &c.req)
+		if err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+		if len(resp.GetGroups()) != c.wantLen {
+			t.Errorf("%d: Got %d; Want %d", i, len(resp.GetGroups()), c.wantLen)
+		}
+	}
+}
