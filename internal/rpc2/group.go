@@ -277,5 +277,19 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 // GroupSearch searches for groups and returns a list of all groups
 // matching the criteria specified.
 func (s *Server) GroupSearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfGroups, error) {
-	return &pb.ListOfGroups{}, nil
+	expr := r.GetExpression()
+	client := r.GetInfo()
+
+	res, err := s.SearchGroups(db.SearchRequest{Expression: expr})
+	if err != nil {
+		s.log.Warn("Search Error",
+			"expr", expr,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfGroups{}, ErrInternal
+
+	}
+	return &pb.ListOfGroups{Groups: res}, nil
 }

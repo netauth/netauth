@@ -347,3 +347,28 @@ func TestGroupDestroy(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupSearch(t *testing.T) {
+	cases := []struct {
+		expr    string
+		wantErr error
+	}{
+		{
+			expr:    "group1",
+			wantErr: nil,
+		},
+		{
+			expr:    "*",
+			wantErr: ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.CreateGroup("load-error", "", "", -1)
+		if _, err := s.GroupSearch(context.Background(), &pb.SearchRequest{Expression: &c.expr}); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}
