@@ -8,14 +8,14 @@ import (
 
 	"github.com/NetAuth/NetAuth/internal/token/null"
 
-	pb "github.com/NetAuth/Protocol/v2"
 	types "github.com/NetAuth/Protocol"
+	pb "github.com/NetAuth/Protocol/v2"
 )
 
 func TestGroupCreate(t *testing.T) {
-	cases := []struct{
-		req pb.GroupRequest
-		wantErr error
+	cases := []struct {
+		req      pb.GroupRequest
+		wantErr  error
 		readonly bool
 	}{
 		{
@@ -28,7 +28,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("test1"),
 				},
 			},
-			wantErr: nil,
+			wantErr:  nil,
 			readonly: false,
 		},
 		{
@@ -41,7 +41,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("test1"),
 				},
 			},
-			wantErr: ErrReadOnly,
+			wantErr:  ErrReadOnly,
 			readonly: true,
 		},
 		{
@@ -51,7 +51,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("test1"),
 				},
 			},
-			wantErr: ErrUnauthenticated,
+			wantErr:  ErrUnauthenticated,
 			readonly: false,
 		},
 		{
@@ -64,7 +64,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("test1"),
 				},
 			},
-			wantErr: ErrRequestorUnqualified,
+			wantErr:  ErrRequestorUnqualified,
 			readonly: false,
 		},
 		{
@@ -77,7 +77,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("group1"),
 				},
 			},
-			wantErr: ErrExists,
+			wantErr:  ErrExists,
 			readonly: false,
 		},
 		{
@@ -90,7 +90,7 @@ func TestGroupCreate(t *testing.T) {
 					Name: proto.String("save-error"),
 				},
 			},
-			wantErr: ErrInternal,
+			wantErr:  ErrInternal,
 			readonly: false,
 		},
 	}
@@ -106,9 +106,9 @@ func TestGroupCreate(t *testing.T) {
 }
 
 func TestGroupUpdate(t *testing.T) {
-	cases := []struct{
-		req pb.GroupRequest
-		wantErr error
+	cases := []struct {
+		req      pb.GroupRequest
+		wantErr  error
 		readonly bool
 	}{
 		{
@@ -118,11 +118,11 @@ func TestGroupUpdate(t *testing.T) {
 					Token: &null.ValidToken,
 				},
 				Group: &types.Group{
-					Name: proto.String("group1"),
+					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: nil,
+			wantErr:  nil,
 			readonly: false,
 		},
 		{
@@ -132,22 +132,22 @@ func TestGroupUpdate(t *testing.T) {
 					Token: &null.ValidToken,
 				},
 				Group: &types.Group{
-					Name: proto.String("group1"),
+					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: ErrReadOnly,
+			wantErr:  ErrReadOnly,
 			readonly: true,
 		},
 		{
 			// Fails, unauthorized
 			req: pb.GroupRequest{
 				Group: &types.Group{
-					Name: proto.String("group1"),
+					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: ErrUnauthenticated,
+			wantErr:  ErrUnauthenticated,
 			readonly: false,
 		},
 		{
@@ -157,11 +157,11 @@ func TestGroupUpdate(t *testing.T) {
 					Token: &null.ValidEmptyToken,
 				},
 				Group: &types.Group{
-					Name: proto.String("group1"),
+					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: ErrRequestorUnqualified,
+			wantErr:  ErrRequestorUnqualified,
 			readonly: false,
 		},
 		{
@@ -171,11 +171,11 @@ func TestGroupUpdate(t *testing.T) {
 					Token: &null.ValidToken,
 				},
 				Group: &types.Group{
-					Name: proto.String("does-not-exit"),
+					Name:        proto.String("does-not-exit"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: ErrDoesNotExist,
+			wantErr:  ErrDoesNotExist,
 			readonly: false,
 		},
 		{
@@ -185,11 +185,11 @@ func TestGroupUpdate(t *testing.T) {
 					Token: &null.ValidToken,
 				},
 				Group: &types.Group{
-					Name: proto.String("load-error"),
+					Name:        proto.String("load-error"),
 					DisplayName: proto.String("First Group"),
 				},
 			},
-			wantErr: ErrInternal,
+			wantErr:  ErrInternal,
 			readonly: false,
 		},
 	}
@@ -205,8 +205,8 @@ func TestGroupUpdate(t *testing.T) {
 }
 
 func TestGroupInfo(t *testing.T) {
-	cases := []struct{
-		req pb.GroupRequest
+	cases := []struct {
+		req     pb.GroupRequest
 		wantErr error
 		wantLen int
 	}{
@@ -248,6 +248,102 @@ func TestGroupInfo(t *testing.T) {
 		}
 		if len(resp.GetGroups()) != c.wantLen {
 			t.Errorf("%d: Got %d; Want %d", i, len(resp.GetGroups()), c.wantLen)
+		}
+	}
+}
+
+func TestGroupDestroy(t *testing.T) {
+	cases := []struct {
+		req      pb.GroupRequest
+		wantErr  error
+		readonly bool
+	}{
+		{
+			// Works, is authorized
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+			},
+			wantErr:  nil,
+			readonly: false,
+		},
+		{
+			// Fails, read only
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+			},
+			wantErr:  ErrReadOnly,
+			readonly: true,
+		},
+		{
+			// Fails, bad token
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+			},
+			wantErr:  ErrUnauthenticated,
+			readonly: false,
+		},
+		{
+			// Fails, empty token
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+			},
+			wantErr:  ErrRequestorUnqualified,
+			readonly: false,
+		},
+		{
+			// Fails, unknown group
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("does-not-exist"),
+				},
+			},
+			wantErr:  ErrDoesNotExist,
+			readonly: false,
+		},
+		{
+			// Fails, load-error
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("load-error"),
+				},
+			},
+			wantErr:  ErrInternal,
+			readonly: false,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.GroupDestroy(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
 }

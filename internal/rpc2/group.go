@@ -3,11 +3,11 @@ package rpc2
 import (
 	"context"
 
-	"github.com/NetAuth/NetAuth/internal/tree"
 	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/NetAuth/NetAuth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol/v2"
 	types "github.com/NetAuth/Protocol"
+	pb "github.com/NetAuth/Protocol/v2"
 )
 
 // GroupCreate provisions a new group on the system.
@@ -203,7 +203,69 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 // is not recommended and should not be done, but if you must here it
 // is.
 func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	client := r.GetInfo()
+	g := r.GetGroup()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "GroupDestroy",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "GroupDestroy",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_DESTROY_GROUP) {
+		s.log.Info("Permission Denied",
+			"method", "GroupDestroy",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.DestroyGroup(g.GetName()); err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupDestroy",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	case nil:
+		s.log.Info("Group Updated",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	}
 }
 
 // GroupMembers returns the list of all entities that are members of
