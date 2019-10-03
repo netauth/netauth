@@ -80,7 +80,69 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 // GroupUpdate adjusts the metadata on a group with the exception of
 // untyped metadata.
 func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	g := r.GetGroup()
+	client := r.GetInfo()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "GroupUpdate",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "GroupCreate",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
+		s.log.Info("Permission Denied",
+			"method", "GroupCreate",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.UpdateGroupMeta(g.GetName(), g); err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Unable to load group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group Updated",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // GroupInfo returns a group for inspection.  It does not return

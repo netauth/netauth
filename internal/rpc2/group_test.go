@@ -104,3 +104,102 @@ func TestGroupCreate(t *testing.T) {
 		}
 	}
 }
+
+func TestGroupUpdate(t *testing.T) {
+	cases := []struct{
+		req pb.GroupRequest
+		wantErr error
+		readonly bool
+	}{
+		{
+			// Works, valid and authorized request
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: nil,
+			readonly: false,
+		},
+		{
+			// Fails, server is read-only
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: ErrReadOnly,
+			readonly: true,
+		},
+		{
+			// Fails, unauthorized
+			req: pb.GroupRequest{
+				Group: &types.Group{
+					Name: proto.String("group1"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: ErrUnauthenticated,
+			readonly: false,
+		},
+		{
+			// Fails, empty token
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: ErrRequestorUnqualified,
+			readonly: false,
+		},
+		{
+			// Fails, unknown group
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("does-not-exit"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: ErrDoesNotExist,
+			readonly: false,
+		},
+		{
+			// Fails, can't be loaded
+			req: pb.GroupRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("load-error"),
+					DisplayName: proto.String("First Group"),
+				},
+			},
+			wantErr: ErrInternal,
+			readonly: false,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.GroupUpdate(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}
