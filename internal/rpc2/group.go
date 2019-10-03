@@ -3,12 +3,78 @@ package rpc2
 import (
 	"context"
 
+	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/NetAuth/NetAuth/internal/db"
+
 	pb "github.com/NetAuth/Protocol/v2"
+	types "github.com/NetAuth/Protocol"
 )
 
 // GroupCreate provisions a new group on the system.
 func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	g := r.GetGroup()
+	client := r.GetInfo()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "GroupCreate",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "GroupCreate",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_CREATE_GROUP) {
+		s.log.Info("Permission Denied",
+			"method", "GroupCreate",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.CreateGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err {
+	case tree.ErrDuplicateGroupName, tree.ErrDuplicateNumber:
+		s.log.Warn("Attempt to create duplicate group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrExists
+	case nil:
+		s.log.Info("Group Created",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Creating Group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // GroupUpdate adjusts the metadata on a group with the exception of
