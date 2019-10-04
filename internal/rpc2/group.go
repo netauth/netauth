@@ -181,7 +181,81 @@ func (s *Server) GroupInfo(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfG
 
 // GroupUM handles updates to untyped metadata for groups.
 func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	return &pb.ListOfStrings{}, nil
+	client := r.GetInfo()
+
+	if r.GetAction() != pb.Action_READ &&
+		r.GetAction() != pb.Action_UPSERT &&
+		r.GetAction() != pb.Action_CLEAREXACT &&
+		r.GetAction() != pb.Action_CLEARFUZZY {
+		return &pb.ListOfStrings{}, ErrMalformedRequest
+	}
+
+	authority := ""
+	if r.GetAction() != pb.Action_READ {
+		if s.readonly {
+			s.log.Warn("Mutable request in read-only mode!",
+				"method", "GroupUM",
+				"client", client.GetID(),
+				"service", client.GetService(),
+			)
+			return &pb.ListOfStrings{}, ErrReadOnly
+		}
+
+		c, err := s.Validate(r.GetAuth().GetToken())
+		if err != nil {
+			s.log.Info("Permission Denied",
+				"method", "GroupUpdate",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", err,
+			)
+			return &pb.ListOfStrings{}, ErrUnauthenticated
+		}
+		if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
+			s.log.Info("Permission Denied",
+				"method", "GroupUpdate",
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", "missing-capability",
+			)
+			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		}
+		authority = c.EntityID
+	}
+
+	// At this point, we're either in a read-only query, or in a
+	// write one that has been authorized.
+	meta, err := s.ManageUntypedGroupMeta(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUM",
+			"group", r.GetTarget(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfStrings{}, ErrInternal
+	case nil:
+		s.log.Info("Group Updated",
+			"group", r.GetTarget(),
+			"authority", authority,
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfStrings{Strings: meta}, nil
+	}
 }
 
 // GroupUpdateRules updates the expansion rules on a particular group.
