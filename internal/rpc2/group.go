@@ -265,6 +265,53 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 
 // GroupAddMember adds an entity directly to a group.
 func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	client := r.GetInfo()
+	e := r.GetEntity()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "GroupAddMember",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "GroupAddMember",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_MODIFY_GROUP_MEMBERS) {
+		s.log.Info("Permission Denied",
+			"method", "GroupAddMember",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	for _, g := range e.GetMeta().GetGroups() {
+		if err := s.AddEntityToGroup(e.GetID(), g); err != nil {
+			s.log.Warn("Error adding entity to group",
+				"entity", e.GetID(),
+				"group", g,
+				"authority", c.EntityID,
+				"service", client.GetService(),
+				"client", client.GetID(),
+				"error", err,
+			)
+			return &pb.Empty{}, ErrInternal
+		}
+	}
 	return &pb.Empty{}, nil
 }
 
