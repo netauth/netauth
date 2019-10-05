@@ -260,7 +260,69 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 
 // GroupUpdateRules updates the expansion rules on a particular group.
 func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) (*pb.Empty, error) {
-	return &pb.Empty{}, nil
+	client := r.GetInfo()
+	g := r.GetGroup()
+
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "GroupUM",
+			"client", client.GetID(),
+			"service", client.GetService(),
+		)
+		return &pb.Empty{}, ErrReadOnly
+	}
+
+	c, err := s.Validate(r.GetAuth().GetToken())
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", "GroupUpdate",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrUnauthenticated
+	}
+	if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
+		s.log.Info("Permission Denied",
+			"method", "GroupUpdate",
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", "missing-capability",
+		)
+		return &pb.Empty{}, ErrRequestorUnqualified
+	}
+
+	switch err := s.ModifyGroupRule(r.GetGroup().GetName(), r.GetTarget().GetName(), r.GetRuleAction()); err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUpdateRules",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	case nil:
+		s.log.Info("Group Updated",
+			"group", g.GetName(),
+			"authority", c.EntityID,
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.Empty{}, nil
+	}
 }
 
 // GroupAddMember adds an entity directly to a group.

@@ -398,6 +398,126 @@ func TestGroupUM(t *testing.T) {
 	}
 }
 
+func TestGroupUpdateRules(t *testing.T) {
+	cases := []struct {
+		req      pb.GroupRulesRequest
+		readonly bool
+		wantErr  error
+	}{
+		{
+			// Works
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("group2"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: false,
+			wantErr:  nil,
+		},
+		{
+			// Fails, bad token
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.InvalidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("group2"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: false,
+			wantErr:  ErrUnauthenticated,
+		},
+		{
+			// Fails, empty
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidEmptyToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("group2"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: false,
+			wantErr:  ErrRequestorUnqualified,
+		},
+		{
+			// Fails, read-only
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("group2"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: true,
+			wantErr:  ErrReadOnly,
+		},
+		{
+			// Fails, does not exist
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("does-not-exist"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: false,
+			wantErr:  ErrDoesNotExist,
+		},
+		{
+			// Fails, load-error
+			req: pb.GroupRulesRequest{
+				Auth: &pb.AuthData{
+					Token: &null.ValidToken,
+				},
+				Group: &types.Group{
+					Name: proto.String("group1"),
+				},
+				Target: &types.Group{
+					Name: proto.String("load-error"),
+				},
+				RuleAction: pb.RuleAction_INCLUDE.Enum(),
+			},
+			readonly: false,
+			wantErr:  ErrInternal,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.GroupUpdateRules(context.Background(), &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}
+
 func TestGroupDelMember(t *testing.T) {
 	cases := []struct {
 		req      pb.EntityRequest
@@ -517,6 +637,7 @@ func TestGroupDelMember(t *testing.T) {
 		}
 	}
 }
+
 func TestGroupAddMember(t *testing.T) {
 	cases := []struct {
 		req      pb.EntityRequest

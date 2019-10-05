@@ -7,6 +7,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/token"
 
 	pb "github.com/NetAuth/Protocol"
+	rpc "github.com/NetAuth/Protocol/v2"
 )
 
 // Server returns the interface which satisfies the gRPC type for the
@@ -57,7 +58,7 @@ type Manager interface {
 	RemoveEntityFromGroup(string, string) error
 	ListMembers(string) ([]*pb.Entity, error)
 	GetMemberships(*pb.Entity, bool) []string
-	ModifyGroupExpansions(string, string, pb.ExpansionMode) error
+	ModifyGroupRule(string, string, rpc.RuleAction) error
 
 	SetEntityCapability2(string, *pb.Capability) error
 	DropEntityCapability2(string, *pb.Capability) error

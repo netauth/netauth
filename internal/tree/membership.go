@@ -7,6 +7,7 @@ import (
 	"github.com/NetAuth/NetAuth/internal/db"
 
 	pb "github.com/NetAuth/Protocol"
+	rpc "github.com/NetAuth/Protocol/v2"
 )
 
 // AddEntityToGroup is the same as the internal function, but takes an
@@ -200,6 +201,29 @@ func (m *Manager) ModifyGroupExpansions(parent, child string, mode pb.ExpansionM
 	}
 	_, err := m.RunGroupChain("MODIFY-EXPANSIONS", rg)
 	return err
+}
+
+// ModifyGroupRule adjusts the rules on a group, which is the second
+// iteration of the expansion system.  Right now this function is a
+// shim over the legacy ModifyGroupExpansions interface, but it will
+// be modified to support the strongly typed group interface at a
+// later date.
+func (m *Manager) ModifyGroupRule(group, target string, ruleaction rpc.RuleAction) error {
+	mode := "DROP"
+	switch ruleaction {
+	case rpc.RuleAction_INCLUDE:
+		mode = "INCLUDE"
+	case rpc.RuleAction_EXCLUDE:
+		mode = "EXCLUDE"
+	case rpc.RuleAction_REMOVE_RULE:
+		mode = "DROP"
+	}
+
+	// We can do this un-checked since there's a hard coded list
+	// of strings above that are used to select this value.
+	md := pb.ExpansionMode(pb.ExpansionMode_value[mode])
+
+	return m.ModifyGroupExpansions(group, target, md)
 }
 
 // dedupEntityList takes in a list of entities and deduplicates them
