@@ -501,7 +501,30 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 // GroupMembers returns the list of all entities that are members of
 // the group.
 func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfEntities, error) {
-	return &pb.ListOfEntities{}, nil
+	client := r.GetInfo()
+	g := r.GetGroup()
+
+	members, err := s.ListMembers(g.GetName())
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupDestroy",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+		)
+		return &pb.ListOfEntities{}, ErrDoesNotExist
+	default:
+		s.log.Warn("Error Fetching Membership Group",
+			"group", g.GetName(),
+			"service", client.GetService(),
+			"client", client.GetID(),
+			"error", err,
+		)
+		return &pb.ListOfEntities{}, ErrInternal
+	case nil:
+		return &pb.ListOfEntities{Entities: members}, nil
+	}
 }
 
 // GroupSearch searches for groups and returns a list of all groups

@@ -854,6 +854,52 @@ func TestGroupDestroy(t *testing.T) {
 	}
 }
 
+func TestGroupMembers(t *testing.T) {
+	cases := []struct {
+		group      string
+		wantErr    error
+		wantMember string
+	}{
+		{
+			group:      "group1",
+			wantErr:    nil,
+			wantMember: "entity1",
+		},
+		{
+			group:      "does-not-exist",
+			wantErr:    ErrDoesNotExist,
+			wantMember: "entity1",
+		},
+		{
+			group:      "load-error",
+			wantErr:    ErrInternal,
+			wantMember: "entity1",
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+
+		req := pb.GroupRequest{
+			Group: &types.Group{
+				Name: &c.group,
+			},
+		}
+
+		res, err := s.GroupMembers(context.Background(), &req)
+		if err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+		if err != nil {
+			continue
+		}
+		if res.GetEntities()[0].GetID() != c.wantMember {
+			t.Errorf("%d: Got %v; Wanted %v as member", i, res.GetEntities(), c.wantMember)
+		}
+	}
+}
+
 func TestGroupSearch(t *testing.T) {
 	cases := []struct {
 		expr    string
