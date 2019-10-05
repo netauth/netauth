@@ -6,8 +6,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/token/null"
-
 	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
@@ -26,9 +24,7 @@ func TestSsytemCapabilitiesNoAuthentication(t *testing.T) {
 	s := newServer(t)
 
 	req := pb.CapabilityRequest{
-		Auth: &pb.AuthData{
-			Token: &null.InvalidToken,
-		},
+		Auth:       InvalidAuthData,
 		Target:     proto.String("group1"),
 		Action:     pb.Action_ADD.Enum(),
 		Capability: types.Capability_CREATE_ENTITY.Enum(),
@@ -46,9 +42,7 @@ func TestSystemCapabilitiesEntity(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth: &pb.AuthData{
-			Token: &null.ValidToken,
-		},
+		Auth:       ValidAuthData,
 		Target:     proto.String("entity1"),
 		Direct:     proto.Bool(true),
 		Action:     pb.Action_ADD.Enum(),
@@ -88,9 +82,7 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth: &pb.AuthData{
-			Token: &null.ValidToken,
-		},
+		Auth:       ValidAuthData,
 		Target:     proto.String("group1"),
 		Action:     pb.Action_ADD.Enum(),
 		Capability: types.Capability_GLOBAL_ROOT.Enum(),
@@ -125,9 +117,7 @@ func TestSystemCapabilitiesMalformedRequest(t *testing.T) {
 	s := newServer(t)
 
 	req := pb.CapabilityRequest{
-		Auth: &pb.AuthData{
-			Token: &null.ValidToken,
-		},
+		Auth: ValidAuthData,
 	}
 
 	_, err := s.SystemCapabilities(context.Background(), &req)
@@ -142,9 +132,7 @@ func TestSystemCapabilitiesManipulationError(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth: &pb.AuthData{
-			Token: &null.ValidToken,
-		},
+		Auth:   ValidAuthData,
 		Direct: proto.Bool(true),
 		Target: proto.String("entity1"),
 	}

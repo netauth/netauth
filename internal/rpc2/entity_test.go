@@ -6,8 +6,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/token/null"
-
 	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
@@ -21,9 +19,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Works, entity is created.
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -34,9 +30,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Fails, server is in read-only mode
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -47,9 +41,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Fails, token is invalid
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -60,9 +52,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Fails, token lacks capabilities
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -73,9 +63,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Fails, duplicate resource
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					// This gets created by
 					// initTree which fills in the
@@ -89,9 +77,7 @@ func TestEntityCreate(t *testing.T) {
 		{
 			// Fails, internal write error
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("save-error"),
 				},
@@ -120,9 +106,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Works, will change the metadata DisplayName
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -136,9 +120,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Fails, server is in read-only mode
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -152,9 +134,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Fails, token is invalid
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -168,9 +148,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Fails, token has no capabilities
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -184,9 +162,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Fails, entity does not exist
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("does-not-exist"),
 					Meta: &types.EntityMeta{
@@ -200,9 +176,7 @@ func TestEntityUpdate(t *testing.T) {
 		{
 			// Fails, db write failure
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("load-error"),
 					Meta: &types.EntityMeta{
@@ -313,9 +287,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Works, is an authorized write
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -339,9 +311,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, Server is read-only
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -354,9 +324,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, Token is invalid
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth:   InvalidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -369,9 +337,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, Token has no capability
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth:   EmptyAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -384,9 +350,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, entity doesn't exist
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -399,9 +363,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, failure during load
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -414,9 +376,7 @@ func TestEntityUM(t *testing.T) {
 		{
 			// Fails, bad request
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("key1"),
@@ -459,9 +419,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Works, is an authorized write
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -474,9 +432,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Works, self-change is allowed
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth:   EmptyAuthData,
 				Target: proto.String("valid"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -500,9 +456,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, Server is read-only
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -515,9 +469,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, Token is invalid
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth:   InvalidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -530,9 +482,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, Token has no capability
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth:   EmptyAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -545,9 +495,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, entity doesn't exist
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -560,9 +508,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, failure during load
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -575,9 +521,7 @@ func TestEntityKeys(t *testing.T) {
 		{
 			// Fails, bad request
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("ssh"),
@@ -620,9 +564,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Works, entity is created.
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -633,9 +575,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Fails, server is in read-only mode
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -646,9 +586,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Fails, token is invalid
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -659,9 +597,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Fails, token lacks capabilities
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -672,9 +608,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Fails, internal write error
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -685,9 +619,7 @@ func TestEntityDestroy(t *testing.T) {
 		{
 			// Fails, unknown user
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},
@@ -716,9 +648,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Works, entity is created.
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -729,9 +659,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Fails, server is in read-only mode
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -742,9 +670,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Fails, token is invalid
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -755,9 +681,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Fails, token lacks capabilities
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -768,9 +692,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Fails, internal write error
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -781,9 +703,7 @@ func TestEntityLock(t *testing.T) {
 		{
 			// Fails, unknown user
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},
@@ -812,9 +732,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Works, entity is created.
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -825,9 +743,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Fails, server is in read-only mode
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -838,9 +754,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Fails, token is invalid
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -851,9 +765,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Fails, token lacks capabilities
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -864,9 +776,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Fails, internal write error
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -877,9 +787,7 @@ func TestEntityUnlock(t *testing.T) {
 		{
 			// Fails, unknown user
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},

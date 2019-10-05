@@ -169,9 +169,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Works, auth'd via token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -183,9 +181,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: bad token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -197,9 +193,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: bad permissions
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -211,9 +205,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: manipulation error
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("return-error"),

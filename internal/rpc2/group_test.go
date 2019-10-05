@@ -6,8 +6,6 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/token/null"
-
 	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"
 )
@@ -21,9 +19,7 @@ func TestGroupCreate(t *testing.T) {
 		{
 			// Works, valid and authorized request
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -34,9 +30,7 @@ func TestGroupCreate(t *testing.T) {
 		{
 			// Fails, server is read-only
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -57,9 +51,7 @@ func TestGroupCreate(t *testing.T) {
 		{
 			// Fails, empty token
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -70,9 +62,7 @@ func TestGroupCreate(t *testing.T) {
 		{
 			// Fails, Duplicate name
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -83,9 +73,7 @@ func TestGroupCreate(t *testing.T) {
 		{
 			// Fails, can't be saved
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("save-error"),
 				},
@@ -114,9 +102,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			// Works, valid and authorized request
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -128,9 +114,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			// Fails, server is read-only
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -153,9 +137,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			// Fails, empty token
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -167,9 +149,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			// Fails, unknown group
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("does-not-exit"),
 					DisplayName: proto.String("First Group"),
@@ -181,9 +161,7 @@ func TestGroupUpdate(t *testing.T) {
 		{
 			// Fails, can't be loaded
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("load-error"),
 					DisplayName: proto.String("First Group"),
@@ -262,9 +240,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Works, is an authorized write
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -288,9 +264,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, Server is read-only
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -303,9 +277,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, Token is invalid
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth:   InvalidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -318,9 +290,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, Token has no capability
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth:   EmptyAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -333,9 +303,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, group doesn't exist
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -348,9 +316,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, failure during load
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -363,9 +329,7 @@ func TestGroupUM(t *testing.T) {
 		{
 			// Fails, bad request
 			req: pb.KVRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("key1"),
@@ -407,9 +371,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Works
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -424,9 +386,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Fails, bad token
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -441,9 +401,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Fails, empty
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -458,9 +416,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Fails, read-only
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -475,9 +431,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Fails, does not exist
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -492,9 +446,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		{
 			// Fails, load-error
 			req: pb.GroupRulesRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -527,9 +479,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Works
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -545,9 +495,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Works, no groups
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -558,9 +506,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Fails, readonly
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -576,9 +522,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Fails, bad token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -594,9 +538,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Fails, empty token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -612,9 +554,7 @@ func TestGroupDelMember(t *testing.T) {
 		{
 			// Fails, entity can't be loaded
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 					Meta: &types.EntityMeta{
@@ -647,9 +587,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Works
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -665,9 +603,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Works, no groups
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -678,9 +614,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Fails, readonly
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -696,9 +630,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Fails, bad token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -714,9 +646,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Fails, empty token
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -732,9 +662,7 @@ func TestGroupAddMember(t *testing.T) {
 		{
 			// Fails, entity can't be loaded
 			req: pb.EntityRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 					Meta: &types.EntityMeta{
@@ -767,9 +695,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Works, is authorized
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -780,9 +706,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Fails, read only
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -793,9 +717,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Fails, bad token
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.InvalidToken,
-				},
+				Auth: InvalidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -806,9 +728,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Fails, empty token
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidEmptyToken,
-				},
+				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -819,9 +739,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Fails, unknown group
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("does-not-exist"),
 				},
@@ -832,9 +750,7 @@ func TestGroupDestroy(t *testing.T) {
 		{
 			// Fails, load-error
 			req: pb.GroupRequest{
-				Auth: &pb.AuthData{
-					Token: &null.ValidToken,
-				},
+				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("load-error"),
 				},
