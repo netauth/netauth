@@ -1,6 +1,11 @@
 package rpc2
 
 import (
+	"context"
+
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
+
 	types "github.com/NetAuth/Protocol"
 )
 
@@ -45,4 +50,80 @@ func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 		i++
 	}
 	return capabilities
+}
+
+// checkToken is used to validate authorization from the context.
+// This authorization is present in the form of a token in the
+// "authorization" field of the request metadata which is extracted
+// and used here.
+func (s *Server) checkToken(ctx context.Context, reqCap types.Capability) error {
+	tkn := getSingleStringFromMetadata(ctx, "authorization")
+	method, ok := grpc.Method(ctx)
+	if !ok {
+		method = "UNKNOWN"
+	}
+	if tkn == "" {
+		s.log.Info("Request contains no token but token is required!",
+			"method", method,
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
+		)
+		return ErrMalformedRequest
+	}
+	c, err := s.Validate(tkn)
+	if err != nil {
+		s.log.Info("Permission Denied",
+			"method", method,
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
+			"error", err,
+		)
+		return ErrUnauthenticated
+	}
+
+	if !c.HasCapability(reqCap) {
+		s.log.Info("Permission Denied",
+			"method", method,
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
+			"error", "missing-capability",
+		)
+		return ErrRequestorUnqualified
+	}
+	return nil
+}
+
+// getSingleStringFromMetadata is a convenience function that helps to
+// pull individual values from the request metadata.  It asserts that
+// only a single value will be set, and that that value is a string.
+func getSingleStringFromMetadata(ctx context.Context, key string) string {
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return ""
+	}
+	sl := md.Get(key)
+	if len(sl) != 1 {
+		return ""
+	}
+	return sl[0]
+}
+
+// getClientName returns the client name.  If no name was set, the
+// string "BOGUS_CLIENT" is returned.
+func getClientName(ctx context.Context) string {
+	s := getSingleStringFromMetadata(ctx, "client-name")
+	if s == "" {
+		return "BOGUS_CLIENT"
+	}
+	return s
+}
+
+// getServiceName returns the service name.  If no name was set the
+// string "BOGUS_SERVICE" is returned.
+func getServiceName(ctx context.Context) string {
+	s := getSingleStringFromMetadata(ctx, "service-name")
+	if s == "" {
+		return "BOGUS_SERVICE"
+	}
+	return s
 }
