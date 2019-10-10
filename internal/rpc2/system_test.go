@@ -24,13 +24,28 @@ func TestSsytemCapabilitiesNoAuthentication(t *testing.T) {
 	s := newServer(t)
 
 	req := pb.CapabilityRequest{
-		Auth:       InvalidAuthData,
 		Target:     proto.String("group1"),
 		Action:     pb.Action_ADD.Enum(),
 		Capability: types.Capability_CREATE_ENTITY.Enum(),
 	}
 
-	_, err := s.SystemCapabilities(context.Background(), &req)
+	_, err := s.SystemCapabilities(InvalidAuthContext, &req)
+	if err == nil {
+		t.Log(err)
+		t.Error("Request with invalidated token was accepted")
+	}
+}
+
+func TestSsytemCapabilitiesNoCapability(t *testing.T) {
+	s := newServer(t)
+
+	req := pb.CapabilityRequest{
+		Target:     proto.String("group1"),
+		Action:     pb.Action_ADD.Enum(),
+		Capability: types.Capability_CREATE_ENTITY.Enum(),
+	}
+
+	_, err := s.SystemCapabilities(UnprivilegedContext, &req)
 	if err == nil {
 		t.Log(err)
 		t.Error("Request with invalidated token was accepted")
@@ -42,14 +57,13 @@ func TestSystemCapabilitiesEntity(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth:       ValidAuthData,
 		Target:     proto.String("entity1"),
 		Direct:     proto.Bool(true),
 		Action:     pb.Action_ADD.Enum(),
 		Capability: types.Capability_CREATE_ENTITY.Enum(),
 	}
 
-	_, err := s.SystemCapabilities(context.Background(), &req)
+	_, err := s.SystemCapabilities(PrivilegedContext, &req)
 	if err != nil {
 		t.Log(err)
 		t.Fatal("Request with validated token was rejected")
@@ -64,7 +78,7 @@ func TestSystemCapabilitiesEntity(t *testing.T) {
 	}
 
 	req.Action = pb.Action_DROP.Enum()
-	_, err = s.SystemCapabilities(context.Background(), &req)
+	_, err = s.SystemCapabilities(PrivilegedContext, &req)
 	if err != nil {
 		t.Log(err)
 		t.Error("Request with validated token was rejected")
@@ -82,13 +96,12 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth:       ValidAuthData,
 		Target:     proto.String("group1"),
 		Action:     pb.Action_ADD.Enum(),
 		Capability: types.Capability_GLOBAL_ROOT.Enum(),
 	}
 
-	_, err := s.SystemCapabilities(context.Background(), &req)
+	_, err := s.SystemCapabilities(PrivilegedContext, &req)
 	if err != nil {
 		t.Log(err)
 		t.Error("Request with validated token was rejected")
@@ -100,7 +113,7 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 	}
 
 	req.Action = pb.Action_DROP.Enum()
-	_, err = s.SystemCapabilities(context.Background(), &req)
+	_, err = s.SystemCapabilities(PrivilegedContext, &req)
 	if err != nil {
 		t.Log(err)
 		t.Error("Request with validated token was rejected")
@@ -116,11 +129,7 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 func TestSystemCapabilitiesMalformedRequest(t *testing.T) {
 	s := newServer(t)
 
-	req := pb.CapabilityRequest{
-		Auth: ValidAuthData,
-	}
-
-	_, err := s.SystemCapabilities(context.Background(), &req)
+	_, err := s.SystemCapabilities(PrivilegedContext, &pb.CapabilityRequest{})
 	if err != ErrMalformedRequest {
 		t.Log(err)
 		t.Error("Request with invalidated token was accepted")
@@ -132,12 +141,11 @@ func TestSystemCapabilitiesManipulationError(t *testing.T) {
 	initTree(t, s.Manager)
 
 	req := pb.CapabilityRequest{
-		Auth:   ValidAuthData,
 		Direct: proto.Bool(true),
 		Target: proto.String("entity1"),
 	}
 
-	_, err := s.SystemCapabilities(context.Background(), &req)
+	_, err := s.SystemCapabilities(PrivilegedContext, &req)
 	if err != ErrInternal {
 		t.Log(req.Capability)
 		t.Log(err)

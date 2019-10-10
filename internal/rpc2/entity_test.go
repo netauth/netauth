@@ -12,14 +12,15 @@ import (
 
 func TestEntityCreate(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
 			// Works, entity is created.
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -29,8 +30,8 @@ func TestEntityCreate(t *testing.T) {
 		},
 		{
 			// Fails, server is in read-only mode
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -40,8 +41,8 @@ func TestEntityCreate(t *testing.T) {
 		},
 		{
 			// Fails, token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -51,8 +52,8 @@ func TestEntityCreate(t *testing.T) {
 		},
 		{
 			// Fails, token lacks capabilities
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("test1"),
 				},
@@ -62,8 +63,8 @@ func TestEntityCreate(t *testing.T) {
 		},
 		{
 			// Fails, duplicate resource
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					// This gets created by
 					// initTree which fills in the
@@ -76,8 +77,8 @@ func TestEntityCreate(t *testing.T) {
 		},
 		{
 			// Fails, internal write error
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("save-error"),
 				},
@@ -91,7 +92,7 @@ func TestEntityCreate(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.EntityCreate(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.EntityCreate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -99,14 +100,15 @@ func TestEntityCreate(t *testing.T) {
 
 func TestEntityUpdate(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		readonly bool
 		wantErr  error
 	}{
 		{
 			// Works, will change the metadata DisplayName
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -119,8 +121,8 @@ func TestEntityUpdate(t *testing.T) {
 		},
 		{
 			// Fails, server is in read-only mode
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -133,8 +135,8 @@ func TestEntityUpdate(t *testing.T) {
 		},
 		{
 			// Fails, token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -147,8 +149,8 @@ func TestEntityUpdate(t *testing.T) {
 		},
 		{
 			// Fails, token has no capabilities
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Data: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -161,8 +163,8 @@ func TestEntityUpdate(t *testing.T) {
 		},
 		{
 			// Fails, entity does not exist
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("does-not-exist"),
 					Meta: &types.EntityMeta{
@@ -175,8 +177,8 @@ func TestEntityUpdate(t *testing.T) {
 		},
 		{
 			// Fails, db write failure
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID: proto.String("load-error"),
 					Meta: &types.EntityMeta{
@@ -193,7 +195,7 @@ func TestEntityUpdate(t *testing.T) {
 		s := newServer(t)
 		s.readonly = c.readonly
 		initTree(t, s)
-		if _, err := s.EntityUpdate(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.EntityUpdate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -279,6 +281,7 @@ func TestEntitySearch(t *testing.T) {
 
 func TestEntityUM(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.KVRequest
 		wantErr  error
 		readonly bool
@@ -286,8 +289,8 @@ func TestEntityUM(t *testing.T) {
 	}{
 		{
 			// Works, is an authorized write
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -299,6 +302,7 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Works, is a read-only query
+			ctx: context.Background(),
 			req: pb.KVRequest{
 				Target: proto.String("entity1"),
 				Action: pb.Action_READ.Enum(),
@@ -310,8 +314,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, Server is read-only
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -323,8 +327,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, Token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.KVRequest{
-				Auth:   InvalidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -336,8 +340,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, Token has no capability
+			ctx: UnprivilegedContext,
 			req: pb.KVRequest{
-				Auth:   EmptyAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -349,8 +353,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, entity doesn't exist
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -362,8 +366,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, failure during load
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -375,8 +379,8 @@ func TestEntityUM(t *testing.T) {
 		},
 		{
 			// Fails, bad request
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("key1"),
@@ -393,12 +397,12 @@ func TestEntityUM(t *testing.T) {
 		initTree(t, s)
 		s.CreateEntity("load-error", -1, "")
 		s.readonly = c.readonly
-		_, err := s.EntityUM(context.Background(), &c.req)
+		_, err := s.EntityUM(c.ctx, &c.req)
 		if err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 		c.req.Action = pb.Action_READ.Enum()
-		res, err := s.EntityUM(context.Background(), &c.req)
+		res, err := s.EntityUM(c.ctx, &c.req)
 		if err != nil && err != c.wantErr {
 			t.Fatalf("%d: Error on readback: %v", i, err)
 		}
@@ -411,6 +415,7 @@ func TestEntityUM(t *testing.T) {
 
 func TestEntityKeys(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.KVRequest
 		wantErr  error
 		readonly bool
@@ -418,8 +423,8 @@ func TestEntityKeys(t *testing.T) {
 	}{
 		{
 			// Works, is an authorized write
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -431,8 +436,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Works, self-change is allowed
+			ctx: UnprivilegedContext,
 			req: pb.KVRequest{
-				Auth:   EmptyAuthData,
 				Target: proto.String("valid"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -444,6 +449,7 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Works, is a read-only query
+			ctx: context.Background(),
 			req: pb.KVRequest{
 				Target: proto.String("entity1"),
 				Action: pb.Action_READ.Enum(),
@@ -455,8 +461,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, Server is read-only
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -468,8 +474,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, Token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.KVRequest{
-				Auth:   InvalidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -481,8 +487,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, Token has no capability
+			ctx: UnprivilegedContext,
 			req: pb.KVRequest{
-				Auth:   EmptyAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -494,8 +500,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, entity doesn't exist
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -507,8 +513,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, failure during load
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("ssh"),
@@ -520,8 +526,8 @@ func TestEntityKeys(t *testing.T) {
 		},
 		{
 			// Fails, bad request
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("entity1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("ssh"),
@@ -539,7 +545,7 @@ func TestEntityKeys(t *testing.T) {
 		s.CreateEntity("valid", -1, "")
 		s.CreateEntity("load-error", -1, "")
 		s.readonly = c.readonly
-		_, err := s.EntityKeys(context.Background(), &c.req)
+		_, err := s.EntityKeys(c.ctx, &c.req)
 		if err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
@@ -557,14 +563,15 @@ func TestEntityKeys(t *testing.T) {
 
 func TestEntityDestroy(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
-			// Works, entity is created.
+			// Works, entity is destroyed
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -574,8 +581,8 @@ func TestEntityDestroy(t *testing.T) {
 		},
 		{
 			// Fails, server is in read-only mode
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -585,8 +592,8 @@ func TestEntityDestroy(t *testing.T) {
 		},
 		{
 			// Fails, token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -596,8 +603,8 @@ func TestEntityDestroy(t *testing.T) {
 		},
 		{
 			// Fails, token lacks capabilities
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -607,8 +614,8 @@ func TestEntityDestroy(t *testing.T) {
 		},
 		{
 			// Fails, internal write error
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -618,8 +625,8 @@ func TestEntityDestroy(t *testing.T) {
 		},
 		{
 			// Fails, unknown user
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},
@@ -633,7 +640,7 @@ func TestEntityDestroy(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.EntityDestroy(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.EntityDestroy(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -641,14 +648,15 @@ func TestEntityDestroy(t *testing.T) {
 
 func TestEntityLock(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
-			// Works, entity is created.
+			// Works, entity is locked.
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -658,8 +666,8 @@ func TestEntityLock(t *testing.T) {
 		},
 		{
 			// Fails, server is in read-only mode
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -669,8 +677,8 @@ func TestEntityLock(t *testing.T) {
 		},
 		{
 			// Fails, token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -680,8 +688,8 @@ func TestEntityLock(t *testing.T) {
 		},
 		{
 			// Fails, token lacks capabilities
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -691,8 +699,8 @@ func TestEntityLock(t *testing.T) {
 		},
 		{
 			// Fails, internal write error
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -702,8 +710,8 @@ func TestEntityLock(t *testing.T) {
 		},
 		{
 			// Fails, unknown user
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},
@@ -717,7 +725,7 @@ func TestEntityLock(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.EntityLock(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.EntityLock(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -725,14 +733,15 @@ func TestEntityLock(t *testing.T) {
 
 func TestEntityUnlock(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
-			// Works, entity is created.
+			// Works, entity is locked.
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -742,8 +751,8 @@ func TestEntityUnlock(t *testing.T) {
 		},
 		{
 			// Fails, server is in read-only mode
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -753,8 +762,8 @@ func TestEntityUnlock(t *testing.T) {
 		},
 		{
 			// Fails, token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -764,8 +773,8 @@ func TestEntityUnlock(t *testing.T) {
 		},
 		{
 			// Fails, token lacks capabilities
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -775,8 +784,8 @@ func TestEntityUnlock(t *testing.T) {
 		},
 		{
 			// Fails, internal write error
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 				},
@@ -786,8 +795,8 @@ func TestEntityUnlock(t *testing.T) {
 		},
 		{
 			// Fails, unknown user
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("does-not-exist"),
 				},
@@ -801,7 +810,7 @@ func TestEntityUnlock(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.EntityUnlock(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.EntityUnlock(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}

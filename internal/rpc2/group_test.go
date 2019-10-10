@@ -12,14 +12,15 @@ import (
 
 func TestGroupCreate(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.GroupRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
 			// Works, valid and authorized request
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -29,8 +30,8 @@ func TestGroupCreate(t *testing.T) {
 		},
 		{
 			// Fails, server is read-only
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -40,6 +41,7 @@ func TestGroupCreate(t *testing.T) {
 		},
 		{
 			// Fails, unauthorized
+			ctx: InvalidAuthContext,
 			req: pb.GroupRequest{
 				Group: &types.Group{
 					Name: proto.String("test1"),
@@ -50,8 +52,8 @@ func TestGroupCreate(t *testing.T) {
 		},
 		{
 			// Fails, empty token
+			ctx: UnprivilegedContext,
 			req: pb.GroupRequest{
-				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("test1"),
 				},
@@ -61,8 +63,8 @@ func TestGroupCreate(t *testing.T) {
 		},
 		{
 			// Fails, Duplicate name
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -72,8 +74,8 @@ func TestGroupCreate(t *testing.T) {
 		},
 		{
 			// Fails, can't be saved
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("save-error"),
 				},
@@ -87,7 +89,7 @@ func TestGroupCreate(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.GroupCreate(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.GroupCreate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -95,14 +97,15 @@ func TestGroupCreate(t *testing.T) {
 
 func TestGroupUpdate(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.GroupRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
 			// Works, valid and authorized request
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -113,8 +116,8 @@ func TestGroupUpdate(t *testing.T) {
 		},
 		{
 			// Fails, server is read-only
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -125,6 +128,7 @@ func TestGroupUpdate(t *testing.T) {
 		},
 		{
 			// Fails, unauthorized
+			ctx: InvalidAuthContext,
 			req: pb.GroupRequest{
 				Group: &types.Group{
 					Name:        proto.String("group1"),
@@ -136,8 +140,8 @@ func TestGroupUpdate(t *testing.T) {
 		},
 		{
 			// Fails, empty token
+			ctx: UnprivilegedContext,
 			req: pb.GroupRequest{
-				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name:        proto.String("group1"),
 					DisplayName: proto.String("First Group"),
@@ -148,8 +152,8 @@ func TestGroupUpdate(t *testing.T) {
 		},
 		{
 			// Fails, unknown group
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("does-not-exit"),
 					DisplayName: proto.String("First Group"),
@@ -160,8 +164,8 @@ func TestGroupUpdate(t *testing.T) {
 		},
 		{
 			// Fails, can't be loaded
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name:        proto.String("load-error"),
 					DisplayName: proto.String("First Group"),
@@ -176,7 +180,7 @@ func TestGroupUpdate(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.GroupUpdate(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.GroupUpdate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -232,6 +236,7 @@ func TestGroupInfo(t *testing.T) {
 
 func TestGroupUM(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.KVRequest
 		wantErr  error
 		readonly bool
@@ -239,8 +244,8 @@ func TestGroupUM(t *testing.T) {
 	}{
 		{
 			// Works, is an authorized write
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -252,6 +257,7 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Works, is a read-only query
+			ctx: UnprivilegedContext,
 			req: pb.KVRequest{
 				Target: proto.String("group1"),
 				Action: pb.Action_READ.Enum(),
@@ -263,8 +269,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, Server is read-only
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -276,8 +282,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, Token is invalid
+			ctx: InvalidAuthContext,
 			req: pb.KVRequest{
-				Auth:   InvalidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -289,8 +295,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, Token has no capability
+			ctx: UnprivilegedContext,
 			req: pb.KVRequest{
-				Auth:   EmptyAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -302,8 +308,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, group doesn't exist
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("does-not-exist"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -315,8 +321,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, failure during load
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("load-error"),
 				Action: pb.Action_UPSERT.Enum(),
 				Key:    proto.String("key1"),
@@ -328,8 +334,8 @@ func TestGroupUM(t *testing.T) {
 		},
 		{
 			// Fails, bad request
+			ctx: PrivilegedContext,
 			req: pb.KVRequest{
-				Auth:   ValidAuthData,
 				Target: proto.String("group1"),
 				Action: pb.Action_ADD.Enum(),
 				Key:    proto.String("key1"),
@@ -346,7 +352,7 @@ func TestGroupUM(t *testing.T) {
 		initTree(t, s)
 		s.CreateGroup("load-error", "", "", -1)
 		s.readonly = c.readonly
-		_, err := s.GroupUM(context.Background(), &c.req)
+		_, err := s.GroupUM(c.ctx, &c.req)
 		if err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
@@ -364,14 +370,15 @@ func TestGroupUM(t *testing.T) {
 
 func TestGroupUpdateRules(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.GroupRulesRequest
 		readonly bool
 		wantErr  error
 	}{
 		{
 			// Works
+			ctx: PrivilegedContext,
 			req: pb.GroupRulesRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -385,8 +392,8 @@ func TestGroupUpdateRules(t *testing.T) {
 		},
 		{
 			// Fails, bad token
+			ctx: InvalidAuthContext,
 			req: pb.GroupRulesRequest{
-				Auth: InvalidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -400,8 +407,8 @@ func TestGroupUpdateRules(t *testing.T) {
 		},
 		{
 			// Fails, empty
+			ctx: UnprivilegedContext,
 			req: pb.GroupRulesRequest{
-				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -415,8 +422,8 @@ func TestGroupUpdateRules(t *testing.T) {
 		},
 		{
 			// Fails, read-only
+			ctx: PrivilegedContext,
 			req: pb.GroupRulesRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -430,8 +437,8 @@ func TestGroupUpdateRules(t *testing.T) {
 		},
 		{
 			// Fails, does not exist
+			ctx: PrivilegedContext,
 			req: pb.GroupRulesRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -445,8 +452,8 @@ func TestGroupUpdateRules(t *testing.T) {
 		},
 		{
 			// Fails, load-error
+			ctx: PrivilegedContext,
 			req: pb.GroupRulesRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -464,115 +471,7 @@ func TestGroupUpdateRules(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.GroupUpdateRules(context.Background(), &c.req); err != c.wantErr {
-			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
-		}
-	}
-}
-
-func TestGroupDelMember(t *testing.T) {
-	cases := []struct {
-		req      pb.EntityRequest
-		wantErr  error
-		readonly bool
-	}{
-		{
-			// Works
-			req: pb.EntityRequest{
-				Auth: ValidAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("entity1"),
-					Meta: &types.EntityMeta{
-						Groups: []string{
-							"group1",
-						},
-					},
-				},
-			},
-			wantErr:  nil,
-			readonly: false,
-		},
-		{
-			// Works, no groups
-			req: pb.EntityRequest{
-				Auth: ValidAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("entity1"),
-				},
-			},
-			wantErr:  nil,
-			readonly: false,
-		},
-		{
-			// Fails, readonly
-			req: pb.EntityRequest{
-				Auth: ValidAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("entity1"),
-					Meta: &types.EntityMeta{
-						Groups: []string{
-							"group1",
-						},
-					},
-				},
-			},
-			wantErr:  ErrReadOnly,
-			readonly: true,
-		},
-		{
-			// Fails, bad token
-			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("entity1"),
-					Meta: &types.EntityMeta{
-						Groups: []string{
-							"group1",
-						},
-					},
-				},
-			},
-			wantErr:  ErrUnauthenticated,
-			readonly: false,
-		},
-		{
-			// Fails, empty token
-			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("entity1"),
-					Meta: &types.EntityMeta{
-						Groups: []string{
-							"group1",
-						},
-					},
-				},
-			},
-			wantErr:  ErrRequestorUnqualified,
-			readonly: false,
-		},
-		{
-			// Fails, entity can't be loaded
-			req: pb.EntityRequest{
-				Auth: ValidAuthData,
-				Entity: &types.Entity{
-					ID: proto.String("load-error"),
-					Meta: &types.EntityMeta{
-						Groups: []string{
-							"group1",
-						},
-					},
-				},
-			},
-			wantErr:  ErrInternal,
-			readonly: false,
-		},
-	}
-	for i, c := range cases {
-		s := newServer(t)
-		initTree(t, s)
-		s.readonly = c.readonly
-		if _, err := s.GroupDelMember(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.GroupUpdateRules(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -580,14 +479,15 @@ func TestGroupDelMember(t *testing.T) {
 
 func TestGroupAddMember(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
 			// Works
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -602,8 +502,8 @@ func TestGroupAddMember(t *testing.T) {
 		},
 		{
 			// Works, no groups
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 				},
@@ -613,8 +513,8 @@ func TestGroupAddMember(t *testing.T) {
 		},
 		{
 			// Fails, readonly
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -629,8 +529,8 @@ func TestGroupAddMember(t *testing.T) {
 		},
 		{
 			// Fails, bad token
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -645,8 +545,8 @@ func TestGroupAddMember(t *testing.T) {
 		},
 		{
 			// Fails, empty token
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("entity1"),
 					Meta: &types.EntityMeta{
@@ -661,8 +561,8 @@ func TestGroupAddMember(t *testing.T) {
 		},
 		{
 			// Fails, entity can't be loaded
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Entity: &types.Entity{
 					ID: proto.String("load-error"),
 					Meta: &types.EntityMeta{
@@ -680,7 +580,116 @@ func TestGroupAddMember(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.GroupAddMember(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.GroupAddMember(c.ctx, &c.req); err != c.wantErr {
+			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+		}
+	}
+}
+
+func TestGroupDelMember(t *testing.T) {
+	cases := []struct {
+		ctx      context.Context
+		req      pb.EntityRequest
+		wantErr  error
+		readonly bool
+	}{
+		{
+			// Works
+			ctx: PrivilegedContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						Groups: []string{
+							"group1",
+						},
+					},
+				},
+			},
+			wantErr:  nil,
+			readonly: false,
+		},
+		{
+			// Works, no groups
+			ctx: PrivilegedContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+				},
+			},
+			wantErr:  nil,
+			readonly: false,
+		},
+		{
+			// Fails, readonly
+			ctx: PrivilegedContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						Groups: []string{
+							"group1",
+						},
+					},
+				},
+			},
+			wantErr:  ErrReadOnly,
+			readonly: true,
+		},
+		{
+			// Fails, bad token
+			ctx: InvalidAuthContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						Groups: []string{
+							"group1",
+						},
+					},
+				},
+			},
+			wantErr:  ErrUnauthenticated,
+			readonly: false,
+		},
+		{
+			// Fails, empty token
+			ctx: UnprivilegedContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
+					Meta: &types.EntityMeta{
+						Groups: []string{
+							"group1",
+						},
+					},
+				},
+			},
+			wantErr:  ErrRequestorUnqualified,
+			readonly: false,
+		},
+		{
+			// Fails, entity can't be loaded
+			ctx: PrivilegedContext,
+			req: pb.EntityRequest{
+				Entity: &types.Entity{
+					ID: proto.String("load-error"),
+					Meta: &types.EntityMeta{
+						Groups: []string{
+							"group1",
+						},
+					},
+				},
+			},
+			wantErr:  ErrInternal,
+			readonly: false,
+		},
+	}
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+		s.readonly = c.readonly
+		if _, err := s.GroupDelMember(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -688,14 +697,15 @@ func TestGroupAddMember(t *testing.T) {
 
 func TestGroupDestroy(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.GroupRequest
 		wantErr  error
 		readonly bool
 	}{
 		{
 			// Works, is authorized
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -705,8 +715,8 @@ func TestGroupDestroy(t *testing.T) {
 		},
 		{
 			// Fails, read only
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -716,8 +726,8 @@ func TestGroupDestroy(t *testing.T) {
 		},
 		{
 			// Fails, bad token
+			ctx: InvalidAuthContext,
 			req: pb.GroupRequest{
-				Auth: InvalidAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -727,8 +737,8 @@ func TestGroupDestroy(t *testing.T) {
 		},
 		{
 			// Fails, empty token
+			ctx: UnprivilegedContext,
 			req: pb.GroupRequest{
-				Auth: EmptyAuthData,
 				Group: &types.Group{
 					Name: proto.String("group1"),
 				},
@@ -738,8 +748,8 @@ func TestGroupDestroy(t *testing.T) {
 		},
 		{
 			// Fails, unknown group
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("does-not-exist"),
 				},
@@ -749,8 +759,8 @@ func TestGroupDestroy(t *testing.T) {
 		},
 		{
 			// Fails, load-error
+			ctx: PrivilegedContext,
 			req: pb.GroupRequest{
-				Auth: ValidAuthData,
 				Group: &types.Group{
 					Name: proto.String("load-error"),
 				},
@@ -764,7 +774,7 @@ func TestGroupDestroy(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.GroupDestroy(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.GroupDestroy(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}

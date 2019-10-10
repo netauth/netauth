@@ -6,6 +6,8 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
+	"github.com/NetAuth/NetAuth/internal/token"
+
 	types "github.com/NetAuth/Protocol"
 )
 
@@ -29,7 +31,6 @@ func TestCheckToken(t *testing.T) {
 		wantErr error
 	}{
 		{PrivilegedContext, nil},
-		{UnprivilegedContext, ErrRequestorUnqualified},
 		{UnauthenticatedContext, ErrMalformedRequest},
 		{InvalidAuthContext, ErrUnauthenticated},
 	}
@@ -37,7 +38,7 @@ func TestCheckToken(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 
-		if err := s.checkToken(c.ctx, types.Capability_GLOBAL_ROOT); err != c.wantErr {
+		if _, err := s.checkToken(c.ctx); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -88,6 +89,23 @@ func TestGetServiceName(t *testing.T) {
 	for i, c := range cases {
 		if r := getServiceName(c.ctx); r != c.wantRes {
 			t.Errorf("%d: Got %v; Want %v", i, r, c.wantRes)
+		}
+	}
+}
+
+func TestGetTokenClaims(t *testing.T) {
+	cases := []struct {
+		ctx       context.Context
+		wantEmpty bool
+	}{
+		{context.WithValue(context.Background(), claimsContextKey{}, token.Claims{EntityID: "foo"}), false},
+		{context.Background(), true},
+	}
+
+	for i, c := range cases {
+		res := getTokenClaims(c.ctx)
+		if res.EntityID == "" && !c.wantEmpty {
+			t.Errorf("%d: Got Empty claims when shouldn't have", i)
 		}
 	}
 }

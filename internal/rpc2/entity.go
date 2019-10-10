@@ -26,33 +26,21 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "EntityCreate",
-			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_CREATE_ENTITY) {
-		s.log.Info("Permission Denied",
-			"method", "EntityCreate",
-			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_CREATE_ENTITY); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.CreateEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err {
 	case tree.ErrDuplicateEntityID, tree.ErrDuplicateNumber:
 		s.log.Warn("Attempt to create duplicate entity",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -61,7 +49,7 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	case nil:
 		s.log.Info("Entity Created",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -70,7 +58,7 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	default:
 		s.log.Warn("Error Creating Entity",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -97,26 +85,14 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "EntityUpdate",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_MODIFY_ENTITY_META) {
-		s.log.Info("Permission Denied",
-			"method", "EntityUpdate",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.UpdateEntityMeta(de.GetID(), de.GetMeta()); err {
@@ -132,7 +108,7 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", de.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -141,7 +117,7 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", de.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -215,7 +191,6 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 		return &pb.ListOfStrings{}, ErrMalformedRequest
 	}
 
-	authority := ""
 	if r.GetAction() != pb.Action_READ {
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
@@ -226,28 +201,15 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
 
-		c, err := s.Validate(r.GetAuth().GetToken())
+		// Token validation and authorization
+		var err error
+		ctx, err = s.checkToken(ctx)
 		if err != nil {
-			s.log.Info("Permission Denied",
-				"method", "EntityUpdate",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", err,
-			)
-			return &pb.ListOfStrings{}, ErrUnauthenticated
+			return &pb.ListOfStrings{}, err
 		}
-		if !c.HasCapability(types.Capability_MODIFY_ENTITY_META) {
-			s.log.Info("Permission Denied",
-				"method", "EntityUpdate",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", "missing-capability",
-			)
-			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		if err := s.isAuthorized(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+			return &pb.ListOfStrings{}, err
 		}
-		authority = c.EntityID
 	}
 
 	// At this point, we're either in a read-only query, or in a
@@ -266,7 +228,7 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -275,7 +237,7 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 		)
@@ -293,7 +255,6 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 		return &pb.ListOfStrings{}, ErrMalformedRequest
 	}
 
-	authority := ""
 	if r.GetAction() != pb.Action_READ {
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
@@ -304,28 +265,16 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
 
-		c, err := s.Validate(r.GetAuth().GetToken())
+		// Token validation and authorization
+		var err error
+		ctx, err = s.checkToken(ctx)
 		if err != nil {
-			s.log.Info("Permission Denied",
-				"method", "EntityKeys",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", err,
-			)
-			return &pb.ListOfStrings{}, ErrUnauthenticated
+			return &pb.ListOfStrings{}, err
 		}
-		if !c.HasCapability(types.Capability_MODIFY_ENTITY_KEYS) && r.GetTarget() != c.EntityID {
-			s.log.Info("Permission Denied",
-				"method", "EntityKeys",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", "missing-capability",
-			)
-			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		err = s.isAuthorized(ctx, types.Capability_MODIFY_ENTITY_KEYS)
+		if err != nil && getTokenClaims(ctx).EntityID != r.GetTarget() {
+			return &pb.ListOfStrings{}, err
 		}
-		authority = c.EntityID
 	}
 
 	// At this point, we're either in a read-only query, or in a
@@ -344,7 +293,7 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -353,7 +302,7 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 		)
@@ -377,26 +326,14 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "EntityDestroy",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_DESTROY_ENTITY) {
-		s.log.Info("Permission Denied",
-			"method", "EntityDestroy",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_DESTROY_ENTITY); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.DestroyEntity(e.GetID()); err {
@@ -412,7 +349,7 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -421,7 +358,7 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -444,26 +381,14 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "EntityLock",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_LOCK_ENTITY) {
-		s.log.Info("Permission Denied",
-			"method", "EntityLock",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_LOCK_ENTITY); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.LockEntity(e.GetID()); err {
@@ -479,7 +404,7 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 	default:
 		s.log.Warn("Error Locking Entity",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -488,7 +413,7 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 	case nil:
 		s.log.Info("Entity Locked",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -511,26 +436,14 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "EntityUnlock",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_UNLOCK_ENTITY) {
-		s.log.Info("Permission Denied",
-			"method", "EntityUnlock",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_UNLOCK_ENTITY); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.UnlockEntity(e.GetID()); err {
@@ -546,7 +459,7 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	default:
 		s.log.Warn("Error Unlocking Entity",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -555,7 +468,7 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	case nil:
 		s.log.Info("Entity Unlocked",
 			"entity", e.GetID(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,

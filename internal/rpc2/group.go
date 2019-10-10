@@ -24,33 +24,21 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupCreate",
-			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_CREATE_GROUP) {
-		s.log.Info("Permission Denied",
-			"method", "GroupCreate",
-			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_CREATE_GROUP); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.CreateGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err {
 	case tree.ErrDuplicateGroupName, tree.ErrDuplicateNumber:
 		s.log.Warn("Attempt to create duplicate group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -59,7 +47,7 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 	case nil:
 		s.log.Info("Group Created",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -68,7 +56,7 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 	default:
 		s.log.Warn("Error Creating Group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -92,33 +80,21 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupCreate",
-			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
-		s.log.Info("Permission Denied",
-			"method", "GroupCreate",
-			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.UpdateGroupMeta(g.GetName(), g); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Unable to load group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -127,7 +103,7 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 	case nil:
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -136,7 +112,7 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 	default:
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -190,7 +166,6 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		return &pb.ListOfStrings{}, ErrMalformedRequest
 	}
 
-	authority := ""
 	if r.GetAction() != pb.Action_READ {
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
@@ -201,28 +176,15 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
 
-		c, err := s.Validate(r.GetAuth().GetToken())
+		// Token validation and authorization
+		var err error
+		ctx, err = s.checkToken(ctx)
 		if err != nil {
-			s.log.Info("Permission Denied",
-				"method", "GroupUpdate",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", err,
-			)
-			return &pb.ListOfStrings{}, ErrUnauthenticated
+			return &pb.ListOfStrings{}, err
 		}
-		if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
-			s.log.Info("Permission Denied",
-				"method", "GroupUpdate",
-				"authority", c.EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", "missing-capability",
-			)
-			return &pb.ListOfStrings{}, ErrRequestorUnqualified
+		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+			return &pb.ListOfStrings{}, err
 		}
-		authority = c.EntityID
 	}
 
 	// At this point, we're either in a read-only query, or in a
@@ -241,7 +203,7 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 	default:
 		s.log.Warn("Error Updating Group",
 			"group", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -250,7 +212,7 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 	case nil:
 		s.log.Info("Group Updated",
 			"group", r.GetTarget(),
-			"authority", authority,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 		)
@@ -272,26 +234,14 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupUpdate",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_MODIFY_GROUP_META) {
-		s.log.Info("Permission Denied",
-			"method", "GroupUpdate",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.ModifyGroupRule(r.GetGroup().GetName(), r.GetTarget().GetName(), r.GetRuleAction()); err {
@@ -307,7 +257,7 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 	default:
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -316,7 +266,7 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 	case nil:
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -339,26 +289,14 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupAddMember",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_MODIFY_GROUP_MEMBERS) {
-		s.log.Info("Permission Denied",
-			"method", "GroupAddMember",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	for _, g := range e.GetMeta().GetGroups() {
@@ -366,7 +304,7 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),
 				"group", g,
-				"authority", c.EntityID,
+				"authority", getTokenClaims(ctx).EntityID,
 				"service", client.GetService(),
 				"client", client.GetID(),
 				"error", err,
@@ -391,26 +329,14 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupAddMember",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_MODIFY_GROUP_MEMBERS) {
-		s.log.Info("Permission Denied",
-			"method", "GroupAddMember",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	for _, g := range e.GetMeta().GetGroups() {
@@ -418,7 +344,7 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),
 				"group", g,
-				"authority", c.EntityID,
+				"authority", getTokenClaims(ctx).EntityID,
 				"service", client.GetService(),
 				"client", client.GetID(),
 				"error", err,
@@ -445,26 +371,14 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	c, err := s.Validate(r.GetAuth().GetToken())
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
 	if err != nil {
-		s.log.Info("Permission Denied",
-			"method", "GroupDestroy",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrUnauthenticated
+		return &pb.Empty{}, err
 	}
-	if !c.HasCapability(types.Capability_DESTROY_GROUP) {
-		s.log.Info("Permission Denied",
-			"method", "GroupDestroy",
-			"authority", c.EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
-			"error", "missing-capability",
-		)
-		return &pb.Empty{}, ErrRequestorUnqualified
+	if err := s.isAuthorized(ctx, types.Capability_DESTROY_GROUP); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch err := s.DestroyGroup(g.GetName()); err {
@@ -480,7 +394,7 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 	default:
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,
@@ -489,7 +403,7 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 	case nil:
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
-			"authority", c.EntityID,
+			"authority", getTokenClaims(ctx).EntityID,
 			"service", client.GetService(),
 			"client", client.GetID(),
 			"error", err,

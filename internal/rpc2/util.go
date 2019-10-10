@@ -6,8 +6,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/NetAuth/NetAuth/internal/token"
+
 	types "github.com/NetAuth/Protocol"
 )
+
+type claimsContextKey struct{}
 
 func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 	// Get the full fledged entity; we can assert no error here
@@ -55,8 +59,10 @@ func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 // checkToken is used to validate authorization from the context.
 // This authorization is present in the form of a token in the
 // "authorization" field of the request metadata which is extracted
-// and used here.
-func (s *Server) checkToken(ctx context.Context, reqCap types.Capability) error {
+// and used here.  The end result is that claims are added to a
+// returned context.  Actually using these claims should be done by
+// isAuthorized.
+func (s *Server) checkToken(ctx context.Context) (context.Context, error) {
 	tkn := getSingleStringFromMetadata(ctx, "authorization")
 	method, ok := grpc.Method(ctx)
 	if !ok {
@@ -68,7 +74,7 @@ func (s *Server) checkToken(ctx context.Context, reqCap types.Capability) error 
 			"client", getClientName(ctx),
 			"service", getServiceName(ctx),
 		)
-		return ErrMalformedRequest
+		return ctx, ErrMalformedRequest
 	}
 	c, err := s.Validate(tkn)
 	if err != nil {
@@ -78,9 +84,22 @@ func (s *Server) checkToken(ctx context.Context, reqCap types.Capability) error 
 			"service", getServiceName(ctx),
 			"error", err,
 		)
-		return ErrUnauthenticated
+		return ctx, ErrUnauthenticated
 	}
+	ctx = context.WithValue(ctx, claimsContextKey{}, c)
+	return ctx, nil
+}
 
+// isAuthorized checks for a specific capability in the claims from
+// the context.  If it is not present, then the client is not
+// sufficientlly empowered by capabilities alone to make the given
+// request, but may be authorized by group membership.
+func (s *Server) isAuthorized(ctx context.Context, reqCap types.Capability) error {
+	method, ok := grpc.Method(ctx)
+	if !ok {
+		method = "UNKNOWN"
+	}
+	c := getTokenClaims(ctx)
 	if !c.HasCapability(reqCap) {
 		s.log.Info("Permission Denied",
 			"method", method,
@@ -126,4 +145,16 @@ func getServiceName(ctx context.Context) string {
 		return "BOGUS_SERVICE"
 	}
 	return s
+}
+
+// getTokenClaims returns the claims from the context without
+// modifying it.  The claims will either be populated if a token was
+// previously parsed into the context, or empty if no such token has
+// been successfully parsed.
+func getTokenClaims(ctx context.Context) token.Claims {
+	v, ok := ctx.Value(claimsContextKey{}).(token.Claims)
+	if !ok {
+		return token.Claims{}
+	}
+	return v
 }

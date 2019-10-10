@@ -117,12 +117,14 @@ func TestAuthValidateToken(t *testing.T) {
 
 func TestAuthChangeSecret(t *testing.T) {
 	cases := []struct {
+		ctx      context.Context
 		req      pb.EntityRequest
 		readonly bool
 		wantErr  error
 	}{
 		{
 			// Works, and changes own secret
+			ctx: UnauthenticatedContext,
 			req: pb.EntityRequest{
 				Entity: &types.Entity{
 					ID:     proto.String("entity1"),
@@ -138,6 +140,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Fails, original secret not available
+			ctx: UnauthenticatedContext,
 			req: pb.EntityRequest{
 				Entity: &types.Entity{
 					ID:     proto.String("entity1"),
@@ -153,6 +156,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Fails, read-only
+			ctx: UnauthenticatedContext,
 			req: pb.EntityRequest{
 				Entity: &types.Entity{
 					ID:     proto.String("entity1"),
@@ -168,8 +172,8 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Works, auth'd via token
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -180,8 +184,8 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Fails: bad token
+			ctx: InvalidAuthContext,
 			req: pb.EntityRequest{
-				Auth: InvalidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -192,8 +196,8 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Fails: bad permissions
+			ctx: UnprivilegedContext,
 			req: pb.EntityRequest{
-				Auth: EmptyAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret1"),
@@ -204,8 +208,8 @@ func TestAuthChangeSecret(t *testing.T) {
 		},
 		{
 			// Fails: manipulation error
+			ctx: PrivilegedContext,
 			req: pb.EntityRequest{
-				Auth: ValidAuthData,
 				Data: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("return-error"),
@@ -220,7 +224,7 @@ func TestAuthChangeSecret(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s)
 		s.readonly = c.readonly
-		if _, err := s.AuthChangeSecret(context.Background(), &c.req); err != c.wantErr {
+		if _, err := s.AuthChangeSecret(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}

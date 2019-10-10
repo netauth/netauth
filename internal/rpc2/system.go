@@ -13,7 +13,6 @@ import (
 // default, or if specified directly on an entity.  These capabilities
 // only have meaning within NetAuth.
 func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest) (*pb.Empty, error) {
-	authdata := r.GetAuth()
 	client := r.GetInfo()
 
 	if s.readonly {
@@ -31,9 +30,13 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 	// the rabbit hole and its much more straightforward to just
 	// say that you need to be a global superuser to be able to
 	// add more capabilities.
-	c, err := s.Validate(authdata.GetToken())
-	if err != nil || !c.HasCapability(types.Capability_GLOBAL_ROOT) {
-		return nil, ErrRequestorUnqualified
+	var err error
+	ctx, err = s.checkToken(ctx)
+	if err != nil {
+		return &pb.Empty{}, err
+	}
+	if err := s.isAuthorized(ctx, types.Capability_GLOBAL_ROOT); err != nil {
+		return &pb.Empty{}, err
 	}
 
 	switch {

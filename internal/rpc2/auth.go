@@ -116,26 +116,14 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 			return &pb.Empty{}, ErrUnauthenticated
 		}
 	} else {
-		c, err := s.Validate(r.GetAuth().GetToken())
+		// Token validation and authorization
+		var err error
+		ctx, err = s.checkToken(ctx)
 		if err != nil {
-			s.log.Info("Permission Denied for AuthChangeSecret",
-				"modself", false,
-				"entity", e.GetID(),
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", err,
-			)
-			return &pb.Empty{}, ErrUnauthenticated
+			return &pb.Empty{}, err
 		}
-		if !c.HasCapability(types.Capability_CHANGE_ENTITY_SECRET) {
-			s.log.Info("Permission Denied for AuthChangeSecret",
-				"modself", true,
-				"entity", e.GetID(),
-				"service", client.GetService(),
-				"client", client.GetID(),
-				"error", "missing-capability",
-			)
-			return &pb.Empty{}, ErrRequestorUnqualified
+		if err := s.isAuthorized(ctx, types.Capability_CHANGE_ENTITY_SECRET); err != nil {
+			return &pb.Empty{}, err
 		}
 	}
 
