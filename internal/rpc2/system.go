@@ -13,13 +13,11 @@ import (
 // default, or if specified directly on an entity.  These capabilities
 // only have meaning within NetAuth.
 func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
-
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "SystemCapabilities",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -51,8 +49,8 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 	default:
 		s.log.Warn("Malformed request",
 			"method", "SystemCapabilities",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrMalformedRequest
 	}
@@ -61,8 +59,8 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 			"capability", r.GetCapability(),
 			"direct", r.GetDirect(),
 			"target", r.GetTarget(),
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -73,8 +71,8 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 		"direct", r.GetDirect(),
 		"target", r.GetTarget(),
 		"action", r.GetAction(),
-		"client", client.GetID(),
-		"service", client.GetService(),
+		"client", getClientName(ctx),
+		"service", getServiceName(ctx),
 	)
 	return &pb.Empty{}, nil
 }

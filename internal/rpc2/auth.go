@@ -13,19 +13,18 @@ import (
 // entity, but does not issue a token.
 func (s *Server) AuthEntity(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
-	info := r.GetInfo()
 
 	if err := s.ValidateSecret(e.GetID(), r.GetSecret()); err != nil {
 		s.log.Info("Authentication Failed",
 			"entity", e.GetID(),
-			"service", info.GetService(),
-			"client", info.GetID())
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx))
 		return &pb.Empty{}, ErrUnauthenticated
 	}
 	s.log.Info("Authentication Succeeded",
 		"entity", e.GetID(),
-		"service", info.GetService(),
-		"client", info.GetID())
+		"service", getServiceName(ctx),
+		"client", getClientName(ctx))
 	return &pb.Empty{}, nil
 }
 
@@ -52,8 +51,8 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 		s.log.Warn("Error Issuing Token",
 			"entity", r.Entity.ID,
 			"capabilities", caps,
-			"service", r.GetInfo().GetService(),
-			"client", r.GetInfo().GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.AuthResult{}, ErrInternal
@@ -62,8 +61,8 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 	s.log.Info("Token Issued",
 		"entity", r.Entity.ID,
 		"capabilities", caps,
-		"service", r.GetInfo().GetService(),
-		"client", r.GetInfo().GetID(),
+		"service", getServiceName(ctx),
+		"client", getClientName(ctx),
 	)
 	return &pb.AuthResult{Token: &tkn}, nil
 }
@@ -89,7 +88,6 @@ func (s *Server) AuthValidateToken(ctx context.Context, r *pb.AuthRequest) (*pb.
 func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
 	de := r.GetData()
-	client := r.GetInfo()
 
 	// While technically a non-local secret database would allow
 	// this to proceed, we instead require that mutating requests
@@ -97,8 +95,8 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "AuthChangeSecret",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -110,8 +108,8 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 			s.log.Info("Permission Denied for AuthChangeSecret",
 				"modself", true,
 				"entity", e.GetID(),
-				"service", client.GetService(),
-				"client", client.GetID(),
+				"service", getServiceName(ctx),
+				"client", getClientName(ctx),
 			)
 			return &pb.Empty{}, ErrUnauthenticated
 		}
@@ -131,16 +129,16 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 	if err := s.SetSecret(de.GetID(), de.GetSecret()); err != nil {
 		s.log.Warn("Secret Manipulation Error",
 			"entity", de.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
 	}
 	s.log.Info("Secret Changed",
 		"entity", de.GetID(),
-		"service", client.GetService(),
-		"client", client.GetID(),
+		"service", getServiceName(ctx),
+		"client", getClientName(ctx),
 	)
 	return &pb.Empty{}, nil
 }

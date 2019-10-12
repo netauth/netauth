@@ -15,13 +15,12 @@ import (
 // GLOBAL_ROOT permissions.
 func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
-	client := r.GetInfo()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "EntityCreate",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -41,8 +40,8 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Attempt to create duplicate entity",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrExists
@@ -50,8 +49,8 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Info("Entity Created",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -59,8 +58,8 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Error Creating Entity",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -73,14 +72,13 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // must be in posession of a token with MODIFY_ENTITY_META
 // capabilities.
 func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	de := r.GetData()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "EntityUpdate",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -100,8 +98,8 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUpdate",
 			"entity", de.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -109,8 +107,8 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Error Updating Entity",
 			"entity", de.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -118,8 +116,8 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Info("Entity Updated",
 			"entity", de.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -130,30 +128,29 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // returned is guaranteed to be of length 1.
 func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfEntities, error) {
 	e := r.GetEntity()
-	client := r.GetInfo()
 
 	switch ent, err := s.FetchEntity(e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUpdate",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfEntities{}, ErrDoesNotExist
 	default:
 		s.log.Warn("Error fetching entity",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfEntities{}, ErrInternal
 	case nil:
 		s.log.Info("Dumped Entity Info",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfEntities{Entities: []*types.Entity{ent}}, nil
 	}
@@ -163,14 +160,13 @@ func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListO
 // had been found.
 func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfEntities, error) {
 	expr := r.GetExpression()
-	client := r.GetInfo()
 
 	res, err := s.SearchEntities(db.SearchRequest{Expression: expr})
 	if err != nil {
 		s.log.Warn("Search Error",
 			"expr", expr,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfEntities{}, ErrInternal
@@ -182,8 +178,6 @@ func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.Lis
 // EntityUM handles both updates, and reads to the untyped metadata
 // that's stored on Entities.
 func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	client := r.GetInfo()
-
 	if r.GetAction() != pb.Action_READ &&
 		r.GetAction() != pb.Action_UPSERT &&
 		r.GetAction() != pb.Action_CLEAREXACT &&
@@ -195,8 +189,8 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
 				"method", "EntityUM",
-				"client", client.GetID(),
-				"service", client.GetService(),
+				"client", getClientName(ctx),
+				"service", getServiceName(ctx),
 			)
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
@@ -220,8 +214,8 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUM",
 			"entity", r.GetTarget(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
 
@@ -229,8 +223,8 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
@@ -238,8 +232,8 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 		s.log.Info("Entity Updated",
 			"entity", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{Strings: meta}, nil
 	}
@@ -247,8 +241,6 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 
 // EntityKeys handles updates and reads to keys for entities.
 func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	client := r.GetInfo()
-
 	if r.GetAction() != pb.Action_READ &&
 		r.GetAction() != pb.Action_ADD &&
 		r.GetAction() != pb.Action_DROP {
@@ -259,8 +251,8 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
 				"method", "EntityUM",
-				"client", client.GetID(),
-				"service", client.GetService(),
+				"client", getClientName(ctx),
+				"service", getServiceName(ctx),
 			)
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
@@ -285,8 +277,8 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUM",
 			"entity", r.GetTarget(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
 
@@ -294,8 +286,8 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
@@ -303,8 +295,8 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 		s.log.Info("Entity Updated",
 			"entity", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{Strings: keys}, nil
 	}
@@ -314,14 +306,13 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 // generally discouraged, but if you must then this function will do
 // it.
 func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "EntityDestroy",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -341,8 +332,8 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityDestroy",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -350,8 +341,8 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 		s.log.Warn("Error Updating Entity",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -359,8 +350,8 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 		s.log.Info("Entity Updated",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -369,14 +360,13 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 
 // EntityLock sets the lock flag on an entity.
 func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "EntityLock",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -396,8 +386,8 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityLock",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -405,8 +395,8 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 		s.log.Warn("Error Locking Entity",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -414,8 +404,8 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 		s.log.Info("Entity Locked",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -424,14 +414,13 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 
 // EntityUnlock clears the lock flag on an entity.
 func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "EntityUnlock",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -451,8 +440,8 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUnlock",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -460,8 +449,8 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Warn("Error Unlocking Entity",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -469,8 +458,8 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		s.log.Info("Entity Unlocked",
 			"entity", e.GetID(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -480,7 +469,6 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // EntityGroups returns the full membership for a given entity.
 func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfGroups, error) {
 	e := r.GetEntity()
-	client := r.GetInfo()
 
 	ent, err := s.FetchEntity(e.GetID())
 	switch err {
@@ -488,16 +476,16 @@ func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.Lis
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityGroups",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfGroups{}, ErrDoesNotExist
 
 	default:
 		s.log.Warn("Error getting groups for entity",
 			"entity", e.GetID(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfGroups{}, ErrInternal

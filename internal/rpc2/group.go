@@ -13,13 +13,12 @@ import (
 // GroupCreate provisions a new group on the system.
 func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
-	client := r.GetInfo()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupCreate",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -39,8 +38,8 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Warn("Attempt to create duplicate group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrExists
@@ -48,8 +47,8 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Info("Group Created",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -57,8 +56,8 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Warn("Error Creating Group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -69,13 +68,12 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 // untyped metadata.
 func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
-	client := r.GetInfo()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupUpdate",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -95,8 +93,8 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Warn("Unable to load group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrDoesNotExist
@@ -104,8 +102,8 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -113,8 +111,8 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -124,31 +122,30 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 // GroupInfo returns a group for inspection.  It does not return
 // key/value data.
 func (s *Server) GroupInfo(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfGroups, error) {
-	client := r.GetInfo()
 	g := r.GetGroup()
 
 	switch grp, err := s.FetchGroup(g.GetName()); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Unknown Group",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfGroups{}, ErrDoesNotExist
 	case nil:
 		s.log.Info("Group Info",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfGroups{Groups: []*types.Group{grp}}, nil
 	default:
 		s.log.Warn("Error Loading Group",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfGroups{}, ErrInternal
@@ -157,8 +154,6 @@ func (s *Server) GroupInfo(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfG
 
 // GroupUM handles updates to untyped metadata for groups.
 func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
-	client := r.GetInfo()
-
 	if r.GetAction() != pb.Action_READ &&
 		r.GetAction() != pb.Action_UPSERT &&
 		r.GetAction() != pb.Action_CLEAREXACT &&
@@ -170,8 +165,8 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		if s.readonly {
 			s.log.Warn("Mutable request in read-only mode!",
 				"method", "GroupUM",
-				"client", client.GetID(),
-				"service", client.GetService(),
+				"client", getClientName(ctx),
+				"service", getServiceName(ctx),
 			)
 			return &pb.ListOfStrings{}, ErrReadOnly
 		}
@@ -195,8 +190,8 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		s.log.Warn("Group does not exist!",
 			"method", "GroupUM",
 			"group", r.GetTarget(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
 
@@ -204,8 +199,8 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		s.log.Warn("Error Updating Group",
 			"group", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
@@ -213,8 +208,8 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		s.log.Info("Group Updated",
 			"group", r.GetTarget(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{Strings: meta}, nil
 	}
@@ -222,14 +217,13 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 
 // GroupUpdateRules updates the expansion rules on a particular group.
 func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	g := r.GetGroup()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupUM",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -249,8 +243,8 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 		s.log.Warn("Group does not exist!",
 			"method", "GroupUpdateRules",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -258,8 +252,8 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -267,8 +261,8 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -277,14 +271,13 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 
 // GroupAddMember adds an entity directly to a group.
 func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupAddMember",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -305,8 +298,8 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 				"entity", e.GetID(),
 				"group", g,
 				"authority", getTokenClaims(ctx).EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
+				"service", getServiceName(ctx),
+				"client", getClientName(ctx),
 				"error", err,
 			)
 			return &pb.Empty{}, ErrInternal
@@ -317,14 +310,13 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 
 // GroupDelMember dels an entity directly to a group.
 func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	e := r.GetEntity()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupAddMember",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -345,8 +337,8 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 				"entity", e.GetID(),
 				"group", g,
 				"authority", getTokenClaims(ctx).EntityID,
-				"service", client.GetService(),
-				"client", client.GetID(),
+				"service", getServiceName(ctx),
+				"client", getClientName(ctx),
 				"error", err,
 			)
 			return &pb.Empty{}, ErrInternal
@@ -359,14 +351,13 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 // is not recommended and should not be done, but if you must here it
 // is.
 func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
-	client := r.GetInfo()
 	g := r.GetGroup()
 
 	if s.readonly {
 		s.log.Warn("Mutable request in read-only mode!",
 			"method", "GroupDestroy",
-			"client", client.GetID(),
-			"service", client.GetService(),
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
 		)
 		return &pb.Empty{}, ErrReadOnly
 	}
@@ -386,8 +377,8 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 		s.log.Warn("Group does not exist!",
 			"method", "GroupDestroy",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
@@ -395,8 +386,8 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 		s.log.Warn("Error Updating Group",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, ErrInternal
@@ -404,8 +395,8 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
 			"authority", getTokenClaims(ctx).EntityID,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.Empty{}, nil
@@ -415,7 +406,6 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 // GroupMembers returns the list of all entities that are members of
 // the group.
 func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfEntities, error) {
-	client := r.GetInfo()
 	g := r.GetGroup()
 
 	members, err := s.ListMembers(g.GetName())
@@ -424,15 +414,15 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 		s.log.Warn("Group does not exist!",
 			"method", "GroupDestroy",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 		)
 		return &pb.ListOfEntities{}, ErrDoesNotExist
 	default:
 		s.log.Warn("Error Fetching Membership Group",
 			"group", g.GetName(),
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfEntities{}, ErrInternal
@@ -445,14 +435,13 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 // matching the criteria specified.
 func (s *Server) GroupSearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfGroups, error) {
 	expr := r.GetExpression()
-	client := r.GetInfo()
 
 	res, err := s.SearchGroups(db.SearchRequest{Expression: expr})
 	if err != nil {
 		s.log.Warn("Search Error",
 			"expr", expr,
-			"service", client.GetService(),
-			"client", client.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
 			"error", err,
 		)
 		return &pb.ListOfGroups{}, ErrInternal
