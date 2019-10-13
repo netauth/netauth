@@ -158,3 +158,37 @@ func getTokenClaims(ctx context.Context) token.Claims {
 	}
 	return v
 }
+
+// manageByMembership checks if the entity identified by entityID is a
+// member of any group that group g has delegated management authority
+// to.  In this way, an entity can be allowed to alter certain groups
+// without needing to grant broad server level authority.
+func (s *Server) manageByMembership(entityID string, g *types.Group) bool {
+	g, err := s.FetchGroup(g.GetName())
+	if err != nil {
+		return false
+	}
+
+	// Management by membership is only available if explicitly
+	// enabled.  If the value of the string is empty, this group
+	// has not delegated management authority to any other groups.
+	if g.GetManagedBy() == "" {
+		return false
+	}
+
+	e, err := s.FetchEntity(entityID)
+	if err != nil {
+		return false
+	}
+
+	// Indirects are included as a hard coded set here as the
+	// filter to use direct groups only is being removed.  This
+	// functionality was unintuitive to use, and increased the
+	// complexity of the code considerably.
+	for _, name := range s.GetMemberships(e, true) {
+		if name == g.GetManagedBy() {
+			return true
+		}
+	}
+	return false
+}

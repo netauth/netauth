@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/NetAuth/NetAuth/internal/token"
@@ -106,6 +107,59 @@ func TestGetTokenClaims(t *testing.T) {
 		res := getTokenClaims(c.ctx)
 		if res.EntityID == "" && !c.wantEmpty {
 			t.Errorf("%d: Got Empty claims when shouldn't have", i)
+		}
+	}
+}
+
+func TestManageByMembership(t *testing.T) {
+	cases := []struct {
+		id      string
+		g       types.Group
+		wantRes bool
+	}{
+		{
+			id: "entity1",
+			g: types.Group{
+				Name: proto.String("group2"),
+			},
+			wantRes: true,
+		},
+		{
+			id: "entity1",
+			g: types.Group{
+				Name: proto.String("group1"),
+			},
+			wantRes: false,
+		},
+		{
+			id: "entity1",
+			g: types.Group{
+				Name: proto.String("load-error"),
+			},
+			wantRes: false,
+		},
+		{
+			id: "load-error",
+			g: types.Group{
+				Name: proto.String("group2"),
+			},
+			wantRes: false,
+		},
+		{
+			id: "unprivileged",
+			g: types.Group{
+				Name: proto.String("group2"),
+			},
+			wantRes: false,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s)
+
+		if got := s.manageByMembership(c.id, &c.g); got != c.wantRes {
+			t.Errorf("%d: Got %v; Want %v", i, got, c.wantRes)
 		}
 	}
 }

@@ -817,7 +817,7 @@ func TestGroupMembers(t *testing.T) {
 		if err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
-		if err != nil {
+		if err != nil || len(res.GetEntities()) < 1 {
 			continue
 		}
 		if res.GetEntities()[0].GetID() != c.wantMember {

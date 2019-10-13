@@ -3,6 +3,8 @@ package rpc2
 import (
 	"context"
 
+	"github.com/golang/protobuf/proto"
+
 	"github.com/NetAuth/NetAuth/internal/db"
 	"github.com/NetAuth/NetAuth/internal/tree"
 
@@ -84,7 +86,7 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
@@ -177,7 +179,8 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 		if err != nil {
 			return &pb.ListOfStrings{}, err
 		}
-		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		g := types.Group{Name: proto.String(r.GetTarget())}
+		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &g) {
 			return &pb.ListOfStrings{}, err
 		}
 	}
@@ -234,7 +237,7 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
@@ -288,11 +291,17 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil {
-		return &pb.Empty{}, err
-	}
 
 	for _, g := range e.GetMeta().GetGroups() {
+		grp := types.Group{Name: proto.String(g)}
+		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+			s.log.Warn("Insufficient authority to add entity to group",
+				"entity", e.GetID(),
+				"group", g,
+				"authority", getTokenClaims(ctx).EntityID,
+			)
+			return &pb.Empty{}, err
+		}
 		if err := s.AddEntityToGroup(e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),
@@ -327,11 +336,17 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 	if err != nil {
 		return &pb.Empty{}, err
 	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil {
-		return &pb.Empty{}, err
-	}
 
 	for _, g := range e.GetMeta().GetGroups() {
+		grp := types.Group{Name: proto.String(g)}
+		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+			s.log.Warn("Insufficient authority to add entity to group",
+				"entity", e.GetID(),
+				"group", g,
+				"authority", getTokenClaims(ctx).EntityID,
+			)
+			return &pb.Empty{}, err
+		}
 		if err := s.RemoveEntityFromGroup(e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),

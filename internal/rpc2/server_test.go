@@ -39,7 +39,7 @@ func initTree(t *testing.T, m Manager) {
 	m.CreateEntity("entity1", -1, "secret")
 
 	m.CreateGroup("group1", "", "", -1)
-	m.CreateGroup("group2", "", "", -1)
+	m.CreateGroup("group2", "", "group1", -1)
 
 	m.AddEntityToGroup("entity1", "group1")
 
