@@ -9,7 +9,7 @@ var (
 	// requested that has not been registered to the server.
 	ErrUnknownCache = errors.New("The requested cache is not known")
 
-	// ErrNoCachedtoken is returned for a cache miss when asking
+	// ErrNoCachedToken is returned for a cache miss when asking
 	// for a specific owner.  This error should generally prompt
 	// the token to be obtained from the server, but may handle
 	// terminal failures in the event that a cached token was
