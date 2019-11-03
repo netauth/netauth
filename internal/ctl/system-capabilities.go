@@ -6,15 +6,14 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 
 	pb "github.com/NetAuth/Protocol"
 )
 
 var (
-	capEntity bool
+	direct bool
 
 	systemCapabilitiesCmd = &cobra.Command{
 		Use:     "capability <identifier> <ADD|DEL> <capability>",
@@ -77,7 +76,7 @@ Capability Modified`
 
 func init() {
 	systemCmd.AddCommand(systemCapabilitiesCmd)
-	systemCapabilitiesCmd.Flags().BoolVar(&capEntity, "direct", false, "Provided identifier is an entity")
+	systemCapabilitiesCmd.Flags().BoolVar(&direct, "direct", false, "Provided identifier is an entity (discouraged)")
 }
 
 func systemCapabilityArgs(cmd *cobra.Command, args []string) error {
@@ -85,8 +84,8 @@ func systemCapabilityArgs(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("this command takes 3 arguments")
 	}
 
-	if strings.ToUpper(args[1]) != "ADD" && strings.ToUpper(args[1]) != "DEL" {
-		return fmt.Errorf("mode must be either ADD or DEL")
+	if strings.ToUpper(args[1]) != "ADD" && strings.ToUpper(args[1]) != "DROP" {
+		return fmt.Errorf("mode must be either ADD or DROP")
 	}
 
 	c := strings.ToUpper(args[2])
@@ -98,33 +97,11 @@ func systemCapabilityArgs(cmd *cobra.Command, args []string) error {
 }
 
 func systemCapabilitiesRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
+	ctx = netauth.Authorize(ctx, token())
+
+	if err := rpc.SystemCapabilities(ctx, args[0], args[1], args[2], direct); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	group := ""
-	entity := ""
-	if capEntity {
-		fmt.Println("You are attempting to add a capability directly to an entity.  This is discouraged!")
-		entity = args[0]
-	} else {
-		group = args[0]
-	}
-
-	result, err := c.ManageCapabilities(t, entity, group, strings.ToUpper(args[2]), strings.ToUpper(args[1]))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Capabilities Updated")
 }

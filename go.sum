@@ -21,6 +21,8 @@ github.com/NetAuth/Protocol v0.0.0-20191005175021-db41c6ce1971 h1:Xn0pC1l7mLloUi
 github.com/NetAuth/Protocol v0.0.0-20191005175021-db41c6ce1971/go.mod h1:CO+2Q2H4PqOcK9PO0fBxaZrygsIjTHn3k+f24c+Qmj0=
 github.com/NetAuth/Protocol v0.0.0-20191012033211-0329ce922a6f h1:rVaMJFcavbVymVc0XVt+XLKEkxWxQVNN91oKSl9dxrI=
 github.com/NetAuth/Protocol v0.0.0-20191012033211-0329ce922a6f/go.mod h1:CO+2Q2H4PqOcK9PO0fBxaZrygsIjTHn3k+f24c+Qmj0=
+github.com/NetAuth/Protocol v0.0.0-20191103001152-2815518e2f36 h1:KqEJYMLcVf/1nOOm9bvnC4T9ZjB4qMTyoSJiVPbtJw8=
+github.com/NetAuth/Protocol v0.0.0-20191103001152-2815518e2f36/go.mod h1:CO+2Q2H4PqOcK9PO0fBxaZrygsIjTHn3k+f24c+Qmj0=
 github.com/RoaringBitmap/roaring v0.4.17 h1:oCYFIFEMSQZrLHpywH7919esI1VSrQZ0pJXkZPGIJ78=
 github.com/RoaringBitmap/roaring v0.4.17/go.mod h1:D3qVegWTmfCaX4Bl5CrBE9hfrSrrXIr8KVNvRsDi1NI=
 github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 h1:G/NOANWMQev0CftoyxQwtRakdyNNNMB3qxkt/tj1HGs=

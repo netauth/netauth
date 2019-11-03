@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -41,7 +41,7 @@ it.`
 	entityKeysExample = `$ netauth entity key add SSH "ssh-rsa this-is-too-short-but-whatever root@everywhere"
 $ netauth entity key list
 Type: SSH; Key: ssh-rsa this-is-too-short-but-whatever root@everywhere
-$ netauth entity key del "ssh-rsa this-is-too-short-but-whatever root@everywhere"
+$ netauth entity key drop "ssh-rsa this-is-too-short-but-whatever root@everywhere"
 $ netauth entity key list
 `
 )
@@ -55,37 +55,23 @@ func keyArgs(cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		return fmt.Errorf("you must specify at minimum a mode")
 	} else if len(args) > 3 {
-		return fmt.Errorf("too many arguments, is your key quoted")
+		return fmt.Errorf("too many arguments, is your key quoted?")
 	}
 
 	m := strings.ToUpper(args[0])
 	if m == "ADD" && len(args) != 3 {
 		return fmt.Errorf("ADD requires a keyType and key")
-	} else if m == "DEL" && len(args) != 2 {
-		return fmt.Errorf("DEL requires at most a key")
-	} else if m == "LIST" && len(args) > 2 {
-		return fmt.Errorf("LIST takes at most one argument")
-	} else if m != "ADD" && m != "DEL" && m != "LIST" {
+	} else if m == "DROP" && len(args) != 2 {
+		return fmt.Errorf("DROP requires at most a key")
+	} else if m == "READ" && len(args) > 2 {
+		return fmt.Errorf("READ takes at most one argument")
+	} else if m != "ADD" && m != "DROP" && m != "READ" {
 		return fmt.Errorf("Mode must be one of ADD, DEL, or LIST")
 	}
 	return nil
 }
 
 func entityKeysRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	if keyEntity == "" {
 		keyEntity = viper.GetString("entity")
 	}
@@ -95,9 +81,9 @@ func entityKeysRun(cmd *cobra.Command, args []string) {
 	case "ADD":
 		keyType = args[1]
 		key = args[2]
-	case "DEL":
+	case "DROP":
 		key = args[1]
-	case "LIST":
+	case "READ":
 		if len(args) == 2 {
 			keyType = strings.ToUpper(args[1])
 		} else {
@@ -105,13 +91,20 @@ func entityKeysRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	keys, err := c.ModifyEntityKeys(t, keyEntity, keyMode, keyType, key)
+	if keyMode != "LIST" {
+		ctx = netauth.Authorize(ctx, token())
+	}
+
+	res, err := rpc.EntityKeys(ctx, keyEntity, keyMode, keyType, key)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	for _, k := range keys {
-		fmt.Printf("Type: %s; Key: %s\n", keyType, k)
+	for keyType, keys := range res {
+		fmt.Printf("%s:\n", keyType)
+		for _, key := range keys {
+			fmt.Printf("  %s\n", key)
+		}
 	}
 }

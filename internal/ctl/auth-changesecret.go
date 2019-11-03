@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -47,14 +47,6 @@ func init() {
 
 func authChangeSecretRun(cmd *cobra.Command, args []string) {
 	s := ""
-	t := ""
-
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 
 	// Self change if unset
 	if csEntity == "" {
@@ -64,13 +56,6 @@ func authChangeSecretRun(cmd *cobra.Command, args []string) {
 	// Get either secret or token
 	if csEntity == viper.GetString("entity") {
 		s = getSecret("Old Secret: ")
-	} else {
-		// Get the authorization token
-		t, err = getToken(c, viper.GetString("entity"))
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
 	}
 
 	// Get the secret if it wasn't specified on the line
@@ -86,11 +71,13 @@ func authChangeSecretRun(cmd *cobra.Command, args []string) {
 		csSecret = one
 	}
 
+	// Attach authorization
+	ctx = netauth.Authorize(ctx, token())
+
 	// Change the secret
-	result, err := c.ChangeSecret(viper.GetString("entity"), s, csEntity, csSecret, t)
-	if err != nil {
+	if err := rpc.AuthChangeSecret(ctx, csEntity, csSecret, s); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Secret updated")
 }

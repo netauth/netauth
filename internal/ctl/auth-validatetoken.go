@@ -5,9 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 var (
@@ -35,18 +32,10 @@ func init() {
 }
 
 func authValidateTokenRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	// Attempt to validate the token
-	result, err := c.ValidateToken(viper.GetString("entity"))
-	if err != nil {
+	if err := rpc.AuthValidateToken(ctx, token()); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("This token is valid")
 }

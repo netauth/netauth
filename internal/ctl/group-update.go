@@ -5,9 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -51,24 +50,11 @@ func groupUpdateRun(cmd *cobra.Command, args []string) {
 		grp.ManagedBy = &uGManagedBy
 	}
 
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	ctx = netauth.Authorize(ctx, token())
 
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
+	if err := rpc.GroupUpdate(ctx, grp); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-
-	result, err := c.ModifyGroupMeta(grp, t)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Group Updated")
 }

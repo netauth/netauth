@@ -17,6 +17,10 @@ type inMemoryCache struct {
 	c map[string]string
 }
 
+func init() {
+	netauth.RegisterTokenCacheFactory("memory", new)
+}
+
 func new() (netauth.TokenCache, error) {
 	c := &inMemoryCache{
 		c: make(map[string]string),

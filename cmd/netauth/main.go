@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/NetAuth/NetAuth/internal/ctl"
+
+	_ "github.com/NetAuth/NetAuth/pkg/netauth/fs"
 )
 
 var (

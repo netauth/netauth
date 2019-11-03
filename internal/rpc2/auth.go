@@ -85,9 +85,8 @@ func (s *Server) AuthValidateToken(ctx context.Context, r *pb.AuthRequest) (*pb.
 // must be in posession of the original secret, not just a token.  In
 // the latter case, the token must have CHANGE_ENTITY_SECRET to
 // succeed.
-func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
-	de := r.GetData()
 
 	// While technically a non-local secret database would allow
 	// this to proceed, we instead require that mutating requests
@@ -101,34 +100,47 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 		return &pb.Empty{}, ErrReadOnly
 	}
 
-	// Changes to self require original password, changes to
-	// others require CHANGE_ENTITY_SECRET.
-	if e.GetID() == de.GetID() {
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
+	if err != nil {
+		s.log.Warn("Permissions Denied for AuthChangeSecret",
+			"entity", e.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err)
+		return &pb.Empty{}, err
+	}
+
+	// Changing for self, must have the original secret
+	if getTokenClaims(ctx).EntityID == e.GetID() {
 		if err := s.ValidateSecret(e.GetID(), e.GetSecret()); err != nil {
 			s.log.Info("Permission Denied for AuthChangeSecret",
 				"modself", true,
 				"entity", e.GetID(),
+				"authority", getTokenClaims(ctx).EntityID,
 				"service", getServiceName(ctx),
 				"client", getClientName(ctx),
 			)
 			return &pb.Empty{}, ErrUnauthenticated
 		}
 	} else {
-		// Token validation and authorization
-		var err error
-		ctx, err = s.checkToken(ctx)
-		if err != nil {
-			return &pb.Empty{}, err
-		}
 		if err := s.isAuthorized(ctx, types.Capability_CHANGE_ENTITY_SECRET); err != nil {
+			s.log.Info("Permission Denied for AuthChangeSecret",
+				"modself", false,
+				"entity", e.GetID(),
+				"authority", getTokenClaims(ctx).EntityID,
+				"service", getServiceName(ctx),
+				"client", getClientName(ctx),
+			)
 			return &pb.Empty{}, err
 		}
 	}
 
 	// Set the secret
-	if err := s.SetSecret(de.GetID(), de.GetSecret()); err != nil {
+	if err := s.SetSecret(e.GetID(), r.GetSecret()); err != nil {
 		s.log.Warn("Secret Manipulation Error",
-			"entity", de.GetID(),
+			"entity", e.GetID(),
 			"service", getServiceName(ctx),
 			"client", getClientName(ctx),
 			"error", err,
@@ -136,7 +148,7 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.EntityRequest) (*pb
 		return &pb.Empty{}, ErrInternal
 	}
 	s.log.Info("Secret Changed",
-		"entity", de.GetID(),
+		"entity", e.GetID(),
 		"service", getServiceName(ctx),
 		"client", getClientName(ctx),
 	)

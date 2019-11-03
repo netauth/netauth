@@ -6,11 +6,8 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
-
-	pb "github.com/NetAuth/Protocol"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -57,31 +54,19 @@ func entityMembershipArgs(cmd *cobra.Command, args []string) error {
 }
 
 func entityMembershipRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	ctx = netauth.Authorize(ctx, token())
 
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	result := &pb.SimpleResult{}
+	var err error
 	switch strings.ToUpper(args[1]) {
 	case "ADD":
-		result, err = c.AddEntityToGroup(t, args[2], args[0])
+		err = rpc.GroupAddMember(ctx, args[2], args[0])
 	case "DROP":
-		result, err = c.RemoveEntityFromGroup(t, args[2], args[0])
+		err = rpc.GroupDelMember(ctx, args[2], args[0])
 	}
 
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Membership Updated")
 }

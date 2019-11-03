@@ -206,6 +206,8 @@ func (m *Manager) UpdateEntityKeys(ID, mode, keytype, key string) ([]string, err
 	switch mode {
 	case "ADD":
 		chain = "ADD-KEY"
+	case "DROP":
+		fallthrough
 	case "DEL":
 		chain = "DEL-KEY"
 	default:

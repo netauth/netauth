@@ -5,8 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 var (
@@ -43,14 +41,7 @@ func init() {
 }
 
 func groupMembersRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	res, err := c.ListGroupMembers(args[0])
+	res, err := rpc.GroupMembers(ctx, args[0])
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

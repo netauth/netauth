@@ -3,13 +3,11 @@ package ctl
 import (
 	"fmt"
 	"os"
-	"sort"
 	"strings"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -18,7 +16,7 @@ var (
 		Short:   "Manage KV storage on an group",
 		Long:    groupKVLongDocs,
 		Example: groupKVExample,
-		Args:    groupKVArgs,
+		Args:    kvArgs,
 		Run:     groupKVRun,
 	}
 
@@ -69,29 +67,6 @@ func init() {
 	groupCmd.AddCommand(groupKVCmd)
 }
 
-func groupKVArgs(cmd *cobra.Command, args []string) error {
-	if len(args) < 3 {
-		return fmt.Errorf("This command takes at least 3 arguments")
-	}
-	action := strings.ToUpper(args[1])
-	if action == "UPSERT" && len(args) != 4 {
-		return fmt.Errorf("Upsert requires a key and a value")
-	}
-
-	switch action {
-	case "UPSERT":
-		return nil
-	case "CLEARFUZZY":
-		return nil
-	case "CLEAREXACT":
-		return nil
-	case "READ":
-		return nil
-	default:
-		return fmt.Errorf("Action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, or READ")
-	}
-}
-
 func groupKVRun(cmd *cobra.Command, args []string) {
 	// Parse arguments
 	action := strings.ToUpper(args[1])
@@ -101,36 +76,21 @@ func groupKVRun(cmd *cobra.Command, args []string) {
 		val = args[3]
 	}
 
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	// Get the authorization token if needed
-	t := ""
 	if action != "READ" {
-		t, err = getToken(c, viper.GetString("group"))
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
+		ctx = netauth.Authorize(ctx, token())
 	}
 	// Query the server
-	result, err := c.ModifyUntypedGroupMeta(t, args[0], args[1], key, val)
+	result, err := rpc.GroupUM(ctx, args[0], args[1], key, val)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	out := []string{}
 	for k, v := range result {
-		out = append(out, fmt.Sprintf("%s: %s", k, v))
-	}
-	sort.Strings(out)
-
-	for _, l := range out {
-		fmt.Println(l)
+		fmt.Printf("%s:\n", k)
+		for _, s := range v {
+			fmt.Printf("  %s\n", s)
+		}
 	}
 }

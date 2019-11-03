@@ -118,38 +118,32 @@ func TestAuthValidateToken(t *testing.T) {
 func TestAuthChangeSecret(t *testing.T) {
 	cases := []struct {
 		ctx      context.Context
-		req      pb.EntityRequest
+		req      pb.AuthRequest
 		readonly bool
 		wantErr  error
 	}{
 		{
 			// Works, and changes own secret
-			ctx: UnauthenticatedContext,
-			req: pb.EntityRequest{
+			ctx: UnprivilegedContext,
+			req: pb.AuthRequest{
 				Entity: &types.Entity{
-					ID:     proto.String("entity1"),
+					ID:     proto.String("valid"),
 					Secret: proto.String("secret"),
 				},
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
-				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: false,
 			wantErr:  nil,
 		},
 		{
 			// Fails, original secret not available
-			ctx: UnauthenticatedContext,
-			req: pb.EntityRequest{
+			ctx: UnprivilegedContext,
+			req: pb.AuthRequest{
 				Entity: &types.Entity{
-					ID:     proto.String("entity1"),
+					ID:     proto.String("valid"),
 					Secret: proto.String("incorrect-secret"),
 				},
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
-				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: false,
 			wantErr:  ErrUnauthenticated,
@@ -157,15 +151,12 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails, read-only
 			ctx: UnauthenticatedContext,
-			req: pb.EntityRequest{
+			req: pb.AuthRequest{
 				Entity: &types.Entity{
 					ID:     proto.String("entity1"),
 					Secret: proto.String("secret"),
 				},
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
-				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: true,
 			wantErr:  ErrReadOnly,
@@ -173,11 +164,11 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Works, auth'd via token
 			ctx: PrivilegedContext,
-			req: pb.EntityRequest{
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
+			req: pb.AuthRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
 				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: false,
 			wantErr:  nil,
@@ -185,11 +176,11 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: bad token
 			ctx: InvalidAuthContext,
-			req: pb.EntityRequest{
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
+			req: pb.AuthRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
 				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: false,
 			wantErr:  ErrUnauthenticated,
@@ -197,11 +188,11 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: bad permissions
 			ctx: UnprivilegedContext,
-			req: pb.EntityRequest{
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("secret1"),
+			req: pb.AuthRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
 				},
+				Secret: proto.String("secret1"),
 			},
 			readonly: false,
 			wantErr:  ErrRequestorUnqualified,
@@ -209,11 +200,11 @@ func TestAuthChangeSecret(t *testing.T) {
 		{
 			// Fails: manipulation error
 			ctx: PrivilegedContext,
-			req: pb.EntityRequest{
-				Data: &types.Entity{
-					ID:     proto.String("entity1"),
-					Secret: proto.String("return-error"),
+			req: pb.AuthRequest{
+				Entity: &types.Entity{
+					ID: proto.String("entity1"),
 				},
+				Secret: proto.String("return-error"),
 			},
 			readonly: false,
 			wantErr:  ErrInternal,
@@ -223,6 +214,7 @@ func TestAuthChangeSecret(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s)
+		s.CreateEntity("valid", -1, "secret")
 		s.readonly = c.readonly
 		if _, err := s.AuthChangeSecret(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)

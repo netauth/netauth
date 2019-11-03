@@ -5,8 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 var (
@@ -39,20 +37,13 @@ func init() {
 }
 
 func entityInfoRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	// Obtain entity info
-	entity, err := c.EntityInfo(args[0])
+	entity, err := rpc.EntityInfo(ctx, args[0])
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Print the fields
-	printEntity(entity, entityInfoFields)
+	printEntity(&entity, entityInfoFields)
 }

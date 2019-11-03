@@ -5,9 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -51,29 +50,16 @@ func init() {
 }
 
 func entityCreateRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	newEntityID = args[0]
 	if newSecret == "" {
 		newSecret = getSecret(fmt.Sprintf("Initial Secret for %s: ", newEntityID))
 	}
 
-	result, err := c.NewEntity(newEntityID, int32(newNumber), newSecret, t)
-	if err != nil {
+	ctx = netauth.Authorize(ctx, token())
+
+	if err := rpc.EntityCreate(ctx, newEntityID, newSecret, newNumber); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Entity Created")
 }

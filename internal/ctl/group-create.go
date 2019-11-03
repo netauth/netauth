@@ -5,9 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
@@ -52,26 +51,13 @@ func init() {
 }
 
 func groupCreateRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	// Get the authorization token
-	t, err := getToken(c, viper.GetString("entity"))
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	newGroupName = args[0]
 
-	result, err := c.NewGroup(newGroupName, newGroupDisplayName, newGroupManagedBy, t, newGroupNumber)
-	if err != nil {
+	ctx = netauth.Authorize(ctx, token())
+
+	if err := rpc.GroupCreate(ctx, newGroupName, newGroupDisplayName, newGroupManagedBy, newGroupNumber); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	fmt.Println(result.GetMsg())
+	fmt.Println("Group Created")
 }

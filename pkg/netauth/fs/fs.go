@@ -24,6 +24,10 @@ type fsCache struct {
 	basepath string
 }
 
+func init() {
+	netauth.RegisterTokenCacheFactory("fs", new)
+}
+
 func new() (netauth.TokenCache, error) {
 	c := &fsCache{
 		basepath: os.TempDir(),
@@ -35,7 +39,7 @@ func new() (netauth.TokenCache, error) {
 // The file will be written with the permissions of the curent user
 // and will not be readable to other users.
 func (fc *fsCache) PutToken(owner, token string) error {
-	return ioutil.WriteFile(fc.filepathFromOwner(owner), []byte(token), 0400)
+	return ioutil.WriteFile(fc.filepathFromOwner(owner), []byte(token), 0600)
 }
 
 // GetToken will retrieve a file of the form <owner>.<extension> and

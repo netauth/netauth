@@ -1,6 +1,7 @@
 package ctl
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/user"
@@ -8,17 +9,24 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+
+	"github.com/NetAuth/NetAuth/pkg/netauth"
 )
 
 var (
+	rpc *netauth.Client
+
 	cfg        string
 	rootEntity string
 	secret     string
 
+	ctx context.Context
+
 	rootCmd = &cobra.Command{
-		Use:   "netauth <subsystem> <command> [flags] [args]",
-		Short: "Interact with the NetAuth system.",
-		Long:  rootCmdLongDocs,
+		Use:              "netauth <subsystem> <command> [flags] [args]",
+		Short:            "Interact with the NetAuth system.",
+		Long:             rootCmdLongDocs,
+		PersistentPreRun: initialize,
 	}
 
 	rootCmdLongDocs = `
@@ -71,4 +79,16 @@ func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func initialize(*cobra.Command, []string) {
+	var err error
+	rpc, err = netauth.New()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error during client initialization: %v", err)
+		os.Exit(1)
+	}
+
+	ctx = context.Background()
+	rpc.SetServiceName("netauth")
 }

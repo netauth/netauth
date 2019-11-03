@@ -5,13 +5,10 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 var (
-	entityMembershipsFields    string
-	entityMembershipsIndirects bool
+	entityMembershipsFields string
 
 	entityMembershipsCmd = &cobra.Command{
 		Use:     "memberships <entity>",
@@ -27,11 +24,7 @@ The memberships command returns the memberships held by a particular
 entity.  By default the output will include all attributes set on any
 returned group.  To filter attributes use the --fields command to
 specify a comma seperated list of groups that you wish to return.
-
-The listing will include by default all memberships, including those
-gained by group expansions to other groups.  To suppress group
-indirects use the option --indirect=false.  Exclude expansions are
-processed unconditionally.`
+`
 
 	entityMembershipsExample = `$ netauth entity memberships demo2
 Name: demo-group
@@ -46,18 +39,11 @@ Display Name: Temporary Demo Group
 func init() {
 	entityCmd.AddCommand(entityMembershipsCmd)
 	entityMembershipsCmd.Flags().StringVar(&entityMembershipsFields, "fields", "", "Fields to be displayed")
-	entityMembershipsCmd.Flags().BoolVar(&entityMembershipsIndirects, "indirect", true, "Include indirect memberships")
 }
 
 func entityMembershipsRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 
-	res, err := c.ListGroups(args[0], entityMembershipsIndirects)
+	res, err := rpc.EntityGroups(ctx, args[0])
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

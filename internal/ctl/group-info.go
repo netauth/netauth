@@ -5,8 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-
-	"github.com/NetAuth/NetAuth/pkg/client"
 )
 
 var (
@@ -39,26 +37,21 @@ func init() {
 }
 
 func groupInfoRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 
 	// Obtain group info
-	result, err := c.GroupInfo(args[0])
+	result, sub, err := rpc.GroupInfo(ctx, args[0])
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
 	// Print the fields
-	printGroup(result.GetGroup(), groupInfoFields)
-	if len(result.GetManaged()) > 0 {
-		fmt.Printf("The following group(s) are managed by %s\n", args[0])
-	}
-	for _, gn := range result.GetManaged() {
-		fmt.Printf("  - %s\n", gn)
+	printGroup(result, groupInfoFields)
+
+	if len(sub) > 0 {
+		fmt.Println("The following groups are managed by this group:")
+		for _, g := range sub {
+			fmt.Printf("  - %s\n", g.GetName())
+		}
 	}
 }
