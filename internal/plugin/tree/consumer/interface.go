@@ -4,7 +4,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
+	"github.com/netauth/netauth/internal/plugin/tree/common"
 )
 
 // Ref is a reference to a specific plugin.

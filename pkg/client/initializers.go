@@ -8,9 +8,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 	// Register the token services on import
-	_ "github.com/NetAuth/NetAuth/internal/token/all"
+	_ "github.com/netauth/netauth/internal/token/all"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"

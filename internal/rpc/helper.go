@@ -1,10 +1,10 @@
 package rpc
 
 import (
-	"github.com/NetAuth/NetAuth/internal/crypto"
-	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/token"
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/internal/tree"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -1,4 +1,4 @@
-module github.com/NetAuth/NetAuth
+module github.com/netauth/netauth
 
 go 1.11
 

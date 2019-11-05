@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/NetAuth/NetAuth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth"
 )
 
 const (

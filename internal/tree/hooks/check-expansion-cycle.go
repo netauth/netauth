@@ -3,8 +3,8 @@ package hooks
 import (
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/NetAuth/Protocol"
 )

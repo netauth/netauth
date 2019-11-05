@@ -1,7 +1,7 @@
 package hooks
 
 import (
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/tree"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"

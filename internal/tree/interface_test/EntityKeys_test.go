@@ -3,7 +3,7 @@ package interface_test
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 )
 
 func TestManageEntityKeys(t *testing.T) {

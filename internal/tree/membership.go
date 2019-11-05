@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 
 	pb "github.com/NetAuth/Protocol"
 	rpc "github.com/NetAuth/Protocol/v2"

@@ -3,7 +3,7 @@ package provider
 import (
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
+	"github.com/netauth/netauth/internal/plugin/tree/common"
 )
 
 var handshakeConfig = plugin.HandshakeConfig{

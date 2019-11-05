@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/netauth/netauth/internal/crypto"
 )
 
 func TestEncryptDecrypt(t *testing.T) {

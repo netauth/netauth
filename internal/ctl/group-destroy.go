@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/NetAuth/NetAuth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth"
 )
 
 var (

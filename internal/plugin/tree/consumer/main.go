@@ -8,8 +8,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/NetAuth/NetAuth/internal/health"
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
+	"github.com/netauth/netauth/internal/health"
+	"github.com/netauth/netauth/internal/plugin/tree/common"
 )
 
 var (

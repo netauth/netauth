@@ -1,8 +1,8 @@
 package tree
 
 import (
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/provider"
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
+	"github.com/netauth/netauth/internal/plugin/tree/provider"
+	"github.com/netauth/netauth/internal/plugin/tree/common"
 )
 
 // Plugin is an alias to an internal type that all tree modifying

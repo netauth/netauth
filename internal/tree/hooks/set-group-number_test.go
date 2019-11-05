@@ -5,8 +5,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/db/memdb"
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/db/memdb"
+	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/NetAuth/Protocol"
 )

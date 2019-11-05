@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

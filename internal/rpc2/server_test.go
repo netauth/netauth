@@ -3,11 +3,11 @@ package rpc2
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
-	"github.com/NetAuth/NetAuth/internal/db/memdb"
-	"github.com/NetAuth/NetAuth/internal/token/null"
-	"github.com/NetAuth/NetAuth/internal/tree"
-	_ "github.com/NetAuth/NetAuth/internal/tree/hooks"
+	"github.com/netauth/netauth/internal/crypto/nocrypto"
+	"github.com/netauth/netauth/internal/db/memdb"
+	"github.com/netauth/netauth/internal/token/null"
+	"github.com/netauth/netauth/internal/tree"
+	_ "github.com/netauth/netauth/internal/tree/hooks"
 
 	types "github.com/NetAuth/Protocol"
 )

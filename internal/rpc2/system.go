@@ -3,7 +3,7 @@ package rpc2
 import (
 	"context"
 
-	"github.com/NetAuth/NetAuth/internal/health"
+	"github.com/netauth/netauth/internal/health"
 
 	types "github.com/NetAuth/Protocol"
 	pb "github.com/NetAuth/Protocol/v2"

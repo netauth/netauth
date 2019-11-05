@@ -1,7 +1,7 @@
 package tree
 
 import (
-	"github.com/NetAuth/NetAuth/internal/tree/util"
+	"github.com/netauth/netauth/internal/tree/util"
 )
 
 // PatchKeyValueSlice is a helper function that makes working with

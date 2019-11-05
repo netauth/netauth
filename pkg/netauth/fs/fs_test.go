@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/NetAuth/NetAuth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth"
 )
 
 func TestPutGetDeleteOK(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	"github.com/NetAuth/NetAuth/internal/token/null"
+	"github.com/netauth/netauth/internal/token/null"
 )
 
 var (

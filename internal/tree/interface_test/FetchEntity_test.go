@@ -5,7 +5,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 )
 
 func TestFetchEntity(t *testing.T) {

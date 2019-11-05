@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/pkg/client"
-	"github.com/NetAuth/NetAuth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/client"
+	"github.com/netauth/netauth/pkg/netauth"
 
 	pb "github.com/NetAuth/Protocol"
 )

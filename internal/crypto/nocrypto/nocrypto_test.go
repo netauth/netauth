@@ -3,7 +3,7 @@ package nocrypto
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/netauth/netauth/internal/crypto"
 )
 
 func TestSecureSecret(t *testing.T) {

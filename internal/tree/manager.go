@@ -3,8 +3,8 @@ package tree
 import (
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/db"
 )
 
 // New returns an initialized tree.Manager on to which all other

@@ -11,7 +11,7 @@ import (
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 
 	pb "github.com/NetAuth/Protocol"
 )

@@ -17,9 +17,9 @@ import (
 	"github.com/spf13/viper"
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/db"
-	"github.com/NetAuth/NetAuth/internal/db/util"
-	"github.com/NetAuth/NetAuth/internal/health"
+	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/db/util"
+	"github.com/netauth/netauth/internal/health"
 	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"

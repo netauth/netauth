@@ -5,7 +5,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 )
 
 func TestListMembers(t *testing.T) {

@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 
 	pb "github.com/NetAuth/Protocol"
 )

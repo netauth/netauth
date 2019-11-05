@@ -4,8 +4,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto/nocrypto"
-	"github.com/NetAuth/NetAuth/internal/db/memdb"
+	"github.com/netauth/netauth/internal/crypto/nocrypto"
+	"github.com/netauth/netauth/internal/db/memdb"
 )
 
 func getNewEntityManager(t *testing.T) *Manager {

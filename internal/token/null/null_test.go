@@ -3,7 +3,7 @@ package null
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 )
 
 func TestGenerate(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/netauth/netauth/internal/crypto"
 )
 
 func init() {

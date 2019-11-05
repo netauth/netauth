@@ -5,9 +5,9 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/ctl"
+	"github.com/netauth/netauth/internal/ctl"
 
-	_ "github.com/NetAuth/NetAuth/pkg/netauth/fs"
+	_ "github.com/netauth/netauth/pkg/netauth/fs"
 )
 
 var (

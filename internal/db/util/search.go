@@ -4,7 +4,7 @@ import (
 	"github.com/blevesearch/bleve"
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/db"
 
 	pb "github.com/NetAuth/Protocol"
 )

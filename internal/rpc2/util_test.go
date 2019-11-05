@@ -7,7 +7,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 
 	types "github.com/NetAuth/Protocol"
 )

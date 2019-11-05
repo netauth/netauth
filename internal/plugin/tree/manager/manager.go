@@ -8,9 +8,9 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/common"
-	"github.com/NetAuth/NetAuth/internal/plugin/tree/consumer"
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/plugin/tree/common"
+	"github.com/netauth/netauth/internal/plugin/tree/consumer"
+	"github.com/netauth/netauth/internal/tree"
 )
 
 type hookInserter func(string, string) error

@@ -3,7 +3,7 @@ package null
 import (
 	"encoding/json"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 )
 
 var (

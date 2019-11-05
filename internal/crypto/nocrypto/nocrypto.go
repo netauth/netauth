@@ -4,7 +4,7 @@ package nocrypto
 // IT INTO YOUR LIVE INSTALL!
 
 import (
-	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/netauth/netauth/internal/crypto"
 )
 
 // NoCrypto binds the functions required by the crypto.Engine

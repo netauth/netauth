@@ -3,8 +3,8 @@ package tree
 import (
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
-	"github.com/NetAuth/NetAuth/internal/db"
+	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/db"
 )
 
 // The Manager binds all methods for managing a tree of entities with

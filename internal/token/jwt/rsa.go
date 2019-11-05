@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/NetAuth/NetAuth/internal/health"
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/health"
+	"github.com/netauth/netauth/internal/token"
 
 	"github.com/dgrijalva/jwt-go"
 )

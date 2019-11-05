@@ -9,8 +9,8 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 
-	"github.com/NetAuth/NetAuth/internal/tree/util"
-	"github.com/NetAuth/NetAuth/pkg/plugin/tree"
+	"github.com/netauth/netauth/internal/tree/util"
+	"github.com/netauth/netauth/pkg/plugin/tree"
 
 	pb "github.com/NetAuth/Protocol"
 )

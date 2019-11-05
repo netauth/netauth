@@ -3,7 +3,7 @@ package interface_test
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/crypto"
+	"github.com/netauth/netauth/internal/crypto"
 )
 
 func TestValidateSecret(t *testing.T) {

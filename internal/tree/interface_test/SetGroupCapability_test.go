@@ -3,7 +3,7 @@ package interface_test
 import (
 	"testing"
 
-	"github.com/NetAuth/NetAuth/internal/tree"
+	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/NetAuth/Protocol"
 )

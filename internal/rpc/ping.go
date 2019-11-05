@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/NetAuth/NetAuth/internal/health"
+	"github.com/netauth/netauth/internal/health"
 
 	"github.com/golang/protobuf/proto"
 

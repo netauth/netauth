@@ -11,12 +11,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/NetAuth/NetAuth/internal/token"
+	"github.com/netauth/netauth/internal/token"
 
 	// The default token service is the jwt implementation, and
 	// since its internal, the client needs to import it on behalf
 	// of consumers.
-	_ "github.com/NetAuth/NetAuth/internal/token/jwt"
+	_ "github.com/netauth/netauth/internal/token/jwt"
 
 	rpc "github.com/NetAuth/Protocol/v2"
 )
