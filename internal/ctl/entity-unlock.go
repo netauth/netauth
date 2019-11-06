@@ -11,11 +11,12 @@ import (
 
 var (
 	entityUnlockCmd = &cobra.Command{
-		Use:   "unlock <ID>",
-		Short: "Unlock the entity with the specified ID",
-		Long:  entityUnlockLongDocs,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityUnlockRun,
+		Use:     "unlock <ID>",
+		Short:   "Unlock the entity with the specified ID",
+		Long:    entityUnlockLongDocs,
+		Example: entityUnlockExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityUnlockRun,
 	}
 
 	entityUnlockLongDocs = `

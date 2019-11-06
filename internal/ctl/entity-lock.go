@@ -11,11 +11,12 @@ import (
 
 var (
 	entityLockCmd = &cobra.Command{
-		Use:   "lock <ID>",
-		Short: "Lock the entity with the specified ID",
-		Long:  entityLockLongDocs,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityLockRun,
+		Use:     "lock <ID>",
+		Short:   "Lock the entity with the specified ID",
+		Long:    entityLockLongDocs,
+		Example: entityLockExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityLockRun,
 	}
 
 	entityLockLongDocs = `

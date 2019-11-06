@@ -9,10 +9,11 @@ import (
 
 var (
 	authInspectTokenCmd = &cobra.Command{
-		Use:   "inspect-token",
-		Short: "Inspect a token locally",
-		Long:  authInspectTokenLongDocs,
-		Run:   authInspectTokenRun,
+		Use:     "inspect-token",
+		Short:   "Inspect a token locally",
+		Long:    authInspectTokenLongDocs,
+		Example: authInspectTokenExample,
+		Run:     authInspectTokenRun,
 	}
 
 	authInspectTokenLongDocs = `
@@ -21,7 +22,7 @@ prints the claims held in an encoded token.  Tokens are summoned on
 demand, and this command will trigger an implicit call to get-token if
 no local token is valid or available.  `
 
-	authInspecttokenExample = `$ netauth auth inspect-token
+	authInspectTokenExample = `$ netauth auth inspect-token
 Secret:
 {root [GLOBAL_ROOT] 5}
 

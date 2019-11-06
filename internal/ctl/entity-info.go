@@ -11,11 +11,12 @@ var (
 	entityInfoFields string
 
 	entityInfoCmd = &cobra.Command{
-		Use:   "info <entity>",
-		Short: "Fetch information on an existing entity",
-		Long:  entityInfoLongDocs,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityInfoRun,
+		Use:     "info <entity>",
+		Short:   "Fetch information on an existing entity",
+		Long:    entityInfoLongDocs,
+		Example: entityInfoExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityInfoRun,
 	}
 
 	entityInfoLongDocs = `

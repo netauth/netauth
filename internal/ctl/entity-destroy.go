@@ -11,11 +11,12 @@ import (
 
 var (
 	entityDestroyCmd = &cobra.Command{
-		Use:   "destroy <ID>",
-		Short: "Destroy an existing entity",
-		Long:  entityDestroyLongDocs,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityDestroyRun,
+		Use:     "destroy <ID>",
+		Short:   "Destroy an existing entity",
+		Long:    entityDestroyLongDocs,
+		Example: entityDestroyExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityDestroyRun,
 	}
 
 	entityDestroyLongDocs = `

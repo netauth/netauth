@@ -15,11 +15,12 @@ var (
 	newSecret   string
 
 	entityCreateCmd = &cobra.Command{
-		Use:   "create <ID>",
-		Short: "Create a new entity with the specified ID",
-		Long:  entityCreateLongDocs,
-		Args:  cobra.ExactArgs(1),
-		Run:   entityCreateRun,
+		Use:     "create <ID>",
+		Short:   "Create a new entity with the specified ID",
+		Long:    entityCreateLongDocs,
+		Example: entityCreateExample,
+		Args:    cobra.ExactArgs(1),
+		Run:     entityCreateRun,
 	}
 
 	entityCreateLongDocs = `

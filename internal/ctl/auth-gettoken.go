@@ -8,10 +8,11 @@ import (
 
 var (
 	authGetTokenCmd = &cobra.Command{
-		Use:   "get-token",
-		Short: "Request a new token from the server",
-		Long:  authGetTokenLongDocs,
-		Run:   authGetTokenRun,
+		Use:     "get-token",
+		Short:   "Request a new token from the server",
+		Long:    authGetTokenLongDocs,
+		Run:     authGetTokenRun,
+		Example: authGetTokenExample,
 	}
 
 	authGetTokenLongDocs = `
