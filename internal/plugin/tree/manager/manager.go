@@ -35,7 +35,7 @@ func New() (Manager, error) {
 // LoadPlugins loads all plugins either directly from a dynamic
 // discovery, or from a statically defined list.
 func (m *Manager) LoadPlugins() {
-	list := []string{}
+	var list []string
 	if viper.GetBool("plugin.loadstatic") {
 		list = viper.GetStringSlice("plugin.list")
 	} else {
