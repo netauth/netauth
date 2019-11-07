@@ -9,7 +9,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/netauth/netauth/pkg/client"
 	"github.com/netauth/netauth/pkg/netauth"
 
 	pb "github.com/NetAuth/Protocol"
@@ -29,18 +28,6 @@ func getSecret(prompt string) string {
 		fmt.Printf("Error: %s", err)
 	}
 	return secret
-}
-
-func getToken(c *client.NetAuthClient, entity string) (string, error) {
-	t, err := c.GetToken(entity, "")
-	switch err {
-	case nil:
-		return t, nil
-	case client.ErrTokenUnavailable:
-		return c.GetToken(entity, getSecret(""))
-	default:
-		return "", err
-	}
 }
 
 // token is used exclusively by the CLI to provide tokens either from
