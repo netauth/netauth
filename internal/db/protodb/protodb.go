@@ -386,7 +386,6 @@ func (pdb *ProtoDB) startWatcher() {
 
 	go pdb.w.Start(viper.GetDuration("pdb.watch-interval"))
 	go pdb.doWatch()
-	return
 }
 
 // doWatch is used to fire events if the watcher is enabled.
