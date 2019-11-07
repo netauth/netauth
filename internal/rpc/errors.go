@@ -25,5 +25,5 @@ var (
 
 	// ErrInternalError is a catchall for errors that are
 	// otherwise unidentified and unrecoverable in the server.
-	ErrInternalError = errors.New("An internal error has occurred")
+	ErrInternalError = errors.New("an internal error has occurred")
 )
