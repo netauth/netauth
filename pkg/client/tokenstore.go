@@ -71,11 +71,6 @@ func getTokenStore() (TokenStore, error) {
 	return nil, ErrNoSuchTokenStore
 }
 
-// Exposed functions to store and retrieve the tokens
-func (n *NetAuthClient) storeToken(name, token string) error {
-	return n.tokenStore.StoreToken(name, token)
-}
-
 func (n *NetAuthClient) getTokenFromStore(name string) (string, error) {
 	t, err := n.tokenStore.GetToken(name)
 	if err != nil {
