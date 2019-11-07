@@ -42,12 +42,12 @@ func init() {
 
 func entityMembershipArgs(cmd *cobra.Command, args []string) error {
 	if len(args) != 3 {
-		return fmt.Errorf("This command takes exactly 3 arguments")
+		return fmt.Errorf("this command takes exactly 3 arguments")
 	}
 
 	m := strings.ToUpper(args[1])
 	if m != "ADD" && m != "DROP" {
-		return fmt.Errorf("Mode must be one of ADD or DROP")
+		return fmt.Errorf("mode must be one of ADD or DROP")
 	}
 
 	return nil

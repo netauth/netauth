@@ -90,11 +90,11 @@ func refreshToken() string {
 
 func kvArgs(cmd *cobra.Command, args []string) error {
 	if len(args) < 3 {
-		return fmt.Errorf("This command takes at least 3 arguments")
+		return fmt.Errorf("this command takes at least 3 arguments")
 	}
 	action := strings.ToUpper(args[1])
 	if action == "UPSERT" && len(args) != 4 {
-		return fmt.Errorf("Upsert requires a key and a value")
+		return fmt.Errorf("upsert requires a key and a value")
 	}
 
 	switch action {
@@ -107,7 +107,7 @@ func kvArgs(cmd *cobra.Command, args []string) error {
 	case "READ":
 		return nil
 	default:
-		return fmt.Errorf("Action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, or READ")
+		return fmt.Errorf("action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, or READ")
 	}
 }
 

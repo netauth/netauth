@@ -73,7 +73,7 @@ func init() {
 
 func groupRuleArgs(cmd *cobra.Command, args []string) error {
 	if len(args) != 3 {
-		return fmt.Errorf("This command takes exactly 3 arguments")
+		return fmt.Errorf("this command takes exactly 3 arguments")
 	}
 
 	m := strings.ToUpper(args[1])

@@ -66,7 +66,7 @@ func keyArgs(cmd *cobra.Command, args []string) error {
 	} else if m == "READ" && len(args) > 2 {
 		return fmt.Errorf("READ takes at most one argument")
 	} else if m != "ADD" && m != "DROP" && m != "READ" {
-		return fmt.Errorf("Mode must be one of ADD, DEL, or LIST")
+		return fmt.Errorf("mode must be one of ADD, DEL, or LIST")
 	}
 	return nil
 }
