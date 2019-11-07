@@ -6,8 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/netauth/netauth/pkg/client"
 )
 
 var (
@@ -34,15 +32,8 @@ func init() {
 }
 
 func authDestroyTokenRun(cmd *cobra.Command, args []string) {
-	// Grab a client
-	c, err := client.New()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	// Destroy the token
-	if err := c.DestroyToken(viper.GetString("entity")); err != nil {
+	if err := rpc.DelToken(viper.GetString("entity")); err != nil {
 		fmt.Printf("Error during token destruction: %s\n", err)
 		os.Exit(1)
 	}
