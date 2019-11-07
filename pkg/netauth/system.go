@@ -28,7 +28,7 @@ func (c *Client) SystemCapabilities(ctx context.Context, target, action, capabil
 
 	a, ok := rpc.Action_value[action]
 	if !ok {
-		return errors.New("Action must be one of ADD, DROP")
+		return errors.New("action must be one of ADD, DROP")
 	}
 
 	r := rpc.CapabilityRequest{

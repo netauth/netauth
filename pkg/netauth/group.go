@@ -92,7 +92,7 @@ func (c *Client) GroupUM(ctx context.Context, target, action, key, value string)
 	action = strings.ToUpper(action)
 	a, ok := rpc.Action_value[action]
 	if !ok {
-		return nil, errors.New("Action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, READ")
+		return nil, errors.New("action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, READ")
 	}
 
 	r := rpc.KVRequest{
@@ -140,7 +140,7 @@ func (c *Client) GroupUpdateRules(ctx context.Context, group, action, target str
 
 	a, ok := rpc.RuleAction_value[action]
 	if !ok {
-		return errors.New("Action must be one of INCLUDE, EXCLUDE, OR REMOVE_RULE")
+		return errors.New("action must be one of INCLUDE, EXCLUDE, OR REMOVE_RULE")
 	}
 
 	r := rpc.GroupRulesRequest{

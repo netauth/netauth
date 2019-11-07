@@ -98,7 +98,7 @@ func (c *Client) EntityUM(ctx context.Context, target, action, key, value string
 	action = strings.ToUpper(action)
 	a, ok := rpc.Action_value[action]
 	if !ok {
-		return nil, errors.New("Action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, READ")
+		return nil, errors.New("action must be one of UPSERT, CLEARFUZZY, CLEAREXACT, READ")
 	}
 
 	r := rpc.KVRequest{
@@ -142,7 +142,7 @@ func (c *Client) EntityKeys(ctx context.Context, id, action, ktype, key string) 
 	action = strings.ToUpper(action)
 	a, ok := rpc.Action_value[action]
 	if !ok {
-		return nil, errors.New("Action must be one of ADD, DROP, READ")
+		return nil, errors.New("action must be one of ADD, DROP, READ")
 	}
 
 	r := rpc.KVRequest{
