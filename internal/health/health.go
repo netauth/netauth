@@ -109,7 +109,6 @@ func RegisterCheck(name string, check SubsystemCheck) {
 		return
 	}
 	checks[name] = check
-	return
 }
 
 // Check runs all the health checks and returns the aggregate status

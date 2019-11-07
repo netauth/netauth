@@ -1,7 +1,6 @@
 package health
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/golang/protobuf/proto"
@@ -87,7 +86,7 @@ func TestSubsystemStatusString(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if fmt.Sprintf("%s", c.status) != c.text {
+		if c.status.String() != c.text {
 			t.Errorf("%d: Got %s Want %s", i, c.status, c.text)
 		}
 	}
@@ -151,7 +150,7 @@ func TestSystemStatusString(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if fmt.Sprintf("%s", c.status) != c.text {
+		if c.status.String() != c.text {
 			t.Errorf("%d: Got %s Want %s", i, c.status, c.text)
 		}
 	}
