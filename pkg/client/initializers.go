@@ -22,7 +22,7 @@ import (
 var (
 	// ErrConfigError is returned when the configuration was
 	// loaded but was missing required values.
-	ErrConfigError = errors.New("Required configuration values are missing")
+	ErrConfigError = errors.New("required configuration values are missing")
 )
 
 func init() {
