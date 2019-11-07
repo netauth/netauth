@@ -139,10 +139,11 @@ func TestSearchEntities(t *testing.T) {
 		}
 	}
 
-	res, err := x.SearchEntities(db.SearchRequest{})
+	_, err = x.SearchEntities(db.SearchRequest{})
 	if err != db.ErrBadSearch {
 		t.Fatal(err)
 	}
+	var res []*pb.Entity
 	res, err = x.SearchEntities(db.SearchRequest{Expression: "entity1"})
 	if err != nil {
 		t.Fatal(err)
@@ -304,10 +305,11 @@ func TestSearchGroups(t *testing.T) {
 		}
 	}
 
-	res, err := x.SearchGroups(db.SearchRequest{})
+	_, err = x.SearchGroups(db.SearchRequest{})
 	if err != db.ErrBadSearch {
 		t.Fatal(err)
 	}
+	var res []*pb.Group
 	res, err = x.SearchGroups(db.SearchRequest{Expression: "group1"})
 	if err != nil {
 		t.Fatal(err)
