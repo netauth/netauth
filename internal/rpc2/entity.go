@@ -103,15 +103,6 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 		)
 		return &pb.Empty{}, ErrDoesNotExist
 
-	default:
-		s.log.Warn("Error Updating Entity",
-			"entity", de.GetID(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", de.GetID(),
@@ -121,6 +112,15 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", de.GetID(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -138,6 +138,13 @@ func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListO
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfEntities{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Dumped Entity Info",
+			"entity", e.GetID(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.ListOfEntities{Entities: []*types.Entity{ent}}, nil
 	default:
 		s.log.Warn("Error fetching entity",
 			"entity", e.GetID(),
@@ -146,13 +153,6 @@ func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListO
 			"error", err,
 		)
 		return &pb.ListOfEntities{}, ErrInternal
-	case nil:
-		s.log.Info("Dumped Entity Info",
-			"entity", e.GetID(),
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-		)
-		return &pb.ListOfEntities{Entities: []*types.Entity{ent}}, nil
 	}
 }
 
@@ -218,7 +218,14 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
-
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.ListOfStrings{Strings: meta}, nil
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
@@ -228,14 +235,6 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
-	case nil:
-		s.log.Info("Entity Updated",
-			"entity", r.GetTarget(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-		)
-		return &pb.ListOfStrings{Strings: meta}, nil
 	}
 }
 
@@ -281,7 +280,14 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
-
+	case nil:
+		s.log.Info("Entity Updated",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.ListOfStrings{Strings: keys}, nil
 	default:
 		s.log.Warn("Error Updating Entity",
 			"entity", r.GetTarget(),
@@ -291,14 +297,6 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
-	case nil:
-		s.log.Info("Entity Updated",
-			"entity", r.GetTarget(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-		)
-		return &pb.ListOfStrings{Strings: keys}, nil
 	}
 }
 
@@ -336,16 +334,6 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
-
-	default:
-		s.log.Warn("Error Updating Entity",
-			"entity", e.GetID(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Entity Updated",
 			"entity", e.GetID(),
@@ -355,6 +343,15 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", e.GetID(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -390,16 +387,6 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
-
-	default:
-		s.log.Warn("Error Locking Entity",
-			"entity", e.GetID(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Entity Locked",
 			"entity", e.GetID(),
@@ -409,6 +396,15 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Locking Entity",
+			"entity", e.GetID(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -444,16 +440,6 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
-
-	default:
-		s.log.Warn("Error Unlocking Entity",
-			"entity", e.GetID(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Entity Unlocked",
 			"entity", e.GetID(),
@@ -463,6 +449,15 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Unlocking Entity",
+			"entity", e.GetID(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -480,7 +475,8 @@ func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.Lis
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfGroups{}, ErrDoesNotExist
-
+	case nil:
+		break
 	default:
 		s.log.Warn("Error getting groups for entity",
 			"entity", e.GetID(),
@@ -489,8 +485,6 @@ func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.Lis
 			"error", err,
 		)
 		return &pb.ListOfGroups{}, ErrInternal
-	case nil:
-		break
 	}
 
 	// Summoning memberhips without indirects is confusing, not

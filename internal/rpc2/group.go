@@ -197,7 +197,14 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfStrings{}, ErrDoesNotExist
-
+	case nil:
+		s.log.Info("Group Updated",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.ListOfStrings{Strings: meta}, nil
 	default:
 		s.log.Warn("Error Updating Group",
 			"group", r.GetTarget(),
@@ -207,14 +214,6 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 			"error", err,
 		)
 		return &pb.ListOfStrings{}, ErrInternal
-	case nil:
-		s.log.Info("Group Updated",
-			"group", r.GetTarget(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-		)
-		return &pb.ListOfStrings{Strings: meta}, nil
 	}
 }
 
@@ -250,16 +249,6 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
-
-	default:
-		s.log.Warn("Error Updating Group",
-			"group", g.GetName(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
@@ -269,6 +258,15 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", g.GetName(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -396,16 +394,6 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
-
-	default:
-		s.log.Warn("Error Updating Group",
-			"group", g.GetName(),
-			"authority", getTokenClaims(ctx).EntityID,
-			"service", getServiceName(ctx),
-			"client", getClientName(ctx),
-			"error", err,
-		)
-		return &pb.Empty{}, ErrInternal
 	case nil:
 		s.log.Info("Group Updated",
 			"group", g.GetName(),
@@ -415,6 +403,15 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 			"error", err,
 		)
 		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", g.GetName(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
 	}
 }
 
@@ -433,6 +430,8 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 			"client", getClientName(ctx),
 		)
 		return &pb.ListOfEntities{}, ErrDoesNotExist
+	case nil:
+		return &pb.ListOfEntities{Entities: members}, nil
 	default:
 		s.log.Warn("Error Fetching Membership Group",
 			"group", g.GetName(),
@@ -441,8 +440,6 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 			"error", err,
 		)
 		return &pb.ListOfEntities{}, ErrInternal
-	case nil:
-		return &pb.ListOfEntities{Entities: members}, nil
 	}
 }
 
