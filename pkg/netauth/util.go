@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	kvIndexRegexp = regexp.MustCompile("\\{(\\d+)\\}")
+	kvIndexRegexp = regexp.MustCompile(`{(\d+)}$`)
 )
 
 // Authorize attaches a token to a provided context, returning a new
