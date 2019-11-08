@@ -146,9 +146,3 @@ func goodGroupConstructor2(_ RefContext) (GroupHook, error) {
 func badGroupConstructor(_ RefContext) (GroupHook, error) {
 	return nil, errors.New("initialization error")
 }
-
-type errorGroupHook struct{}
-
-func (*errorGroupHook) Name() string             { return "error-hook" }
-func (*errorGroupHook) Priority() int            { return 50 }
-func (*errorGroupHook) Run(_, _ *pb.Group) error { return errors.New("an Error") }

@@ -146,9 +146,3 @@ func goodEntityConstructor2(_ RefContext) (EntityHook, error) {
 func badEntityConstructor(_ RefContext) (EntityHook, error) {
 	return nil, errors.New("initialization error")
 }
-
-type errorEntityHook struct{}
-
-func (*errorEntityHook) Name() string              { return "error-hook" }
-func (*errorEntityHook) Priority() int             { return 50 }
-func (*errorEntityHook) Run(_, _ *pb.Entity) error { return errors.New("an Error") }
