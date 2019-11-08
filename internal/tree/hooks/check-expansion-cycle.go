@@ -59,7 +59,9 @@ func (cec *CheckExpansionCycles) checkGroupCycles(g *pb.Group, candidate string)
 			// tree.
 			return true
 		}
-		return cec.checkGroupCycles(ng, candidate)
+		if r := cec.checkGroupCycles(ng, candidate); r {
+			return r
+		}
 	}
 	return false
 }
