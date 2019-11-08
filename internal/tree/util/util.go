@@ -9,6 +9,10 @@ import (
 	pb "github.com/NetAuth/Protocol"
 )
 
+var (
+	kvIndexRegexp = regexp.MustCompile(`{\d+}`)
+)
+
 // PatchStringSlice patches a string into or out of a slice of other
 // strings.  It also ensures that the strings are unique within the
 // slice.  When insert is false, the action of the function is to
@@ -70,11 +74,10 @@ func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 		// Iterate over the keys, performing matching after
 		// discarding the pattern {\d+}$ to permit OpenLDAP
 		// style Z-Ordering of values.
-		re := regexp.MustCompile("{\\d+}$")
-		strippedK := re.ReplaceAllString(key, "")
+		strippedK := kvIndexRegexp.ReplaceAllString(key, "")
 		for _, kv := range slice {
 			parts := strings.Split(kv, ":")
-			if re.ReplaceAllString(parts[0], "") != strippedK {
+			if kvIndexRegexp.ReplaceAllString(parts[0], "") != strippedK {
 				newSlice = append(newSlice, kv)
 			}
 		}
@@ -107,11 +110,10 @@ func PatchKeyValueSlice(slice []string, mode, key, value string) []string {
 		// Iterate over the keys, performing matching after
 		// discarding the pattern {\d+}$ to permit OpenLDAP
 		// style Z-Ordering of values.
-		re := regexp.MustCompile("{\\d+}$")
-		strippedK := re.ReplaceAllString(key, "")
+		strippedK := kvIndexRegexp.ReplaceAllString(key, "")
 		for _, kv := range slice {
 			parts := strings.Split(kv, ":")
-			if re.ReplaceAllString(parts[0], "") == strippedK {
+			if kvIndexRegexp.ReplaceAllString(parts[0], "") == strippedK {
 				out = append(out, kv)
 			}
 		}
