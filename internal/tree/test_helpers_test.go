@@ -3,28 +3,7 @@ package tree
 import (
 	"sort"
 	"testing"
-
-	"github.com/netauth/netauth/internal/crypto/nocrypto"
-	"github.com/netauth/netauth/internal/db/memdb"
 )
-
-func getNewEntityManager(t *testing.T) *Manager {
-	db, err := memdb.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	crypto, err := nocrypto.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	m, err := New(db, crypto)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return m
-}
 
 func slicesAreEqual(left, right []string) bool {
 	if len(left) != len(right) {
