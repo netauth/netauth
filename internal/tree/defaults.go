@@ -2,21 +2,21 @@ package tree
 
 var (
 	defaultEntityChains = map[string][]string{
-		"CREATE": []string{
+		"CREATE": {
 			"fail-on-existing-entity",
 			"set-entity-id",
 			"set-entity-number",
 			"set-entity-secret",
 			"save-entity",
 		},
-		"DESTROY": []string{
+		"DESTROY": {
 			"load-entity",
 			"destroy-entity",
 		},
-		"FETCH": []string{
+		"FETCH": {
 			"load-entity",
 		},
-		"BOOTSTRAP-SERVER": []string{
+		"BOOTSTRAP-SERVER": {
 			"create-entity-if-missing",
 			"ensure-entity-meta",
 			"unlock-entity",
@@ -24,84 +24,84 @@ var (
 			"set-entity-capability",
 			"save-entity",
 		},
-		"SET-SECRET": []string{
+		"SET-SECRET": {
 			"load-entity",
 			"set-entity-secret",
 			"save-entity",
 		},
-		"SET-CAPABILITY": []string{
+		"SET-CAPABILITY": {
 			"load-entity",
 			"ensure-entity-meta",
 			"set-entity-capability",
 			"save-entity",
 		},
-		"DROP-CAPABILITY": []string{
+		"DROP-CAPABILITY": {
 			"load-entity",
 			"ensure-entity-meta",
 			"remove-entity-capability",
 			"save-entity",
 		},
-		"ADD-KEY": []string{
+		"ADD-KEY": {
 			"load-entity",
 			"ensure-entity-meta",
 			"add-entity-key",
 			"save-entity",
 		},
-		"DEL-KEY": []string{
+		"DEL-KEY": {
 			"load-entity",
 			"ensure-entity-meta",
 			"del-entity-key",
 			"save-entity",
 		},
-		"VALIDATE-IDENTITY": []string{
+		"VALIDATE-IDENTITY": {
 			"load-entity",
 			"validate-entity-unlocked",
 			"validate-entity-secret",
 			"save-entity",
 		},
-		"MERGE-METADATA": []string{
+		"MERGE-METADATA": {
 			"load-entity",
 			"ensure-entity-meta",
 			"merge-entity-meta",
 			"save-entity",
 		},
-		"LOCK": []string{
+		"LOCK": {
 			"load-entity",
 			"ensure-entity-meta",
 			"lock-entity",
 			"save-entity",
 		},
-		"UNLOCK": []string{
+		"UNLOCK": {
 			"load-entity",
 			"ensure-entity-meta",
 			"unlock-entity",
 			"save-entity",
 		},
-		"UEM-UPSERT": []string{
+		"UEM-UPSERT": {
 			"load-entity",
 			"ensure-entity-meta",
 			"add-untyped-metadata",
 			"save-entity",
 		},
-		"UEM-CLEARFUZZY": []string{
+		"UEM-CLEARFUZZY": {
 			"load-entity",
 			"ensure-entity-meta",
 			"del-untyped-metadata-fuzzy",
 			"save-entity",
 		},
-		"UEM-CLEAREXACT": []string{
+		"UEM-CLEAREXACT": {
 			"load-entity",
 			"ensure-entity-meta",
 			"del-untyped-metadata-exact",
 			"save-entity",
 		},
-		"GROUP-ADD": []string{
+		"GROUP-ADD": {
 			"load-entity",
 			"ensure-entity-meta",
 			"add-direct-group",
 			"save-entity",
 		},
-		"GROUP-DEL": []string{
+		"GROUP-DEL": {
 			"load-entity",
 			"ensure-entity-meta",
 			"del-direct-group",
@@ -110,7 +110,7 @@ var (
 	}
 
 	defaultGroupChains = map[string][]string{
-		"CREATE": []string{
+		"CREATE": {
 			"fail-on-existing-group",
 			"set-group-name",
 			"set-managing-group",
@@ -118,44 +118,44 @@ var (
 			"set-group-number",
 			"save-group",
 		},
-		"DESTROY": []string{
+		"DESTROY": {
 			"load-group",
 			"destroy-group",
 		},
-		"FETCH": []string{
+		"FETCH": {
 			"load-group",
 		},
-		"MERGE-METADATA": []string{
+		"MERGE-METADATA": {
 			"load-group",
 			"merge-group-meta",
 			"save-group",
 		},
-		"SET-CAPABILITY": []string{
+		"SET-CAPABILITY": {
 			"load-group",
 			"set-group-capability",
 			"save-group",
 		},
-		"DROP-CAPABILITY": []string{
+		"DROP-CAPABILITY": {
 			"load-group",
 			"remove-group-capability",
 			"save-group",
 		},
-		"UGM-UPSERT": []string{
+		"UGM-UPSERT": {
 			"load-group",
 			"add-untyped-metadata",
 			"save-group",
 		},
-		"UGM-CLEARFUZZY": []string{
+		"UGM-CLEARFUZZY": {
 			"load-group",
 			"del-untyped-metadata-fuzzy",
 			"save-group",
 		},
-		"UGM-CLEAREXACT": []string{
+		"UGM-CLEAREXACT": {
 			"load-group",
 			"del-untyped-metadata-exact",
 			"save-group",
 		},
-		"MODIFY-EXPANSIONS": []string{
+		"MODIFY-EXPANSIONS": {
 			"load-group",
 			"check-immediate-expansions",
 			"check-expansion-cycles",

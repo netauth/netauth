@@ -58,7 +58,7 @@ func NewIndex() *SearchIndex {
 	return &SearchIndex{
 		eIndex: eIndex,
 		gIndex: gIndex,
-		l: hclog.L().Named("blevesearch"),
+		l:      hclog.L().Named("blevesearch"),
 	}
 }
 

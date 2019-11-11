@@ -55,7 +55,7 @@ func TestGCInitializeChainsOK(t *testing.T) {
 	em.InitializeGroupHooks()
 
 	c := map[string][]string{
-		"TEST": []string{"null-hook", "null-hook2"},
+		"TEST": {"null-hook", "null-hook2"},
 	}
 
 	if err := em.InitializeGroupChains(c); err != nil {
@@ -75,7 +75,7 @@ func TestGCInitializeBadHook(t *testing.T) {
 	em.InitializeGroupHooks()
 
 	c := map[string][]string{
-		"TEST": []string{"unknown-hook"},
+		"TEST": {"unknown-hook"},
 	}
 
 	if err := em.InitializeGroupChains(c); err != ErrUnknownHook {

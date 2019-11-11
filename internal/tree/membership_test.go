@@ -10,11 +10,11 @@ import (
 
 func TestDedupEntityList(t *testing.T) {
 	eList := []*pb.Entity{
-		&pb.Entity{ID: proto.String("entity1")},
-		&pb.Entity{ID: proto.String("entity2")},
-		&pb.Entity{ID: proto.String("entity1")},
-		&pb.Entity{ID: proto.String("entity3")},
-		&pb.Entity{ID: proto.String("entity4")},
+		{ID: proto.String("entity1")},
+		{ID: proto.String("entity2")},
+		{ID: proto.String("entity1")},
+		{ID: proto.String("entity3")},
+		{ID: proto.String("entity4")},
 	}
 
 	list := dedupEntityList(eList)
@@ -26,16 +26,16 @@ func TestDedupEntityList(t *testing.T) {
 
 func TestEntityListDifference(t *testing.T) {
 	list1 := []*pb.Entity{
-		&pb.Entity{ID: proto.String("entity1")},
-		&pb.Entity{ID: proto.String("entity2")},
-		&pb.Entity{ID: proto.String("entity3")},
-		&pb.Entity{ID: proto.String("entity4")},
+		{ID: proto.String("entity1")},
+		{ID: proto.String("entity2")},
+		{ID: proto.String("entity3")},
+		{ID: proto.String("entity4")},
 	}
 
 	list2 := []*pb.Entity{
-		&pb.Entity{ID: proto.String("entity1")},
-		&pb.Entity{ID: proto.String("entity2")},
-		&pb.Entity{ID: proto.String("entity4")},
+		{ID: proto.String("entity1")},
+		{ID: proto.String("entity2")},
+		{ID: proto.String("entity4")},
 	}
 
 	result := entityListDifference(list1, list2)

@@ -1,9 +1,9 @@
 package hooks
 
 import (
+	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"
-	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )

@@ -113,7 +113,7 @@ type GoPluginClient struct {
 
 // GoPluginRPC is a binding only type that's used to provide the
 // interface required by go-plugin.
-type GoPluginRPC struct{
+type GoPluginRPC struct {
 	Mux pluginMux
 }
 
@@ -143,6 +143,6 @@ type pluginMux interface {
 
 // GoPluginServer implements the net/rpc server that GoPluginRPC
 // talks to.
-type GoPluginServer struct{
+type GoPluginServer struct {
 	Mux pluginMux
 }

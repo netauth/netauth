@@ -7,7 +7,7 @@ import (
 // NullPlugin represents a plugin with no behavior at all.  The intent
 // is that it can be embedded into real plugins to stub out the
 // functions that the plugin does not wish to implement.
-type NullPlugin struct {}
+type NullPlugin struct{}
 
 // EntityCreate is called after an entity has been fully created, but
 // before the entity has been written to disk.  This hook is an

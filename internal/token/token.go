@@ -3,8 +3,8 @@ package token
 import (
 	"time"
 
-	"github.com/spf13/viper"
 	"github.com/hashicorp/go-hclog"
+	"github.com/spf13/viper"
 )
 
 // A Factory returns a token service when called.
@@ -29,7 +29,7 @@ type Config struct {
 
 var (
 	services map[string]Factory
-	logger = hclog.L().Named("token")
+	logger   = hclog.L().Named("token")
 )
 
 func init() {

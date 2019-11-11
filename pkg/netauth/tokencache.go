@@ -24,7 +24,7 @@ type TokenCacheFactory func() (TokenCache, error)
 // RegisterTokenCacheFactory can be used by token caches on import to
 // register themselves.  Names must be unique.
 func RegisterTokenCacheFactory(name string, f TokenCacheFactory) {
-	if _, ok := tokenCacheFactories[name] ; ok {
+	if _, ok := tokenCacheFactories[name]; ok {
 		// A cache already exists, cowardly refusing to
 		// overwrite it...
 		return

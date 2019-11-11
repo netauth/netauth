@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/viper"
 	"github.com/hashicorp/go-hclog"
+	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/internal/health"
 	"github.com/netauth/netauth/internal/token"

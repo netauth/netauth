@@ -8,10 +8,10 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"github.com/hashicorp/go-hclog"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -25,7 +25,7 @@ type NetAuthClient struct {
 	tokenStore   TokenStore
 	tokenService token.Service
 	readonly     bool
-	log hclog.Logger
+	log          hclog.Logger
 }
 
 // Ping very simply pings the server.  The reply will contain the

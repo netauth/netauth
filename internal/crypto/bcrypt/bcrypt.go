@@ -1,10 +1,10 @@
 package bcrypt
 
 import (
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
-	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto"
 )
@@ -20,7 +20,7 @@ func init() {
 // per-site basis.
 type Engine struct {
 	cost int
-	l hclog.Logger
+	l    hclog.Logger
 }
 
 // New registers this crypto type for use by the NetAuth server.

@@ -12,9 +12,9 @@ import (
 	// Register the token services on import
 	_ "github.com/netauth/netauth/internal/token/all"
 
+	"github.com/hashicorp/go-hclog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"github.com/hashicorp/go-hclog"
 
 	pb "github.com/NetAuth/Protocol"
 )
@@ -72,7 +72,7 @@ func New() (*NetAuthClient, error) {
 		tokenStore:   t,
 		tokenService: ts,
 		readonly:     viper.GetString("core.server") != viper.GetString("core.master"),
-		log: log,
+		log:          log,
 	}
 
 	return &client, nil

@@ -55,7 +55,7 @@ func TestECInitializeChainsOK(t *testing.T) {
 	em.InitializeEntityHooks()
 
 	c := map[string][]string{
-		"TEST": []string{"null-hook", "null-hook2"},
+		"TEST": {"null-hook", "null-hook2"},
 	}
 
 	if err := em.InitializeEntityChains(c); err != nil {
@@ -75,7 +75,7 @@ func TestECInitializeBadHook(t *testing.T) {
 	em.InitializeEntityHooks()
 
 	c := map[string][]string{
-		"TEST": []string{"unknown-hook"},
+		"TEST": {"unknown-hook"},
 	}
 
 	if err := em.InitializeEntityChains(c); err != ErrUnknownHook {

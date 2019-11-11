@@ -4,8 +4,8 @@ import (
 	"context"
 	"strings"
 
-	"github.com/netauth/netauth/internal/token"
 	"github.com/golang/protobuf/proto"
+	"github.com/netauth/netauth/internal/token"
 	"github.com/spf13/viper"
 
 	pb "github.com/NetAuth/Protocol"

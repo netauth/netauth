@@ -9,7 +9,7 @@ import (
 // Server returns a go-plugin compliant interface that handles the
 // provider side of the interface.
 func (p *GoPluginRPC) Server(*plugin.MuxBroker) (interface{}, error) {
-	return &GoPluginServer{Mux:p.Mux}, nil
+	return &GoPluginServer{Mux: p.Mux}, nil
 }
 
 // Client returns a go-plugin compliant interface that handles the

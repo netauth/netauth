@@ -13,14 +13,14 @@ import (
 	"strings"
 
 	atomic "github.com/google/renameio"
+	"github.com/hashicorp/go-hclog"
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
-	"github.com/hashicorp/go-hclog"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/util"
 	"github.com/netauth/netauth/internal/health"
-	"github.com/golang/protobuf/proto"
 
 	pb "github.com/NetAuth/Protocol"
 )

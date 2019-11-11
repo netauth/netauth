@@ -92,20 +92,20 @@ func TestStringMatcher(t *testing.T) {
 }
 
 func TestDedupCapabilitySlice(t *testing.T) {
-	cases := []struct{
-		in []pb.Capability
+	cases := []struct {
+		in   []pb.Capability
 		want []pb.Capability
 	}{
 		{
-			in: []pb.Capability{},
+			in:   []pb.Capability{},
 			want: []pb.Capability{},
 		},
 		{
-			in: []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_CREATE_ENTITY},
+			in:   []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_CREATE_ENTITY},
 			want: []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_CREATE_ENTITY},
 		},
 		{
-			in: []pb.Capability{pb.Capability_GLOBAL_ROOT,pb.Capability_GLOBAL_ROOT},
+			in:   []pb.Capability{pb.Capability_GLOBAL_ROOT, pb.Capability_GLOBAL_ROOT},
 			want: []pb.Capability{pb.Capability_GLOBAL_ROOT},
 		},
 	}
@@ -117,7 +117,6 @@ func TestDedupCapabilitySlice(t *testing.T) {
 		}
 	}
 }
-
 
 func capSlicesAreEqual(left, right []pb.Capability) bool {
 	if len(left) != len(right) {

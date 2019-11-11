@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/netauth/netauth/internal/tree/util"
 	"github.com/golang/protobuf/proto"
+	"github.com/netauth/netauth/internal/tree/util"
 
 	pb "github.com/NetAuth/Protocol"
 )

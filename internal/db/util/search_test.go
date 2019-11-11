@@ -135,7 +135,7 @@ func TestSearchEntities(t *testing.T) {
 	si := NewIndex()
 
 	entities := []pb.Entity{
-		pb.Entity{
+		{
 			ID:     proto.String("entity1"),
 			Secret: proto.String("secret"),
 			Meta: &pb.EntityMeta{
@@ -143,7 +143,7 @@ func TestSearchEntities(t *testing.T) {
 				Shell: proto.String("/bin/korn"),
 			},
 		},
-		pb.Entity{
+		{
 			ID:     proto.String("entity2"),
 			Secret: proto.String("secret"),
 			Meta: &pb.EntityMeta{
@@ -151,7 +151,7 @@ func TestSearchEntities(t *testing.T) {
 				Shell: proto.String("/bin/fish"),
 			},
 		},
-		pb.Entity{
+		{
 			ID:     proto.String("entity3"),
 			Secret: proto.String("secret"),
 			Meta: &pb.EntityMeta{
@@ -216,17 +216,17 @@ func TestSearchGroups(t *testing.T) {
 	si := NewIndex()
 
 	groups := []pb.Group{
-		pb.Group{
+		{
 			Name:        proto.String("group1"),
 			DisplayName: proto.String("The First Group"),
 			UntypedMeta: []string{"UEM:UEM"},
 		},
-		pb.Group{
+		{
 			Name:        proto.String("group2"),
 			DisplayName: proto.String("The Second Group"),
 			UntypedMeta: []string{"UEM:UEM"},
 		},
-		pb.Group{
+		{
 			Name:        proto.String("group3"),
 			DisplayName: proto.String("This won't match"),
 			UntypedMeta: []string{"UEM:UEM"},
