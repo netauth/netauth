@@ -47,7 +47,6 @@ func token() string {
 	default:
 		return ""
 	}
-	return ""
 }
 
 // tokenIsExpired checks if a token is no longer valid.  Technically
