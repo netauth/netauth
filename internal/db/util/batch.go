@@ -21,7 +21,7 @@ func LoadEntityBatch(ids []string, l loadEntityFunc) ([]*pb.Entity, error) {
 }
 
 // LoadGroupBatch functions identically to LoadEntityBatch, with
-// apropriate substitutions made for groups.
+// appropriate substitutions made for groups.
 func LoadGroupBatch(ids []string, l loadGroupFunc) ([]*pb.Group, error) {
 	gSlice := []*pb.Group{}
 

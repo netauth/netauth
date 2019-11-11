@@ -36,7 +36,7 @@ number will be chosen as the next unassigned number, and the secret
 will be prompted for.  To create an entity with an unset secret,
 specify the empty string as the initial secret.
 
-The caller must posess the CREATE_ENTITY capability or be a
+The caller must possess the CREATE_ENTITY capability or be a
 GLOBAL_ROOT operator for this command to succeed.`
 
 	entityCreateExample = `$ netauth entity create demo

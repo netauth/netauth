@@ -22,7 +22,7 @@ var (
 	groupInfoLongDocs = `
 The info command retursn information on any group known to the server.
 The output may be filtered with the --fields option which takes a
-comma seperated list of field names to display.`
+comma separated list of field names to display.`
 
 	groupInfoExample = `$ netauth group info example-group
 Name: example-group

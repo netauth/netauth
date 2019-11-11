@@ -158,7 +158,7 @@ func (c *Client) GroupUpdateRules(ctx context.Context, group, action, target str
 
 // GroupAddMember adds a member to a group.  Keep in mind that not all
 // systems hooking into NetAuth perform synchronous lookups, so
-// membership changes may take some time to propogate.
+// membership changes may take some time to propagate.
 func (c *Client) GroupAddMember(ctx context.Context, group, entity string) error {
 	if err := c.makeWritable(); err != nil {
 		return err
@@ -179,7 +179,7 @@ func (c *Client) GroupAddMember(ctx context.Context, group, entity string) error
 
 // GroupDelMember removes a member from a group.  Keep in mind that
 // not all systems hooking into NetAuth perform synchronous lookups,
-// so membership changes may take some time to propogate.
+// so membership changes may take some time to propagate.
 func (c *Client) GroupDelMember(ctx context.Context, group, entity string) error {
 	if err := c.makeWritable(); err != nil {
 		return err

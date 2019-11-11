@@ -45,7 +45,7 @@ description of each capability follows:
   MODIFY_ENTITY_KEYS - Allows modification of entity public keys.
     Entities are able to change their own keys without this capability.
 
-  CHANGE_ENTITY_SECRET - Allows modification of entity secrest.
+  CHANGE_ENTITY_SECRET - Allows modification of entity secrets.
     Entities are able to change their own secrets without this
     capability.
 

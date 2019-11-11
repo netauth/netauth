@@ -22,7 +22,7 @@ var (
 	entityInfoLongDocs = `
 The info command can return information on any entity known to the
 server.  The output may be filtered with the --fields option which
-takes a comma seperated list of field names to display.  `
+takes a comma separated list of field names to display.  `
 
 	entityInfoExample = `$ netauth entity info demo2
 ID: demo2

@@ -28,7 +28,7 @@ Referential integrity is not checked before deletion.  You are
 strongly encouraged to empty groups before deleting them as well as
 remove any expansions that target the group to be deleted.
 
-The caller must posess the DESTROY_GROUP capability or be a
+The caller must possess the DESTROY_GROUP capability or be a
 GLOBAL_ROOT operator for this command to succeed.
 `
 

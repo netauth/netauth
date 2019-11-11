@@ -28,7 +28,7 @@ func NextEntityNumber(l loadEntityFunc, ids entityIDsFunc) (int32, error) {
 	return largest + 1, nil
 }
 
-// NextGroupNumber computes the enxt available group number and
+// NextGroupNumber computes the next available group number and
 // returns it.
 func NextGroupNumber(lf loadGroupFunc, names groupNamesFunc) (int32, error) {
 	var largest int32

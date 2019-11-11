@@ -48,7 +48,7 @@ type RefContext struct {
 
 // The ChainConfig type maps from chain name to a list of hooks that
 // should be in this chain.  The same type is used for entities and
-// groups, but as these each have seperate chains, different configs
+// groups, but as these each have separate chains, different configs
 // must be created and loaded for each.
 type ChainConfig map[string][]string
 

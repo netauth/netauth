@@ -257,7 +257,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 	err := os.Remove(filepath.Join(pdb.dataRoot, groupSubdir, fmt.Sprintf("%s.dat", name)))
 
 	if os.IsNotExist(err) {
-		pdb.l.Warn("Attempt to remove non-existant group", "group", name)
+		pdb.l.Warn("Attempt to remove non-existent group", "group", name)
 		return db.ErrUnknownGroup
 	} else if err != nil {
 		pdb.l.Error("Error deleting gruop", "group", name, "error", err)
@@ -398,7 +398,7 @@ func (pdb *ProtoDB) doWatch() {
 				db.FireEvent(e)
 			}
 		case err := <-pdb.w.Error:
-			pdb.l.Error("A watcher error has occured", "error", err)
+			pdb.l.Error("A watcher error has occurred", "error", err)
 		case <-pdb.w.Closed:
 			return
 		}

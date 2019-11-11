@@ -43,7 +43,7 @@ var (
 	ErrUnknownHookChain = errors.New("no chain with that ID exists")
 
 	// ErrEmptyHookChain is returned when a chain was successfully
-	// aquired, but it was empty.  In theory this shouldn't ever
+	// acquired, but it was empty.  In theory this shouldn't ever
 	// happen, but its possible.
 	ErrEmptyHookChain = errors.New("the specified chain is empty")
 )

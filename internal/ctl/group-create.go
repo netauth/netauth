@@ -36,7 +36,7 @@ display name, or a group to defer management capability to.  If
 desired a custom number can be provided, but the default behavior is
 sufficient to select a valid unallocated number for the new group.
 
-The caller must posess the CREATE_GROUP capability or be a GLOBAL_ROOT
+The caller must possess the CREATE_GROUP capability or be a GLOBAL_ROOT
 operator for this command to succeed.`
 
 	groupCreateExample = `$ netauth group create demo-group

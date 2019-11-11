@@ -8,7 +8,7 @@ import (
 
 // GroupHookConstructor functions construct GroupHook instances and
 // return the hooks for registration into the map of hooks.  This
-// allows the hooks to notify the module of thier presence and defer
+// allows the hooks to notify the module of their presence and defer
 // construction until a RefContext can be prepared.
 type GroupHookConstructor func(RefContext) (GroupHook, error)
 

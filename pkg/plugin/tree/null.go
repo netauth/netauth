@@ -16,7 +16,7 @@ func (NullPlugin) EntityCreate(e, de pb.Entity) (pb.Entity, error) {
 	return e, nil
 }
 
-// EntityUpdate is called after an entity update has occured, but
+// EntityUpdate is called after an entity update has occurred, but
 // before the updated entity has been written to disk.  This call is
 // the appropriate time to update metadata in other systems if it has
 // been changed.
@@ -33,7 +33,7 @@ func (NullPlugin) EntityLock(e pb.Entity) (pb.Entity, error) {
 }
 
 // EntityUnlock is called after the lock flag has been cleared for an
-// entity.  This call should be used to propogate entity unlocks to
+// entity.  This call should be used to propagate entity unlocks to
 // other systems.
 func (NullPlugin) EntityUnlock(e pb.Entity) (pb.Entity, error) {
 	return e, nil
@@ -64,7 +64,7 @@ func (NullPlugin) GroupUpdate(g pb.Group) (pb.Group, error) {
 
 // GroupDestroy is called while a group is being fully removed from
 // the server.  Groups should never be fully removed, but if they are
-// to be destroyed then this function will allow you to propogate this
+// to be destroyed then this function will allow you to propagate this
 // destruction to other systems.
 func (NullPlugin) GroupDestroy(g pb.Group) (pb.Group, error) {
 	return g, nil
@@ -76,7 +76,7 @@ func (NullPlugin) PreSecretChange(e, de pb.Entity) (pb.Entity, error) {
 	return e, nil
 }
 
-// PostSecretChange is called after a secret change has occured, but
+// PostSecretChange is called after a secret change has occurred, but
 // before it is committed to permanent storage.
 func (NullPlugin) PostSecretChange(e, de pb.Entity) (pb.Entity, error) {
 	return e, nil

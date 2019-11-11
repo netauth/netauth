@@ -58,7 +58,7 @@ func tokenIsExpired(t string) bool {
 	return err != nil
 }
 
-// refreshToken is a convenience function to aquire a token or die
+// refreshToken is a convenience function to acquire a token or die
 // trying.  This is meant for CLI use only, and thus we call exit here
 // if necessary to handle errors.
 func refreshToken() string {

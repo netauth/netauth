@@ -396,7 +396,7 @@ func main() {
 	// interrupted by the shutdown call being made above which
 	// will only happen if an external process supervisor signals
 	// the server to shutdown.  While it might seem odd to bind
-	// the server here, its comparitively more likely that file
+	// the server here, its comparatively more likely that file
 	// permissions will be wrong on some important file earlier on
 	// than the port won't bind.
 	appLogger.Info("Ready to Serve...")

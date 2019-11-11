@@ -23,7 +23,7 @@ var (
 Lock an entity with the specified ID.  A locked entity cannot
 authenticate successfully, even when presenting the correct secret.
 
-The caller must posess the LOCK_ENTITY capability or be a GLOBAL_ROOT
+The caller must possess the LOCK_ENTITY capability or be a GLOBAL_ROOT
 operator for this command to succeed.`
 
 	entityLockExample = `$ netauth entity lock demo

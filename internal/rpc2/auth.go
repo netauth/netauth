@@ -82,7 +82,7 @@ func (s *Server) AuthValidateToken(ctx context.Context, r *pb.AuthRequest) (*pb.
 // not the case you may need to alter secrets in an external system.
 // There are two possible flows depending on if the entity is trying
 // to change its own secret or not.  In the first case, the entity
-// must be in posession of the original secret, not just a token.  In
+// must be in possession of the original secret, not just a token.  In
 // the latter case, the token must have CHANGE_ENTITY_SECRET to
 // succeed.
 func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {

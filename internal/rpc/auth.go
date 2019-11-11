@@ -333,7 +333,7 @@ func (s *NetAuthServer) LockEntity(ctx context.Context, r *pb.NetAuthRequest) (*
 	if err := s.Tree.LockEntity(e.GetID()); err != nil {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
-			Msg:     proto.String("An error occured while locking"),
+			Msg:     proto.String("An error occurred while locking"),
 		}, toWireError(err)
 	}
 
@@ -378,7 +378,7 @@ func (s *NetAuthServer) UnlockEntity(ctx context.Context, r *pb.NetAuthRequest) 
 	if err := s.Tree.UnlockEntity(e.GetID()); err != nil {
 		return &pb.SimpleResult{
 			Success: proto.Bool(false),
-			Msg:     proto.String("An error occured while locking"),
+			Msg:     proto.String("An error occurred while locking"),
 		}, toWireError(err)
 	}
 

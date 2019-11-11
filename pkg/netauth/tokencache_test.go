@@ -28,6 +28,6 @@ func TestNewTokenCache(t *testing.T) {
 	}
 
 	if _, err := NewTokenCache("does-not-exist"); err != ErrUnknownCache {
-		t.Errorf("Unexpected error while initializing non-existant cache: %s", err)
+		t.Errorf("Unexpected error while initializing non-existent cache: %s", err)
 	}
 }

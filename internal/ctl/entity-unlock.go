@@ -23,7 +23,7 @@ var (
 Unlock an entity with the specified ID.  A locked entity cannot
 authenticate successfully, even when presenting the correct secret.
 
-The caller must posess the UNLOCK_ENTITY capability or be a
+The caller must possess the UNLOCK_ENTITY capability or be a
 GLOBAL_ROOT operator for this command to succeed.`
 
 	entityUnlockExample = `$ netauth entity lock demo

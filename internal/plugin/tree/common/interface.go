@@ -10,7 +10,7 @@ import (
 
 // Plugin is the type for plugins that extend the functionality of the
 // built in tree management system.  The most common type of plugin is
-// one that will propogate changes to a system external to NetAuth.
+// one that will propagate changes to a system external to NetAuth.
 type Plugin interface {
 	EntityCreate(pb.Entity, pb.Entity) (pb.Entity, error)
 	EntityUpdate(pb.Entity) (pb.Entity, error)

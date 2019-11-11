@@ -25,7 +25,7 @@ command takes a single argument which is the search expression, be
 sure to quote the expression if making a complex query.
 
 All set fields on returned groups will be displayed.  To display
-only certain fields pass a comma seperated list to the --fields
+only certain fields pass a comma separated list to the --fields
 argument of the field names you wish to display.`
 
 	groupSearchExample = `$ netauth group search 'Name:example*'

@@ -34,7 +34,7 @@ func TestFetchEntity(t *testing.T) {
 
 func TestFetchEntityNonExistant(t *testing.T) {
 	m, _ := newTreeManager(t)
-	if _, err := m.FetchEntity("non-existant"); err != db.ErrUnknownEntity {
+	if _, err := m.FetchEntity("non-existent"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }

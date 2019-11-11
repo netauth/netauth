@@ -8,7 +8,7 @@ import (
 )
 
 // AuthEntity performs authentication for an entity.  It does not
-// perform token aquisition, so if your request will require a token,
+// perform token acquisition, so if your request will require a token,
 // ensure that you have obtained one already.
 func (c *Client) AuthEntity(ctx context.Context, entity, secret string) error {
 	ctx = c.appendMetadata(ctx)

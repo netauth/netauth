@@ -30,7 +30,7 @@ func (h EntityHook) Priority() int {
 }
 
 // Run invokes each registered plugin in a non-deterministic order.
-// The only order that is gauranteed by this interface is that the
+// The only order that is guaranteed by this interface is that the
 // actions will be called in the same place in the chain each time.
 func (h EntityHook) Run(e, de *pb.Entity) error {
 	opts := common.PluginOpts{
@@ -72,7 +72,7 @@ func (h GroupHook) Priority() int {
 }
 
 // Run invokes each registered plugin in a non-deterministic order.
-// The only order that is gauranteed by this interface is that the
+// The only order that is guaranteed by this interface is that the
 // actions will be called in the same place in the chain each time.
 func (h GroupHook) Run(g, dg *pb.Group) error {
 	opts := common.PluginOpts{

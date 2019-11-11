@@ -23,7 +23,7 @@ var (
 The memberships command returns the memberships held by a particular
 entity.  By default the output will include all attributes set on any
 returned group.  To filter attributes use the --fields command to
-specify a comma seperated list of groups that you wish to return.
+specify a comma separated list of groups that you wish to return.
 `
 
 	entityMembershipsExample = `$ netauth entity memberships demo2

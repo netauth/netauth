@@ -27,6 +27,6 @@ func TestInMemoryCache(t *testing.T) {
 
 	tk, err = x.GetToken("foo")
 	if err != netauth.ErrNoCachedToken || tk != "" {
-		t.Error("Incorrect response for non-existant token")
+		t.Error("Incorrect response for non-existent token")
 	}
 }

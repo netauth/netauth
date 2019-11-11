@@ -20,17 +20,17 @@ var (
 	// perform as expected.  This is generally for tasks that
 	// *should* succeed, but don't for some not automatically
 	// detectable error.
-	ErrInternal = status.Errorf(codes.Internal, "An internal error has occured and the request could not be processed")
+	ErrInternal = status.Errorf(codes.Internal, "An internal error has occurred and the request could not be processed")
 
 	// ErrUnauthenticated is returned if authentication
 	// information cannot be derived, loaded, or validated for a
 	// given request.  This is distinct from when authentication
-	// information can be derived, but it is insuffucient to
+	// information can be derived, but it is insufficient to
 	// perform the requested action.
 	ErrUnauthenticated = status.Errorf(codes.Unauthenticated, "Authentication failed")
 
 	// ErrReadOnly is returned if the server is in read-only mode
-	// and a mutating request is recieved.  In this case the
+	// and a mutating request is received.  In this case the
 	// server cannot comply, and the behavior cannot be retried,
 	// so we return that the feature is unimplemented as in this
 	// node it might as well be.

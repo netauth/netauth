@@ -64,7 +64,7 @@ func init() {
 	tree.RegisterEntityHookConstructor("create-entity-if-missing", NewCreateEntityIfMissing)
 }
 
-// NewCreateEntityIfMissing returns an initalized hook for use during
+// NewCreateEntityIfMissing returns an initialized hook for use during
 // tree initialization.
 func NewCreateEntityIfMissing(c tree.RefContext) (tree.EntityHook, error) {
 	return &CreateEntityIfMissing{tree.NewBaseHook("create-entity-if-missing", 1), c.DB, c.Crypto}, nil

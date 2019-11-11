@@ -22,7 +22,7 @@ var (
 	groupMembersLongDocs = `
 The members command can summon the membership of a particular group.
 The output may be filtered with the --fields option which takes a
-comma seperated list of fields to be displayed.`
+comma separated list of fields to be displayed.`
 
 	groupMembersExample = `$ netauth group members example-group
 ID: demo2

@@ -69,7 +69,7 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // EntityUpdate provides a change to specific entity metadata that is
 // in the typed data fields.  This method does not update keys,
 // groups, untyped metadata, or capabilities.  To call this method you
-// must be in posession of a token with MODIFY_ENTITY_META
+// must be in possession of a token with MODIFY_ENTITY_META
 // capabilities.
 func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
 	de := r.GetData()

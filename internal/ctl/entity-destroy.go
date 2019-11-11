@@ -28,7 +28,7 @@ It is possible to remove the entity running the command, but this is
 not recommended and may leave your system without any administrative
 users.
 
-The caller must posess the DESTROY_ENTITY capability or be a
+The caller must possess the DESTROY_ENTITY capability or be a
 GLOBAL_ROOT operator for this command to succeed.`
 
 	entityDestroyExample = `$ netauth entity destroy demo
