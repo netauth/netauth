@@ -49,7 +49,7 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 	)
 	if err != nil {
 		s.log.Warn("Error Issuing Token",
-			"entity", r.Entity.ID,
+			"entity", r.GetEntity().GetID(),
 			"capabilities", caps,
 			"service", getServiceName(ctx),
 			"client", getClientName(ctx),
@@ -59,7 +59,7 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 	}
 
 	s.log.Info("Token Issued",
-		"entity", r.Entity.ID,
+		"entity", r.GetEntity().GetID(),
 		"capabilities", caps,
 		"service", getServiceName(ctx),
 		"client", getClientName(ctx),
