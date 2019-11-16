@@ -23,7 +23,7 @@ func TestRegisterTokenCacheFactory(t *testing.T) {
 func TestNewTokenCache(t *testing.T) {
 	RegisterTokenCacheFactory("dummy", newDummyCache)
 
-	if _, err := NewTokenCache("dummy"); err != nil {
+	if _, err := NewTokenCache(""); err != nil {
 		t.Errorf("Unexpected error while initializing cache: %s", err)
 	}
 

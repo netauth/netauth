@@ -22,7 +22,6 @@ import (
 )
 
 func init() {
-	viper.SetDefault("token.cache", "fs")
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("core.port", 1729)
 }

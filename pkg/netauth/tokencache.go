@@ -37,9 +37,25 @@ func RegisterTokenCacheFactory(name string, f TokenCacheFactory) {
 // this package, there are some rare circumstances that it would be
 // useful to initialize a cache for private use.
 func NewTokenCache(name string) (TokenCache, error) {
+	if name == "" && len(tokenCacheFactories) == 1 {
+		name = GetTokenCacheList()[0]
+	}
 	f, ok := tokenCacheFactories[name]
 	if !ok {
 		return nil, ErrUnknownCache
 	}
 	return f()
+}
+
+// GetTokenCacheList returns a list of token caches that are currently
+// registered to the system.
+func GetTokenCacheList() []string {
+	l := make([]string, len(tokenCacheFactories))
+
+	i := 0
+	for t := range tokenCacheFactories {
+		l[i] = t
+		i++
+	}
+	return l
 }
