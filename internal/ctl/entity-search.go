@@ -34,8 +34,10 @@ fields in a search prefix them with 'meta.' as in 'meta.DisplayName'.`
 	entitySearchExample = `$ netauth entity search 'ID:demo*'
 ID: demo2
 Number: 9
+---
 ID: demo3
 Number: 10
+---
 ID: demo4
 Number: 11
 
@@ -60,7 +62,10 @@ func entitySearchRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Print the fields
-	for _, e := range res {
+	for i, e := range res {
 		printEntity(e, entitySearchFields)
+		if i < len(res)-1 {
+			fmt.Println("---")
+		}
 	}
 }

@@ -42,7 +42,6 @@ func init() {
 }
 
 func entityMembershipsRun(cmd *cobra.Command, args []string) {
-
 	res, err := rpc.EntityGroups(ctx, args[0])
 	if err != nil {
 		fmt.Println(err)
@@ -50,7 +49,10 @@ func entityMembershipsRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Print the fields
-	for _, g := range res {
+	for i, g := range res {
 		printGroup(g, entityMembershipsFields)
+		if i < len(res)-1 {
+			fmt.Println("---")
+		}
 	}
 }

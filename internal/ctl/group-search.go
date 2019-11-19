@@ -33,6 +33,7 @@ Name: example-group
 Display Name:
 Number: 10
 Expansion: INCLUDE:example-group2
+---
 Name: example-group2
 Display Name:
 Number: 11
@@ -52,7 +53,10 @@ func groupSearchRun(cmd *cobra.Command, args []string) {
 	}
 
 	// Print the fields
-	for _, g := range res {
+	for i, g := range res {
 		printGroup(g, groupSearchFields)
+		if i < len(res)-1 {
+			fmt.Println("---")
+		}
 	}
 }
