@@ -1,4 +1,4 @@
-// +build MemDB
+// +build db_memory
 
 package all
 

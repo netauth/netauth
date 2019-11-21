@@ -1,3 +1,7 @@
+// Package nocrypto provides an implementation of the secret storage
+// engine which performs no security at all.  This implementation is
+// meant to be used during tests and benchmarks where the slow
+// response of bcrypt is unnacceptable.
 package nocrypto
 
 // THIS PACKAGE CONTAINS NO SECURITY CODE WHATSOEVER, DO NOT COMPILE

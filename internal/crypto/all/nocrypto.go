@@ -1,4 +1,4 @@
-// +build nocrypto
+// +build crypto_none
 
 package all
 
