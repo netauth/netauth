@@ -1,7 +1,7 @@
 package util
 
 import (
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // LoadEntityBatch uses the specified loader to load a batch of

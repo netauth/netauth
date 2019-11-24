@@ -8,7 +8,7 @@ import (
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func TestValidateEntitySecret(t *testing.T) {

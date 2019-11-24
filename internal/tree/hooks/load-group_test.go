@@ -9,7 +9,7 @@ import (
 	"github.com/netauth/netauth/internal/db/memdb"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func TestLoadGroup(t *testing.T) {

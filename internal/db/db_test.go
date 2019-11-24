@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 type dummyDB struct{}

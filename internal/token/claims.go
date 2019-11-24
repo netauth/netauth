@@ -1,7 +1,7 @@
 package token
 
 import (
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // Claims is a type that contains the claims that all tokens shall

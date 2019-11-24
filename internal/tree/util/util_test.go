@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func TestPatchStringSlice(t *testing.T) {

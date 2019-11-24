@@ -8,7 +8,7 @@ import (
 	"github.com/netauth/netauth/internal/token"
 	"github.com/spf13/viper"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // NewEntity creates a new entity.  This action must be authorized by

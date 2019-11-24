@@ -5,7 +5,7 @@ import (
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // LoadGroup loads an entity from the database.

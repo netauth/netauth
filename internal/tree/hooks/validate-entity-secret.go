@@ -4,7 +4,7 @@ import (
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // ValidateEntitySecret passes the secret to the crypto engine for

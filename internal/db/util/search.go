@@ -6,7 +6,7 @@ import (
 
 	"github.com/netauth/netauth/internal/db"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // SearchIndex holds the methods to search entities and groups with

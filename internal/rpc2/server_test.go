@@ -9,7 +9,7 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
 
-	types "github.com/NetAuth/Protocol"
+	types "github.com/netauth/protocol"
 )
 
 func newServer(t *testing.T) *Server {

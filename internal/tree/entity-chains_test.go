@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func resetEntityConstructorMap() {

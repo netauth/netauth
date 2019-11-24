@@ -4,7 +4,7 @@ import (
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // SaveGroup is a hook intended to terminate processing chains by

@@ -18,7 +18,7 @@ import (
 	// of consumers.
 	_ "github.com/netauth/netauth/internal/token/jwt"
 
-	rpc "github.com/NetAuth/Protocol/v2"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 func init() {

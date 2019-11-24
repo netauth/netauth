@@ -9,7 +9,7 @@ import (
 
 	"github.com/netauth/netauth/internal/token"
 
-	types "github.com/NetAuth/Protocol"
+	types "github.com/netauth/protocol"
 )
 
 func TestGetCapabilitiesForEntity(t *testing.T) {

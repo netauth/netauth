@@ -6,8 +6,8 @@ import (
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/token"
 
-	pb "github.com/NetAuth/Protocol"
-	rpc "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 // Server returns the interface which satisfies the gRPC type for the

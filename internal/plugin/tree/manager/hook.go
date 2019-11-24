@@ -8,7 +8,7 @@ import (
 
 	"github.com/netauth/netauth/internal/plugin/tree/common"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // EntityHook satisfies the type for the entity tree system.

@@ -12,7 +12,7 @@ import (
 	"github.com/netauth/netauth/internal/tree/util"
 	"github.com/netauth/netauth/pkg/plugin/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 var (

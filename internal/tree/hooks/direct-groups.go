@@ -4,7 +4,7 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // DirectGroupManager implements a hook type that can add or remove

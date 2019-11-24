@@ -3,7 +3,7 @@ package hooks
 import (
 	"strings"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func splitKeyValue(s string) (string, string) {

@@ -30,8 +30,8 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/NetAuth/Protocol"
-	rpb "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpb "github.com/netauth/protocol/v2"
 )
 
 var (

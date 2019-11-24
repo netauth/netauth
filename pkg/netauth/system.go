@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	pb "github.com/NetAuth/Protocol"
-	rpc "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 // SystemCapabilities handles the modification of capabilities within

@@ -5,7 +5,7 @@ import (
 
 	"github.com/netauth/netauth/internal/token"
 
-	rpc "github.com/NetAuth/Protocol/v2"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 // Client is an RPC client shim that makes communicating with the

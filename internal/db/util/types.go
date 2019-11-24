@@ -1,7 +1,7 @@
 package util
 
 import (
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 type loadEntityFunc func(string) (*pb.Entity, error)

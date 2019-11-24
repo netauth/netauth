@@ -5,7 +5,7 @@ package common
 import (
 	"net/rpc"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // Plugin is the type for plugins that extend the functionality of the

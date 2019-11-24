@@ -3,7 +3,7 @@ package tree
 import (
 	"github.com/netauth/netauth/internal/db"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // SearchGroups returns a list of groups filtered by the search

@@ -10,7 +10,7 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {

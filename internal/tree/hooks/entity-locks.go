@@ -4,7 +4,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // The EntityLockManager is a configurable hook that can either lock

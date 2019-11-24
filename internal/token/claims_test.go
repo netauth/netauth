@@ -3,7 +3,7 @@ package token
 import (
 	"testing"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func TestHasCapability(t *testing.T) {

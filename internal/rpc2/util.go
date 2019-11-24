@@ -8,7 +8,7 @@ import (
 
 	"github.com/netauth/netauth/internal/token"
 
-	types "github.com/NetAuth/Protocol"
+	types "github.com/netauth/protocol"
 )
 
 type claimsContextKey struct{}

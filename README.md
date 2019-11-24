@@ -62,13 +62,13 @@ How do I hook up other things to NetAuth?
 
 There are several systems available to plug in to NetAuth.  For Linux
 hosts you can use
-[pam_netauth](https://github.com/NetAuth/pam_netauth) and
-[nsscache](https://github.com/NetAuth/nsscache).  If you want to pull
+[pam_netauth](https://github.com/netauth/pam_netauth) and
+[nsscache](https://github.com/netauth/nsscache).  If you want to pull
 ssh keys, then you probably want
-[NetKeys](https://github.com/NetAuth/NetKeys).
+[netkeys](https://github.com/netauth/netkeys).
 
 If you use Okta, you'll probably be interested in the
-[Okta Plugin](https://github.com/NetAuth/plugin-okta) which can
+[Okta Plugin](https://github.com/netauth/plugin-okta) which can
 automatically mirror your NetAuth entities and groups into Okta.
 
 Other modules are coming, if you want to help out, reach out in

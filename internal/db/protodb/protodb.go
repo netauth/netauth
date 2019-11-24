@@ -22,7 +22,7 @@ import (
 	"github.com/netauth/netauth/internal/db/util"
 	"github.com/netauth/netauth/internal/health"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 const entitySubdir = "entities"

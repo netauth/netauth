@@ -3,7 +3,7 @@ package hooks
 import (
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // ValidateEntityUnlocked returns an error if the entity is locked.

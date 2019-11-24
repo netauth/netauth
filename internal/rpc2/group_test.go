@@ -6,8 +6,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	types "github.com/NetAuth/Protocol"
-	pb "github.com/NetAuth/Protocol/v2"
+	types "github.com/netauth/protocol"
+	pb "github.com/netauth/protocol/v2"
 )
 
 func TestGroupCreate(t *testing.T) {

@@ -3,7 +3,7 @@ package hooks
 import (
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // SetGroupDisplayName copies the display name from dg to g.

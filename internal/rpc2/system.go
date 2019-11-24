@@ -5,8 +5,8 @@ import (
 
 	"github.com/netauth/netauth/internal/health"
 
-	types "github.com/NetAuth/Protocol"
-	pb "github.com/NetAuth/Protocol/v2"
+	types "github.com/netauth/protocol"
+	pb "github.com/netauth/protocol/v2"
 )
 
 // SystemCapabilities adjusts the capabilities that are on groups by

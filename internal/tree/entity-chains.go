@@ -3,7 +3,7 @@ package tree
 import (
 	"sort"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // EntityHookConstructor functions construct EntityHook instances and

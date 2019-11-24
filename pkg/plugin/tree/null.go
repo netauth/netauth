@@ -1,7 +1,7 @@
 package tree
 
 import (
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // NullPlugin represents a plugin with no behavior at all.  The intent

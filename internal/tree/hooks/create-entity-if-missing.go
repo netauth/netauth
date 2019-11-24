@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // CreateEntityIfMissing is an Entity hook that will ensure

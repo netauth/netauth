@@ -6,7 +6,7 @@ import (
 
 	"github.com/netauth/netauth/internal/tree/util"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // CreateGroup adds a group to the datastore if it does not currently

@@ -8,7 +8,7 @@ import (
 
 	"github.com/netauth/netauth/internal/token"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // AuthEntity performs entity authentication and returns boolean

@@ -8,7 +8,7 @@ import (
 
 	"github.com/netauth/netauth/pkg/netauth"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 var (

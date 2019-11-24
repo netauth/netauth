@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 var (

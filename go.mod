@@ -3,7 +3,6 @@ module github.com/netauth/netauth
 go 1.11
 
 require (
-	github.com/NetAuth/Protocol v0.0.0-20191103001152-2815518e2f36
 	github.com/RoaringBitmap/roaring v0.4.17 // indirect
 	github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 // indirect
 	github.com/bgentry/speakeasy v0.1.0
@@ -28,6 +27,7 @@ require (
 	github.com/hashicorp/go-plugin v1.0.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
+	github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72
 	github.com/radovskyb/watcher v1.0.6
 	github.com/remyoudompheng/bigfft v0.0.0-20190321074620-2f0d2b0e0001 // indirect
 	github.com/spf13/cobra v0.0.3

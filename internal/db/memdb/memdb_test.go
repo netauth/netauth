@@ -7,7 +7,7 @@ import (
 
 	"github.com/netauth/netauth/internal/db"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 func TestDiscoverEntities(t *testing.T) {

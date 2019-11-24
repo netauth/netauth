@@ -6,8 +6,8 @@ import (
 
 	"github.com/netauth/netauth/internal/db"
 
-	pb "github.com/NetAuth/Protocol"
-	rpc "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 // AddEntityToGroup is the same as the internal function, but takes an

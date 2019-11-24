@@ -4,7 +4,7 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // ManageEntityUM is a configurable plugin that manages the untyped

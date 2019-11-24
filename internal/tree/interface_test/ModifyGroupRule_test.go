@@ -5,8 +5,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
-	pb "github.com/NetAuth/Protocol"
-	rpc "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 func TestModifyGroupRule(t *testing.T) {

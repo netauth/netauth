@@ -3,8 +3,8 @@ package netauth
 import (
 	"context"
 
-	pb "github.com/NetAuth/Protocol"
-	rpc "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol"
+	rpc "github.com/netauth/protocol/v2"
 )
 
 // AuthEntity performs authentication for an entity.  It does not

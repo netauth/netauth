@@ -8,8 +8,8 @@ import (
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"
 
-	types "github.com/NetAuth/Protocol"
-	pb "github.com/NetAuth/Protocol/v2"
+	types "github.com/netauth/protocol"
+	pb "github.com/netauth/protocol/v2"
 )
 
 // GroupCreate provisions a new group on the system.

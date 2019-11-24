@@ -11,7 +11,7 @@ import (
 
 	"github.com/netauth/netauth/pkg/netauth"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // Prompt for the secret if it wasn't provided in cleartext.

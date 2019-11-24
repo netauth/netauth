@@ -5,7 +5,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	pb "github.com/NetAuth/Protocol/v2"
+	pb "github.com/netauth/protocol/v2"
 )
 
 var (

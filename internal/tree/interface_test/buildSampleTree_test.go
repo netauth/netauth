@@ -7,7 +7,7 @@ import (
 
 	"github.com/netauth/netauth/internal/tree"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // buildSampleTree builds an initial tree that has certain properties

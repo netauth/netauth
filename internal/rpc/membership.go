@@ -6,7 +6,7 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/spf13/viper"
 
-	pb "github.com/NetAuth/Protocol"
+	pb "github.com/netauth/protocol"
 )
 
 // AddEntityToGroup will add an existing entity to an existing group

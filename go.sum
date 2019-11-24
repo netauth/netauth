@@ -1,8 +1,6 @@
 cloud.google.com/go v0.26.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 github.com/BurntSushi/toml v0.3.1 h1:WXkYYl6Yr3qBf1K79EBnL4mak0OimBfB0XUf9Vl28OQ=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
-github.com/NetAuth/Protocol v0.0.0-20191103001152-2815518e2f36 h1:KqEJYMLcVf/1nOOm9bvnC4T9ZjB4qMTyoSJiVPbtJw8=
-github.com/NetAuth/Protocol v0.0.0-20191103001152-2815518e2f36/go.mod h1:CO+2Q2H4PqOcK9PO0fBxaZrygsIjTHn3k+f24c+Qmj0=
 github.com/RoaringBitmap/roaring v0.4.17 h1:oCYFIFEMSQZrLHpywH7919esI1VSrQZ0pJXkZPGIJ78=
 github.com/RoaringBitmap/roaring v0.4.17/go.mod h1:D3qVegWTmfCaX4Bl5CrBE9hfrSrrXIr8KVNvRsDi1NI=
 github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 h1:G/NOANWMQev0CftoyxQwtRakdyNNNMB3qxkt/tj1HGs=
@@ -92,6 +90,9 @@ github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQz
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae h1:VeRdUYdCw49yizlSbMEn2SZ+gT+3IUKx8BqxyQdz+BY=
 github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae/go.mod h1:qAyveg+e4CE+eKJXWVjKXM4ck2QobLqTDytGJbLLhJg=
+github.com/netauth/protocol v0.0.0-20191103001152-2815518e2f36/go.mod h1:xaNx5CDzZAIQf/05XC49krheuDM51d0ghkBw8liKAag=
+github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72 h1:TRWDX4YIgajtmV3DHPrj7J/mNcg1C0YiRNppdQACstg=
+github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72/go.mod h1:xaNx5CDzZAIQf/05XC49krheuDM51d0ghkBw8liKAag=
 github.com/oklog/run v1.0.0 h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
