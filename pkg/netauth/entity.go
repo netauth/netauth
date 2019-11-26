@@ -162,7 +162,7 @@ func (c *Client) EntityKeys(ctx context.Context, id, action, ktype, key string) 
 		if ktype != "*" {
 			// Asked for a specific key, fish it out and
 			// return a much sparser map.
-			return map[string][]string{key: kv[ktype]}, nil
+			return map[string][]string{ktype: kv[ktype]}, nil
 		}
 		return kv, nil
 	}
