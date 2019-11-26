@@ -39,10 +39,10 @@ can be useful to copy and paste a key from the list output to remove
 it.`
 
 	entityKeysExample = `$ netauth entity key add SSH "ssh-rsa this-is-too-short-but-whatever root@everywhere"
-$ netauth entity key list
+$ netauth entity key read
 Type: SSH; Key: ssh-rsa this-is-too-short-but-whatever root@everywhere
 $ netauth entity key drop "ssh-rsa this-is-too-short-but-whatever root@everywhere"
-$ netauth entity key list
+$ netauth entity key read
 `
 )
 
@@ -91,7 +91,7 @@ func entityKeysRun(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	if keyMode != "LIST" {
+	if keyMode != "READ" {
 		ctx = netauth.Authorize(ctx, token())
 	}
 
