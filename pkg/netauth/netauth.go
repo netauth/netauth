@@ -28,6 +28,8 @@ func init() {
 
 // New returns a client initialized, connected, and ready to use.
 func New() (*Client, error) {
+	l := hclog.L().Named("cli")
+
 	conn, err := connect(false)
 	if err != nil {
 		return nil, err
@@ -40,7 +42,7 @@ func New() (*Client, error) {
 
 	ts, err := token.New()
 	if err != nil {
-		return nil, err
+		l.Warn("Token service initialization error", "error", err)
 	}
 
 	hn, err := os.Hostname()
@@ -54,7 +56,7 @@ func New() (*Client, error) {
 		TokenCache: cache,
 		Service:    ts,
 		rpc:        rpc.NewNetAuth2Client(conn),
-		log:        hclog.L().Named("cli"),
+		log:        l,
 		clientName: viper.GetString("client.ID"),
 	}, nil
 }
