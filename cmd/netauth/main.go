@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/internal/ctl"
 
@@ -17,6 +18,10 @@ var (
 )
 
 func main() {
+	// This runs here so we can reset the defaults that are set
+	// during various init() methods.
+	viper.SetDefault("token.cache", "fs")
+
 	level, set := os.LookupEnv("NETAUTH_VERBOSE")
 	if !set {
 		hclog.SetDefault(hclog.NewNullLogger())
