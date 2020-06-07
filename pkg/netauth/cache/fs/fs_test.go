@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/netauth/netauth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 )
 
 func TestPutGetDeleteOK(t *testing.T) {
@@ -31,7 +31,7 @@ func TestPutGetDeleteOK(t *testing.T) {
 func TestGetMissingToken(t *testing.T) {
 	x, _ := new()
 
-	if _, err := x.GetToken("does-not-exist"); err != netauth.ErrNoCachedToken {
+	if _, err := x.GetToken("does-not-exist"); err != cache.ErrNoCachedToken {
 		t.Errorf("Incorrect error for bogus owner: %v", err)
 	}
 }
@@ -49,7 +49,7 @@ func TestGetTokenBadPath(t *testing.T) {
 	}
 	defer os.Remove(rx.filepathFromOwner("bad-path"))
 
-	if _, err := x.GetToken("bad-path"); err == nil || err == netauth.ErrNoCachedToken {
+	if _, err := x.GetToken("bad-path"); err == nil || err == cache.ErrNoCachedToken {
 		t.Errorf("Wrong error when encountering read fail: %v", err)
 	}
 }

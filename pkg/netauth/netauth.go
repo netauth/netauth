@@ -12,18 +12,25 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 
 	// The default token service is the jwt implementation, and
 	// since its internal, the client needs to import it on behalf
 	// of consumers.
 	_ "github.com/netauth/netauth/internal/token/jwt"
 
+	// Since most applicatios don't need persistent token caching
+	// the default is to use an in-memory store.  This is imported
+	// here to make thee interface cleaner in the general case.
+	_ "github.com/netauth/netauth/pkg/netauth/cache/memory"
+
 	rpc "github.com/netauth/protocol/v2"
 )
 
 func init() {
-	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("core.port", 1729)
+	viper.SetDefault("tls.certificate", "keys/tls.pem")
+	viper.SetDefault("token.cache", "memory")
 }
 
 // New returns a client initialized, connected, and ready to use.
@@ -35,7 +42,7 @@ func New() (*Client, error) {
 		return nil, err
 	}
 
-	cache, err := NewTokenCache(viper.GetString("token.cache"))
+	cache, err := cache.NewTokenCache(viper.GetString("token.cache"))
 	if err != nil {
 		return nil, err
 	}

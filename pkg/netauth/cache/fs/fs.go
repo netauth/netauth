@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/netauth/netauth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 )
 
 const (
@@ -25,10 +25,10 @@ type fsCache struct {
 }
 
 func init() {
-	netauth.RegisterTokenCacheFactory("fs", new)
+	cache.RegisterTokenCacheFactory("fs", new)
 }
 
-func new() (netauth.TokenCache, error) {
+func new() (cache.TokenCache, error) {
 	c := &fsCache{
 		basepath: os.TempDir(),
 	}
@@ -49,7 +49,7 @@ func (fc *fsCache) GetToken(owner string) (string, error) {
 	d, err := ioutil.ReadFile(fc.filepathFromOwner(owner))
 	switch {
 	case os.IsNotExist(err):
-		return "", netauth.ErrNoCachedToken
+		return "", cache.ErrNoCachedToken
 	case err != nil:
 		return "", err
 	}

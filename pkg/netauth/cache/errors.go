@@ -1,4 +1,4 @@
-package netauth
+package cache
 
 import (
 	"errors"

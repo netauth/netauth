@@ -3,7 +3,7 @@ package memory
 import (
 	"testing"
 
-	"github.com/netauth/netauth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 )
 
 func TestInMemoryCache(t *testing.T) {
@@ -26,7 +26,7 @@ func TestInMemoryCache(t *testing.T) {
 	}
 
 	tk, err = x.GetToken("foo")
-	if err != netauth.ErrNoCachedToken || tk != "" {
+	if err != cache.ErrNoCachedToken || tk != "" {
 		t.Error("Incorrect response for non-existent token")
 	}
 }

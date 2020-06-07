@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/netauth/netauth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 
 	pb "github.com/netauth/protocol"
 )
@@ -38,7 +38,7 @@ func getSecret(prompt string) string {
 func token() string {
 	t, err := rpc.GetToken(viper.GetString("entity"))
 	switch {
-	case err == netauth.ErrNoCachedToken:
+	case err == cache.ErrNoCachedToken:
 		return refreshToken()
 	case tokenIsExpired(t):
 		return refreshToken()

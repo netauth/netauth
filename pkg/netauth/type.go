@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 
 	rpc "github.com/netauth/protocol/v2"
 )
@@ -13,7 +14,7 @@ import (
 // parameters to the request, for crafting protobufs, and for handling
 // other common tasks.
 type Client struct {
-	TokenCache
+	cache.TokenCache
 	token.Service
 
 	rpc rpc.NetAuth2Client

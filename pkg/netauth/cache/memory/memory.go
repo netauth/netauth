@@ -9,7 +9,7 @@ package memory
 import (
 	"sync"
 
-	"github.com/netauth/netauth/pkg/netauth"
+	"github.com/netauth/netauth/pkg/netauth/cache"
 )
 
 type inMemoryCache struct {
@@ -18,10 +18,10 @@ type inMemoryCache struct {
 }
 
 func init() {
-	netauth.RegisterTokenCacheFactory("memory", new)
+	cache.RegisterTokenCacheFactory("memory", new)
 }
 
-func new() (netauth.TokenCache, error) {
+func new() (cache.TokenCache, error) {
 	c := &inMemoryCache{
 		c: make(map[string]string),
 	}
@@ -46,7 +46,7 @@ func (imc *inMemoryCache) GetToken(owner string) (string, error) {
 	res, ok := imc.c[owner]
 	imc.RUnlock()
 	if !ok {
-		return "", netauth.ErrNoCachedToken
+		return "", cache.ErrNoCachedToken
 	}
 	return res, nil
 }
