@@ -126,3 +126,12 @@ v0.2.0:
 v0.3.0:
   * rpc2
   * lint cleanup
+
+v0.3.1:
+  * lowercase NetAuth in code as netauth
+
+v0.3.2:
+  * Resolve various CLI bugs
+
+v0.3.3:
+  * Provide default token cache
