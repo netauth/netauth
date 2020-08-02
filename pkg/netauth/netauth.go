@@ -33,10 +33,11 @@ func init() {
 	viper.SetDefault("token.cache", "memory")
 }
 
-// New returns a client initialized, connected, and ready to use.
-func New() (*Client, error) {
-	l := hclog.L().Named("cli")
-
+// NewWithLog uses the specified logger to contruct a NetAuth client.
+// Note that the log handler cannot be changed after setup, so the
+// handler that is provided should have the correct name and be
+// parented to the correct point on the log tree.
+func NewWithLog(l hclog.Logger) (*Client, error) {
 	conn, err := connect(false)
 	if err != nil {
 		return nil, err
@@ -66,6 +67,11 @@ func New() (*Client, error) {
 		log:        l,
 		clientName: viper.GetString("client.ID"),
 	}, nil
+}
+
+// New returns a client initialized, connected, and ready to use.
+func New() (*Client, error) {
+	return NewWithLog(hclog.L().Named("cli"))
 }
 
 func connect(writable bool) (*grpc.ClientConn, error) {
