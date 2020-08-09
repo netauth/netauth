@@ -8,6 +8,8 @@ package nocrypto
 // IT INTO YOUR LIVE INSTALL!
 
 import (
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/crypto"
 )
 
@@ -16,11 +18,15 @@ import (
 type NoCrypto struct{}
 
 func init() {
+	crypto.RegisterCallback(cb)
+}
+
+func cb() {
 	crypto.Register("nocrypto", New)
 }
 
 // New registers this crypto type for use by the NetAuth server.
-func New() (crypto.EMCrypto, error) {
+func New(_ hclog.Logger) (crypto.EMCrypto, error) {
 	return &NoCrypto{}, nil
 }
 

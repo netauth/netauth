@@ -3,6 +3,8 @@ package rpc2
 import (
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
 	"github.com/netauth/netauth/internal/db/memdb"
 	"github.com/netauth/netauth/internal/token/null"
@@ -18,7 +20,7 @@ func newServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 
-	crypto, err := nocrypto.New()
+	crypto, err := nocrypto.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

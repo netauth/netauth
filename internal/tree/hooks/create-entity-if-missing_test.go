@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
 	"github.com/netauth/netauth/internal/db/memdb"
@@ -54,7 +55,7 @@ func TestCreateNew(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	crypto, err := nocrypto.New()
+	crypto, err := nocrypto.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

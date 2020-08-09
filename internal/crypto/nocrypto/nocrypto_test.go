@@ -3,11 +3,13 @@ package nocrypto
 import (
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/crypto"
 )
 
 func TestSecureSecret(t *testing.T) {
-	e, err := New()
+	e, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +26,7 @@ func TestSecureSecret(t *testing.T) {
 }
 
 func TestSecureSecretBadAuth(t *testing.T) {
-	e, err := New()
+	e, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +39,7 @@ func TestSecureSecretBadAuth(t *testing.T) {
 }
 
 func TestVerifySecret(t *testing.T) {
-	e, err := New()
+	e, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,4 +48,9 @@ func TestVerifySecret(t *testing.T) {
 	if err := e.VerifySecret(s, h); err != nil {
 		t.Errorf("NoCrypto wtf!? %s", err)
 	}
+}
+
+// This is purely for maintaining 100% statement coverage.
+func TestCB(t *testing.T) {
+	cb()
 }

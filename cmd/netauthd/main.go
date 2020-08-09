@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/netauth/netauth/internal/crypto"
-	_ "github.com/netauth/netauth/internal/crypto/all"
+	_ "github.com/netauth/netauth/internal/crypto/bcrypt"
 	"github.com/netauth/netauth/internal/db"
 	_ "github.com/netauth/netauth/internal/db/all"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
@@ -198,12 +198,6 @@ func doInfoLogScroll() {
 		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
 
-	// Spit out what crypto backends we know about
-	appLogger.Info("The following crypto implementations are registered:")
-	for _, b := range crypto.GetBackendList() {
-		appLogger.Info(fmt.Sprintf("  %s", b))
-	}
-
 	// Spit out the token services we know about
 	appLogger.Info("The following token services are registered:")
 	for _, b := range token.GetBackendList() {
@@ -226,7 +220,7 @@ func doPluginEarlySetup() plugin.Manager {
 		p.RegisterEntityHooks()
 		p.RegisterGroupHooks()
 	} else {
-		appLogger.Debug("Not running with plguins")
+		appLogger.Debug("Not running with plugins")
 	}
 	return p
 }
@@ -269,6 +263,9 @@ func main() {
 	}
 	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
+	crypto.SetParentLogger(appLogger)
+	crypto.DoCallbacks()
+
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up
 	// the first 40 or so lines of the startup log.
@@ -290,12 +287,11 @@ func main() {
 	}
 	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
 
-	cryptoImpl, err := crypto.New()
+	cryptoImpl, err := crypto.New(viper.GetString("crypto.backend"))
 	if err != nil {
 		appLogger.Error("Fatal crypto error", "error", err)
 		os.Exit(1)
 	}
-	appLogger.Info("Cryptography system initialized", "backend", viper.GetString("crypto.backend"))
 
 	// The Tree is the core component of the server.  Its the part
 	// that actually provides the interface for working with

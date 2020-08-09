@@ -4,7 +4,7 @@
 package crypto
 
 import (
-	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 )
 
 // The EMCrypto interface defines the functions that are needed to
@@ -17,10 +17,17 @@ type EMCrypto interface {
 
 // The Factory type is to be implemented by crypto implementations and
 // shall be fed to the Register function.
-type Factory func() (EMCrypto, error)
+type Factory func(hclog.Logger) (EMCrypto, error)
+
+// Callbacks are registered in init(), and must not attemtp to log or
+// initialize.  They allow the order in which factories are called to
+// be handled in the right order.
+type Callback func()
 
 var (
-	backends map[string]Factory
+	lb        hclog.Logger
+	backends  map[string]Factory
+	callbacks []Callback
 )
 
 func init() {
@@ -29,12 +36,14 @@ func init() {
 
 // New returns an initialized Crypto instance which can create and
 // verify secure versions of secrets.
-func New() (EMCrypto, error) {
-	b, ok := backends[viper.GetString("crypto.backend")]
+func New(backend string) (EMCrypto, error) {
+	b, ok := backends[backend]
 	if !ok {
+		log().Error("Requested backend is not registered", "backend", backend)
 		return nil, ErrUnknownCrypto
 	}
-	return b()
+	log().Info("Initializing backend", "backend", backend)
+	return b(log())
 }
 
 // Register takes in a name for the engine and a function
@@ -42,19 +51,35 @@ func New() (EMCrypto, error) {
 func Register(name string, newFunc Factory) {
 	if _, ok := backends[name]; ok {
 		// Return if the backend was already registered.
+		log().Warn("A backend attempted to register an existing name", "backend", name)
 		return
 	}
 	backends[name] = newFunc
+	log().Info("Registered Backend", "backend", name)
 }
 
-// GetBackendList returns a string list of hte backends that are
-// available.
-func GetBackendList() []string {
-	var l []string
+// RegisterCallback registers a callback for later execution.
+func RegisterCallback(cb Callback) {
+	callbacks = append(callbacks, cb)
+}
 
-	for b := range backends {
-		l = append(l, b)
+// DoCallbacks executes all callbacks currently registered.
+func DoCallbacks() {
+	for _, cb := range callbacks {
+		cb()
 	}
+}
 
-	return l
+// SetParentLogger sets the parent logger for this instance.
+func SetParentLogger(l hclog.Logger) {
+	lb = l.Named("crypto")
+}
+
+// log is a convenience function that will return a null logger if a
+// parent logger has not been specified, mostly useful for tests.
+func log() hclog.Logger {
+	if lb == nil {
+		lb = hclog.NewNullLogger()
+	}
+	return lb
 }

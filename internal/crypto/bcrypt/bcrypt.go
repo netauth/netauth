@@ -10,8 +10,12 @@ import (
 )
 
 func init() {
-	crypto.Register("bcrypt", New)
+	crypto.RegisterCallback(cb)
 	pflag.Int("crypto.bcrypt.cost", 15, "Cost for bcrypt")
+}
+
+func cb() {
+	crypto.Register("bcrypt", New)
 }
 
 // Engine binds the functions of the BCrypt Crypto system and
@@ -24,10 +28,10 @@ type Engine struct {
 }
 
 // New registers this crypto type for use by the NetAuth server.
-func New() (crypto.EMCrypto, error) {
+func New(l hclog.Logger) (crypto.EMCrypto, error) {
 	x := new(Engine)
 	x.cost = viper.GetInt("crypto.bcrypt.cost")
-	x.l = hclog.L().Named("bcrypt")
+	x.l = l.Named("bcrypt")
 	x.l.Debug("BCrypt Initialized", "cost", x.cost)
 	return x, nil
 }

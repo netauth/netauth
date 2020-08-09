@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
 	"github.com/netauth/netauth/internal/tree"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestValidateEntitySecret(t *testing.T) {
-	crypt, err := nocrypto.New()
+	crypt, err := nocrypto.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
