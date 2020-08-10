@@ -33,9 +33,10 @@ type MemDB struct {
 }
 
 // New returns a usable memdb with internal structures initialized.
-func New(_ hclog.Logger) (db.DB, error) {
+func New(l hclog.Logger) (db.DB, error) {
+	l = l.Named("memdb")
 	x := &MemDB{
-		idx:  util.NewIndex(),
+		idx:  util.NewIndex(l),
 		eMap: make(map[string]*pb.Entity),
 		gMap: make(map[string]*pb.Group),
 	}
