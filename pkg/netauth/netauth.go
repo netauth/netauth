@@ -11,6 +11,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/token"
 	"github.com/netauth/netauth/pkg/netauth/cache"
 
@@ -50,7 +51,11 @@ func NewWithLog(l hclog.Logger) (*Client, error) {
 	}
 
 	token.SetParentLogger(l)
-	token.DoCallbacks()
+
+	// Logging and config are available, run deferred startup
+	// hooks.
+	startup.DoCallbacks()
+
 	ts, err := token.New(viper.GetString("token.backend"))
 	if err != nil {
 		l.Warn("Token service initialization error", "error", err)

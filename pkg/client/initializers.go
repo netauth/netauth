@@ -12,6 +12,8 @@ import (
 	// Register the token services on import
 	_ "github.com/netauth/netauth/internal/token/all"
 
+	"github.com/netauth/netauth/internal/startup"
+
 	"github.com/hashicorp/go-hclog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -34,6 +36,12 @@ func init() {
 // New returns a complete client ready to use.
 func New() (*NetAuthClient, error) {
 	log := hclog.L().Named("nacl")
+	token.SetParentLogger(log)
+
+	// Logging and config are available, run deferred startup
+	// hooks.
+	startup.DoCallbacks()
+
 	// Set defaults for the client ID and service ID
 	hn, err := os.Hostname()
 	if err != nil {
@@ -60,8 +68,6 @@ func New() (*NetAuthClient, error) {
 
 	// Get a token service, don't be a fatal error as most queries
 	// don't require authentication anyway.
-	token.SetParentLogger(log)
-	token.DoCallbacks()
 	ts, err := token.New(viper.GetString("token.backend"))
 	if err != nil {
 		log.Warn("Token validation will be unvavailable", "error", err)

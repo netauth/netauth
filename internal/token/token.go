@@ -9,11 +9,6 @@ import (
 // A Factory returns a token service when called.
 type Factory func(hclog.Logger) (Service, error)
 
-// A Callback is registered in init(), and must not attempt to log or
-// initialize.  They allow the order in which factories are called to
-// be handled in the right order.
-type Callback func()
-
 // The Service type defines the required interface for the Token
 // Service.  The service must generate tokens, and be able to validate
 // them.
@@ -32,9 +27,8 @@ type Config struct {
 }
 
 var (
-	lb        hclog.Logger
-	services  map[string]Factory
-	callbacks []Callback
+	lb       hclog.Logger
+	services map[string]Factory
 
 	lifetime time.Duration
 )
@@ -61,18 +55,6 @@ func Register(name string, impl Factory) {
 		return
 	}
 	services[name] = impl
-}
-
-// RegisterCallback registers a callback for later execution.
-func RegisterCallback(cb Callback) {
-	callbacks = append(callbacks, cb)
-}
-
-// DoCallbacks executes all callbacks currently registered.
-func DoCallbacks() {
-	for _, cb := range callbacks {
-		cb()
-	}
 }
 
 // GetConfig returns a struct containing the configuration for the

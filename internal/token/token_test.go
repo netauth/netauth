@@ -12,7 +12,6 @@ type dummyTokenService struct{}
 func (*dummyTokenService) Generate(Claims, Config) (string, error) { return "", nil }
 func (*dummyTokenService) Validate(string) (Claims, error)         { return Claims{}, nil }
 func newDummyTokenService(_ hclog.Logger) (Service, error)         { return new(dummyTokenService), nil }
-func dummyTokenServiceCallback()                                   { Register("dummy", newDummyTokenService) }
 
 func TestRegister(t *testing.T) {
 	services = make(map[string]Factory)
@@ -80,29 +79,5 @@ func TestSetLifetime(t *testing.T) {
 	SetLifetime(time.Second * 42)
 	if lifetime != time.Second*42 {
 		t.Error("Wrong duration")
-	}
-}
-
-func TestRegisterCallback(t *testing.T) {
-	callbacks = nil
-	RegisterCallback(dummyTokenServiceCallback)
-	if len(callbacks) != 1 {
-		t.Error("Callback not registered")
-	}
-}
-
-func TestDoCallbacks(t *testing.T) {
-	callbacks = nil
-	called := false
-
-	testCB := func() {
-		called = true
-	}
-
-	RegisterCallback(testCB)
-	DoCallbacks()
-
-	if !called {
-		t.Error("Callback was not called")
 	}
 }

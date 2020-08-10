@@ -19,15 +19,9 @@ type EMCrypto interface {
 // shall be fed to the Register function.
 type Factory func(hclog.Logger) (EMCrypto, error)
 
-// A Callback is registered in init(), and must not attempt to log or
-// initialize.  They allow the order in which factories are called to
-// be handled in the right order.
-type Callback func()
-
 var (
-	lb        hclog.Logger
-	backends  map[string]Factory
-	callbacks []Callback
+	lb       hclog.Logger
+	backends map[string]Factory
 )
 
 func init() {
@@ -56,18 +50,6 @@ func Register(name string, newFunc Factory) {
 	}
 	backends[name] = newFunc
 	log().Info("Registered Backend", "backend", name)
-}
-
-// RegisterCallback registers a callback for later execution.
-func RegisterCallback(cb Callback) {
-	callbacks = append(callbacks, cb)
-}
-
-// DoCallbacks executes all callbacks currently registered.
-func DoCallbacks() {
-	for _, cb := range callbacks {
-		cb()
-	}
 }
 
 // SetParentLogger sets the parent logger for this instance.

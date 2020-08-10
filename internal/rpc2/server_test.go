@@ -30,7 +30,7 @@ func newServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 
-	n := null.New()
+	n := null.New(hclog.NewNullLogger())
 
 	return New(Refs{TokenService: n, Tree: m})
 }

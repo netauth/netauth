@@ -24,6 +24,8 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
 
+	"github.com/netauth/netauth/internal/startup"
+
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -257,16 +259,19 @@ func main() {
 	}
 	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
-	// Set up the loggers and process callbacks.
+	// Set up the loggers for key subsystems
 	crypto.SetParentLogger(appLogger)
-	crypto.DoCallbacks()
 	token.SetParentLogger(appLogger)
-	token.DoCallbacks()
 
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up
 	// the first 40 or so lines of the startup log.
 	doInfoLogScroll()
+
+	// At this point early initialization is complete.  We can
+	// process startup callbacks that expect loggers and config to
+	// be available.
+	startup.DoCallbacks()
 
 	// The plugin system requires initialization very early in the
 	// server startup.  This will scan for and register external

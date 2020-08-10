@@ -11,7 +11,6 @@ type dummyCrypto struct{}
 func (*dummyCrypto) SecureSecret(_ string) (string, error) { return "", nil }
 func (*dummyCrypto) VerifySecret(_, _ string) error        { return nil }
 func dummyCryptoFactory(_ hclog.Logger) (EMCrypto, error)  { return new(dummyCrypto), nil }
-func dummyCryptoCallback()                                 { Register("dummy", dummyCryptoFactory) }
 
 func TestRegister(t *testing.T) {
 	backends = make(map[string]Factory)
@@ -65,29 +64,5 @@ func TestLogParentUnset(t *testing.T) {
 
 	if log() == nil {
 		t.Error("auto log was not aquired")
-	}
-}
-
-func TestRegisterCallback(t *testing.T) {
-	callbacks = nil
-	RegisterCallback(dummyCryptoCallback)
-	if len(callbacks) != 1 {
-		t.Error("Callback not registered")
-	}
-}
-
-func TestDoCallbacks(t *testing.T) {
-	callbacks = nil
-	called := false
-
-	testCB := func() {
-		called = true
-	}
-
-	RegisterCallback(testCB)
-	DoCallbacks()
-
-	if !called {
-		t.Error("Callback was not called")
 	}
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/startup"
 )
 
 // NoCrypto binds the functions required by the crypto.Engine
@@ -18,7 +19,7 @@ import (
 type NoCrypto struct{}
 
 func init() {
-	crypto.RegisterCallback(cb)
+	startup.RegisterCallback(cb)
 }
 
 func cb() {

@@ -7,10 +7,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/startup"
 )
 
 func init() {
-	crypto.RegisterCallback(cb)
+	startup.RegisterCallback(cb)
 	pflag.Int("crypto.bcrypt.cost", 15, "Cost for bcrypt")
 }
 
