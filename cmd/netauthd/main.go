@@ -51,9 +51,14 @@ var (
 )
 
 func init() {
+	ll := os.Getenv("NETAUTH_LOGLEVEL")
+	if ll == "" {
+		ll = "INFO"
+	}
+
 	appLogger = hclog.New(&hclog.LoggerOptions{
 		Name:  "netauthd",
-		Level: hclog.LevelFromString("INFO"),
+		Level: hclog.LevelFromString(ll),
 	})
 	hclog.SetDefault(appLogger)
 
@@ -76,8 +81,6 @@ func init() {
 
 	pflag.Bool("pdb.watcher", false, "Enable the pdb filesystem watcher")
 	pflag.Duration("pdb.watch-interval", 1*time.Second, "Watch Interval")
-
-	pflag.String("log.level", "INFO", "Log verbosity level")
 
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
@@ -252,7 +255,6 @@ func main() {
 	if err := loadConfig(); err != nil {
 		os.Exit(1)
 	}
-	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
 	// Set up the loggers for key subsystems
 	crypto.SetParentLogger(appLogger)
