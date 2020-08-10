@@ -135,3 +135,6 @@ v0.3.2:
 
 v0.3.3:
   * Provide default token cache
+
+v0.3.4:
+  * Logging cleanup and improvements
