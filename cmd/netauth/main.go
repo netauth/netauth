@@ -15,6 +15,8 @@ var (
 	version = "dev"
 	commit  = "none"
 	date    = "unknown"
+
+	appLogger hclog.Logger
 )
 
 func main() {
@@ -24,15 +26,15 @@ func main() {
 
 	level, set := os.LookupEnv("NETAUTH_LOGLEVEL")
 	if !set {
-		hclog.SetDefault(hclog.NewNullLogger())
+		appLogger = hclog.NewNullLogger()
 	} else {
-		appLogger := hclog.New(&hclog.LoggerOptions{
+		appLogger = hclog.New(&hclog.LoggerOptions{
 			Name:  "netauth",
 			Level: hclog.LevelFromString(level),
 		})
-		hclog.SetDefault(appLogger)
 	}
+	hclog.SetDefault(appLogger)
+	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 
-	hclog.L().Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 	ctl.Execute()
 }
