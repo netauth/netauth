@@ -32,7 +32,7 @@ func newServer(t *testing.T) *Server {
 
 	n := null.New(hclog.NewNullLogger())
 
-	return New(Refs{TokenService: n, Tree: m})
+	return New(Refs{TokenService: n, Tree: m}, hclog.NewNullLogger())
 }
 
 func initTree(t *testing.T, m Manager) {

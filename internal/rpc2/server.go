@@ -6,11 +6,11 @@ import (
 )
 
 // New returns a ready to use server implementation.
-func New(r Refs) *Server {
+func New(r Refs, l hclog.Logger) *Server {
 	return &Server{
 		Service:  r.TokenService,
 		Manager:  r.Tree,
 		readonly: viper.GetBool("server.readonly"),
-		log:      hclog.L().Named("rpc2"),
+		log:      l.Named("rpc2"),
 	}
 }

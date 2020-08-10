@@ -368,6 +368,7 @@ func main() {
 				TokenService: tokenService,
 				Tree:         tree,
 			},
+			appLogger,
 		),
 	)
 
