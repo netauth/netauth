@@ -26,7 +26,7 @@ type SearchIndex struct {
 // ready to use.  Mappings are statically defined for simplicity, and
 // in general new mappings shouldn't be added without a very good
 // reason.
-func NewIndex() *SearchIndex {
+func NewIndex(l hclog.Logger) *SearchIndex {
 	// Setup the mapping for entities and turn off certain sub
 	// keys that shouldn't be indexed.
 	eMapping := bleve.NewIndexMapping()
@@ -58,7 +58,7 @@ func NewIndex() *SearchIndex {
 	return &SearchIndex{
 		eIndex: eIndex,
 		gIndex: gIndex,
-		l:      hclog.L().Named("blevesearch"),
+		l:      l.Named("blevesearch"),
 	}
 }
 
@@ -142,21 +142,25 @@ func (s *SearchIndex) SearchGroups(r db.SearchRequest) ([]string, error) {
 
 // IndexEntity adds or updates an entity in the index.
 func (s *SearchIndex) IndexEntity(e *pb.Entity) error {
+	s.l.Trace("Indexing Entity", "entity", e.GetID())
 	return s.eIndex.Index(e.GetID(), e)
 }
 
 // DeleteEntity removes an entity from the index
 func (s *SearchIndex) DeleteEntity(e *pb.Entity) error {
+	s.l.Trace("Removing Entity", "entity", e.GetID())
 	return s.eIndex.Delete(e.GetID())
 }
 
 // IndexGroup adds or updates a group in the index.
 func (s *SearchIndex) IndexGroup(g *pb.Group) error {
+	s.l.Trace("Indexing Group", "group", g.GetName())
 	return s.gIndex.Index(g.GetName(), g)
 }
 
 // DeleteGroup removes a group from the index.
 func (s *SearchIndex) DeleteGroup(g *pb.Group) error {
+	s.l.Trace("Removing Group", "group", g.GetName())
 	return s.gIndex.Delete(g.GetName())
 }
 

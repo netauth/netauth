@@ -57,7 +57,7 @@ func New(l hclog.Logger) (db.DB, error) {
 	x := new(ProtoDB)
 	x.l = l.Named("protodb")
 	x.dataRoot = filepath.Join(viper.GetString("core.home"), "pdb")
-	x.idx = util.NewIndex()
+	x.idx = util.NewIndex(x.l)
 	if err := x.ensureDataDirectory(); err != nil {
 		x.l.Error("Could not establish data directory", "error", err)
 		return nil, err

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
 
@@ -45,12 +46,12 @@ func dummyGroupLoader(g string) (*pb.Group, error) {
 // has not been configured, it will return in the correct case, or
 // panic in the incorrect case.
 func TestIndexCallbackUnconfigured(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 	si.IndexCallback(db.Event{Type: db.EventEntityCreate, PK: "entity1"})
 }
 
 func TestIndexCallbackEntity(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 	si.ConfigureCallback(dummyEntityLoader, dummyGroupLoader)
 
 	// Check that the entity isn't present
@@ -91,7 +92,7 @@ func TestIndexCallbackEntity(t *testing.T) {
 }
 
 func TestIndexCallbackGroup(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 	si.ConfigureCallback(dummyEntityLoader, dummyGroupLoader)
 
 	// Check that the group isn't present
@@ -132,7 +133,7 @@ func TestIndexCallbackGroup(t *testing.T) {
 }
 
 func TestSearchEntities(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 
 	entities := []pb.Entity{
 		{
@@ -204,7 +205,7 @@ func TestSearchEntities(t *testing.T) {
 }
 
 func TestSearchEntitiesBadRequest(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 
 	r, err := si.SearchEntities(db.SearchRequest{})
 	if err != db.ErrBadSearch || r != nil {
@@ -213,7 +214,7 @@ func TestSearchEntitiesBadRequest(t *testing.T) {
 }
 
 func TestSearchGroups(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 
 	groups := []pb.Group{
 		{
@@ -274,7 +275,7 @@ func TestSearchGroups(t *testing.T) {
 }
 
 func TestSearchGroupsBadRequest(t *testing.T) {
-	si := NewIndex()
+	si := NewIndex(hclog.NewNullLogger())
 
 	r, err := si.SearchGroups(db.SearchRequest{})
 	if err != db.ErrBadSearch || r != nil {
