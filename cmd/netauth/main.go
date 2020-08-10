@@ -22,7 +22,7 @@ func main() {
 	// during various init() methods.
 	viper.SetDefault("token.cache", "fs")
 
-	level, set := os.LookupEnv("NETAUTH_VERBOSE")
+	level, set := os.LookupEnv("NETAUTH_LOGLEVEL")
 	if !set {
 		hclog.SetDefault(hclog.NewNullLogger())
 	} else {
@@ -33,8 +33,6 @@ func main() {
 		hclog.SetDefault(appLogger)
 	}
 
-	if _, set := os.LookupEnv("NETAUTH_VERBOSE"); set {
-		hclog.L().Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
-	}
+	hclog.L().Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 	ctl.Execute()
 }
