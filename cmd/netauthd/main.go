@@ -24,6 +24,7 @@ import (
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
 
+	"github.com/netauth/netauth/internal/health"
 	"github.com/netauth/netauth/internal/startup"
 
 	"github.com/hashicorp/go-hclog"
@@ -257,6 +258,7 @@ func main() {
 	crypto.SetParentLogger(appLogger)
 	token.SetParentLogger(appLogger)
 	db.SetParentLogger(appLogger)
+	health.SetParentLogger(appLogger)
 
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 )
 
 func subsystemSuccess() SubsystemStatus {
@@ -186,5 +187,23 @@ func TestSystemStatusProto(t *testing.T) {
 
 	if !proto.Equal(p.GetFirstFailure(), status.FirstFailure.Proto()) {
 		t.Error("First failure is not correct")
+	}
+}
+
+func TestSetParentLogger(t *testing.T) {
+	lb = nil
+
+	l := hclog.NewNullLogger()
+	SetParentLogger(l)
+	if log() == nil {
+		t.Error("log was not set")
+	}
+}
+
+func TestLogParentUnset(t *testing.T) {
+	lb = nil
+
+	if log() == nil {
+		t.Error("auto log was not aquired")
 	}
 }

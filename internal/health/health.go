@@ -11,7 +11,7 @@ import (
 var (
 	checks map[string]SubsystemCheck
 
-	logger = hclog.L().Named("health")
+	lb hclog.Logger
 )
 
 // SubsystemStatus contains the information needed to be returned by
@@ -105,7 +105,7 @@ func init() {
 // that will be called when health status is requested.
 func RegisterCheck(name string, check SubsystemCheck) {
 	if _, ok := checks[name]; ok {
-		logger.Warn("Refusing to overwrite existing check", "check", name)
+		log().Warn("Refusing to overwrite existing check", "check", name)
 		return
 	}
 	checks[name] = check
@@ -117,9 +117,9 @@ func Check() SystemStatus {
 	status := SystemStatus{
 		OK: true,
 	}
-	logger.Debug("Running health check")
+	log().Debug("Running health check")
 	for name, check := range checks {
-		logger.Trace("Polling subsystem", "check", name)
+		log().Trace("Polling subsystem", "check", name)
 		result := check()
 		status.Subsystems = append(status.Subsystems, result)
 		status.OK = status.OK && result.OK
@@ -128,4 +128,18 @@ func Check() SystemStatus {
 		}
 	}
 	return status
+}
+
+// SetParentLogger sets the parent logger for this instance.
+func SetParentLogger(l hclog.Logger) {
+	lb = l.Named("health")
+}
+
+// log is a convenience function that will return a null logger if a
+// parent logger has not been specified, mostly useful for tests.
+func log() hclog.Logger {
+	if lb == nil {
+		lb = hclog.NewNullLogger()
+	}
+	return lb
 }
