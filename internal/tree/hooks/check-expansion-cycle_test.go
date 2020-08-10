@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/memdb"
@@ -13,7 +14,7 @@ import (
 )
 
 func TestCheckExpansionCyclesDrop(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +35,7 @@ func TestCheckExpansionCyclesDrop(t *testing.T) {
 }
 
 func TestCheckExpansionCycleUnknownChild(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +56,7 @@ func TestCheckExpansionCycleUnknownChild(t *testing.T) {
 }
 
 func TestCheckExpansionCycleCycleFound(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +81,7 @@ func TestCheckExpansionCycleCycleFound(t *testing.T) {
 }
 
 func TestCheckGroupCyclesRecurser(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

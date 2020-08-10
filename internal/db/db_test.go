@@ -3,7 +3,7 @@ package db
 import (
 	"testing"
 
-	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 
 	pb "github.com/netauth/protocol"
 )
@@ -22,18 +22,18 @@ func (*dummyDB) SaveGroup(*pb.Group) error                          { return nil
 func (*dummyDB) DeleteGroup(string) error                           { return nil }
 func (*dummyDB) NextGroupNumber() (int32, error)                    { return 1, nil }
 func (*dummyDB) SearchGroups(SearchRequest) ([]*pb.Group, error)    { return nil, nil }
-func newDummyDB() (DB, error)                                       { return new(dummyDB), nil }
+func newDummyDB(_ hclog.Logger) (DB, error)                         { return new(dummyDB), nil }
 
 func TestRegisterDB(t *testing.T) {
 	backends = make(map[string]Factory)
 
 	Register("dummy", newDummyDB)
-	if l := GetBackendList(); len(l) != 1 || l[0] != "dummy" {
+	if len(backends) != 1 {
 		t.Error("Database factory failed to register")
 	}
 
 	Register("dummy", newDummyDB)
-	if l := GetBackendList(); len(l) != 1 {
+	if len(backends) != 1 {
 		t.Error("A duplicate database was registered")
 	}
 }
@@ -43,8 +43,7 @@ func TestNewKnown(t *testing.T) {
 
 	Register("dummy", newDummyDB)
 
-	viper.Set("db.backend", "dummy")
-	x, err := New()
+	x, err := New("dummy")
 	if err != nil {
 		t.Error(err)
 	}
@@ -56,9 +55,26 @@ func TestNewKnown(t *testing.T) {
 
 func TestNewUnknown(t *testing.T) {
 	backends = make(map[string]Factory)
-	viper.Set("db.backend", "unknown")
-	x, err := New()
+	x, err := New("unknown")
 	if x != nil && err != ErrUnknownDatabase {
 		t.Error(err)
+	}
+}
+
+func TestSetParentLogger(t *testing.T) {
+	lb = nil
+
+	l := hclog.NewNullLogger()
+	SetParentLogger(l)
+	if log() == nil {
+		t.Error("log was not set")
+	}
+}
+
+func TestLogParentUnset(t *testing.T) {
+	lb = nil
+
+	if log() == nil {
+		t.Error("auto log was not aquired")
 	}
 }

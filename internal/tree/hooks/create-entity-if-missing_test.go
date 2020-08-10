@@ -14,7 +14,7 @@ import (
 )
 
 func TestLoadExisting(t *testing.T) {
-	mdb, err := memdb.New()
+	mdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestLoadExisting(t *testing.T) {
 }
 
 func TestCreateNew(t *testing.T) {
-	mdb, err := memdb.New()
+	mdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

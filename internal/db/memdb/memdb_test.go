@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
 
@@ -11,7 +12,7 @@ import (
 )
 
 func TestDiscoverEntities(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +52,7 @@ func TestDiscoverEntities(t *testing.T) {
 }
 
 func TestSaveLoadDeleteEntity(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +85,7 @@ func TestSaveLoadDeleteEntity(t *testing.T) {
 }
 
 func TestNextEntityNumber(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +120,7 @@ func TestNextEntityNumber(t *testing.T) {
 }
 
 func TestSearchEntities(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +157,7 @@ func TestSearchEntities(t *testing.T) {
 }
 
 func TestDiscoverGroups(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -196,7 +197,7 @@ func TestDiscoverGroups(t *testing.T) {
 }
 
 func TestGroupSaveLoadDelete(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +230,7 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 }
 
 func TestDeleteEntityUnknown(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,7 +241,7 @@ func TestDeleteEntityUnknown(t *testing.T) {
 }
 
 func TestDeleteGroupUnknown(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +252,7 @@ func TestDeleteGroupUnknown(t *testing.T) {
 }
 
 func TestNextGroupNumber(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -285,7 +286,7 @@ func TestNextGroupNumber(t *testing.T) {
 }
 
 func TestSearchGroups(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -322,7 +323,7 @@ func TestSearchGroups(t *testing.T) {
 }
 
 func TestHealthCheck(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -339,7 +340,7 @@ func TestHealthCheck(t *testing.T) {
 }
 
 func TestLoadSaveEntityErrors(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,7 +354,7 @@ func TestLoadSaveEntityErrors(t *testing.T) {
 }
 
 func TestLoadSaveGroupErrors(t *testing.T) {
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -364,4 +365,9 @@ func TestLoadSaveGroupErrors(t *testing.T) {
 	if err := x.SaveGroup(&pb.Group{Name: proto.String("save-error")}); err != db.ErrInternalError {
 		t.Error("Didn't return an error when should have")
 	}
+}
+
+// This test case is purely to maintain 100% statement coverage.
+func TestCB(t *testing.T) {
+	cb()
 }

@@ -3,6 +3,8 @@ package hooks
 import (
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/memdb"
 	"github.com/netauth/netauth/internal/tree"
@@ -11,7 +13,7 @@ import (
 )
 
 func TestCheckExpansionTargetsDrop(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +36,7 @@ func TestCheckExpansionTargetsDrop(t *testing.T) {
 }
 
 func TestCheckExpansionTargetsBad(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

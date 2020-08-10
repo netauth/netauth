@@ -12,15 +12,16 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/golang/protobuf/proto"
 	atomic "github.com/google/renameio"
 	"github.com/hashicorp/go-hclog"
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/util"
 	"github.com/netauth/netauth/internal/health"
+	"github.com/netauth/netauth/internal/startup"
 
 	pb "github.com/netauth/protocol"
 )
@@ -39,6 +40,10 @@ type ProtoDB struct {
 }
 
 func init() {
+	startup.RegisterCallback(cb)
+}
+
+func cb() {
 	db.Register("ProtoDB", New)
 }
 
@@ -48,9 +53,9 @@ func init() {
 // directory and children.  This function will bail out the entire
 // program as without the backing store the functionality of the rest
 // of the server is undefined!
-func New() (db.DB, error) {
+func New(l hclog.Logger) (db.DB, error) {
 	x := new(ProtoDB)
-	x.l = hclog.L().Named("protodb")
+	x.l = l.Named("protodb")
 	x.dataRoot = filepath.Join(viper.GetString("core.home"), "pdb")
 	x.idx = util.NewIndex()
 	if err := x.ensureDataDirectory(); err != nil {
@@ -260,7 +265,7 @@ func (pdb *ProtoDB) DeleteGroup(name string) error {
 		pdb.l.Warn("Attempt to remove non-existent group", "group", name)
 		return db.ErrUnknownGroup
 	} else if err != nil {
-		pdb.l.Error("Error deleting gruop", "group", name, "error", err)
+		pdb.l.Error("Error deleting group", "group", name, "error", err)
 		return db.ErrInternalError
 	}
 

@@ -1,9 +1,5 @@
 package db
 
-import (
-	"github.com/hashicorp/go-hclog"
-)
-
 var (
 	callbacks map[string]Callback
 )
@@ -17,15 +13,17 @@ func init() {
 func RegisterCallback(name string, c Callback) {
 	if _, ok := callbacks[name]; ok {
 		// Already here...
+		log().Warn("Attempted to register duplicate callback", "callback", name)
 		return
 	}
 	callbacks[name] = c
+	log().Info("Database callback registered", "callback", name)
 }
 
 // FireEvent fires an event to all callbacks.
 func FireEvent(e Event) {
 	for name, c := range callbacks {
-		hclog.L().Named("db").Trace("Calling callback", "callback", name)
+		log().Trace("Calling callback", "callback", name)
 		c(e)
 	}
 }
@@ -34,6 +32,7 @@ func FireEvent(e Event) {
 // is effectively for use in tests only to clean up the registration
 // list in test cases.
 func DeregisterCallback(name string) {
+	log().Debug("Deregistering callback", "callback", name)
 	delete(callbacks, name)
 }
 

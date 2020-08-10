@@ -4,14 +4,21 @@
 package memdb
 
 import (
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/util"
 	"github.com/netauth/netauth/internal/health"
+	"github.com/netauth/netauth/internal/startup"
 
 	pb "github.com/netauth/protocol"
 )
 
 func init() {
+	startup.RegisterCallback(cb)
+}
+
+func cb() {
 	db.Register("MemDB", New)
 }
 
@@ -26,7 +33,7 @@ type MemDB struct {
 }
 
 // New returns a usable memdb with internal structures initialized.
-func New() (db.DB, error) {
+func New(_ hclog.Logger) (db.DB, error) {
 	x := &MemDB{
 		idx:  util.NewIndex(),
 		eMap: make(map[string]*pb.Entity),

@@ -188,17 +188,11 @@ func writeDefaultConfig() error {
 }
 
 // doInfoLogScroll prints out the information about the binary version
-// and what statically compiled implementations are available.
+// and some other information useful in debugging.
 func doInfoLogScroll() {
 	appLogger.Info("NetAuth server is starting!")
 	appLogger.Debug("Server home directory", "directory", viper.GetString("core.home"))
 	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
-
-	// Spit out what backends we know about
-	appLogger.Info("The following DB backends are registered:")
-	for _, b := range db.GetBackendList() {
-		appLogger.Info(fmt.Sprintf("  %s", b))
-	}
 }
 
 // doPluginEarlySetup takes care of some setup tasks needed to create
@@ -262,6 +256,7 @@ func main() {
 	// Set up the loggers for key subsystems
 	crypto.SetParentLogger(appLogger)
 	token.SetParentLogger(appLogger)
+	db.SetParentLogger(appLogger)
 
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up
@@ -282,7 +277,7 @@ func main() {
 	// The data storage layer and cryptographic engine are next to
 	// initialize.  These modules provide core services to the
 	// entity tree which initializes immediately afterwards.
-	dbImpl, err := db.New()
+	dbImpl, err := db.New(viper.GetString("db.backend"))
 	if err != nil {
 		appLogger.Error("Fatal database error", "error", err)
 		os.Exit(1)

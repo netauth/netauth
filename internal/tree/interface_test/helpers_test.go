@@ -15,7 +15,7 @@ import (
 )
 
 func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {
-	mdb, err := memdb.New()
+	mdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

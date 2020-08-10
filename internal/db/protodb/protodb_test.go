@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 	"github.com/radovskyb/watcher"
 	"github.com/spf13/viper"
 
@@ -47,7 +48,7 @@ func TestDiscoverEntities(t *testing.T) {
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +91,7 @@ func TestNextEntityNumber(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -129,7 +130,7 @@ func TestSearchEntities(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +170,7 @@ func TestDiscoverGroups(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -206,7 +207,7 @@ func TestEntitySaveLoadDelete(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +243,7 @@ func TestGroupSaveLoadDelete(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +279,7 @@ func TestSearchGroups(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -323,7 +324,7 @@ func TestEnsureDataDirectoryBadBase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := New()
+	_, err := New(hclog.NewNullLogger())
 	if err != db.ErrInternalError {
 		t.Fatal(err)
 	}
@@ -341,7 +342,7 @@ func TestEnsureDataDirectoryBadSubDir(t *testing.T) {
 	if _, err := os.OpenFile(filepath.Join(r, "pdb", entitySubdir), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
 		t.Fatal(err)
 	}
-	_, err := New()
+	_, err := New(hclog.NewNullLogger())
 	if err != db.ErrInternalError {
 		t.Fatal(err)
 	}
@@ -351,7 +352,7 @@ func TestLoadEntityBadFile(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -376,7 +377,7 @@ func TestLoadEntityBadParse(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +397,7 @@ func TestSaveEntityBadEntity(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -410,7 +411,7 @@ func TestSaveEntityUnwritableFile(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -431,7 +432,7 @@ func TestDeleteUnknownEntity(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -445,7 +446,7 @@ func TestLoadGroupBadFile(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -470,7 +471,7 @@ func TestLoadGroupBadParse(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -490,7 +491,7 @@ func TestSaveGroupBadGroup(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -504,7 +505,7 @@ func TestSaveGroupUnwritableFile(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -525,7 +526,7 @@ func TestDeleteUnknownGroup(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -539,7 +540,7 @@ func TestNextGroupNumber(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -576,7 +577,7 @@ func TestHealthCheckOK(t *testing.T) {
 	r := mkTmpTestDir(t)
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -598,7 +599,7 @@ func TestHealthCheckBadBase(t *testing.T) {
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -627,7 +628,7 @@ func TestHealthCheckNotDirectory(t *testing.T) {
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -657,7 +658,7 @@ func TestHealthCheckBadPermissions(t *testing.T) {
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -683,7 +684,7 @@ func TestHealthCheckBadStat(t *testing.T) {
 	viper.Set("core.home", r)
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -708,7 +709,7 @@ func TestIndexAvailableOnReload(t *testing.T) {
 	viper.Set("core.home", r)
 	viper.Set("pdb.watcher", false)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -728,7 +729,7 @@ func TestIndexAvailableOnReload(t *testing.T) {
 	db.DeregisterCallback("BleveIndexer")
 
 	// Get a new pdb and make sure the index is populated
-	y, err := New()
+	y, err := New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -760,7 +761,7 @@ func TestStartWatcher(t *testing.T) {
 	viper.Set("pdb.watch-interval", "100ms")
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	defer cleanUpWatcher(x, t)
 	if err != nil {
 		t.Fatal(err)
@@ -774,7 +775,7 @@ func TestWatcherLogging(t *testing.T) {
 	viper.Set("pdb.watch-interval", "100ms")
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	defer cleanUpWatcher(x, t)
 	if err != nil {
 		t.Fatal(err)
@@ -795,7 +796,7 @@ func TestWatcherEvents(t *testing.T) {
 	viper.Set("pdb.watch-interval", "100ms")
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	defer cleanUpWatcher(x, t)
 	if err != nil {
 		t.Fatal(err)
@@ -838,7 +839,7 @@ func TestConvertFSToDBEvent(t *testing.T) {
 	viper.Set("pdb.watch-interval", "100ms")
 	defer cleanTmpTestDir(r, t)
 
-	x, err := New()
+	x, err := New(hclog.NewNullLogger())
 	defer cleanUpWatcher(x, t)
 	if err != nil {
 		t.Fatal(err)
@@ -927,4 +928,9 @@ func TestConvertFSToDBEvent(t *testing.T) {
 			t.Errorf("%d: Got %v Want %v", i, got, c.want)
 		}
 	}
+}
+
+// This test exists purely to maintain high statement coverage.
+func TestCB(t *testing.T) {
+	cb()
 }

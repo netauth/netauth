@@ -5,10 +5,11 @@
 package db
 
 import (
-	"github.com/spf13/viper"
+	"github.com/hashicorp/go-hclog"
 )
 
 var (
+	lb       hclog.Logger
 	backends map[string]Factory
 )
 
@@ -17,12 +18,13 @@ func init() {
 }
 
 // New returns a db struct.
-func New() (DB, error) {
-	b, ok := backends[viper.GetString("db.backend")]
+func New(backend string) (DB, error) {
+	b, ok := backends[backend]
 	if !ok {
 		return nil, ErrUnknownDatabase
 	}
-	return b()
+	log().Info("Initializing database backend", "backend", backend)
+	return b(log())
 }
 
 // Register takes in a name of the database to register and a
@@ -33,15 +35,19 @@ func Register(name string, newFunc Factory) {
 		return
 	}
 	backends[name] = newFunc
+	log().Debug("Registered backend", "backend", name)
 }
 
-// GetBackendList returns a string list of the backends that are available
-func GetBackendList() []string {
-	var l []string
+// SetParentLogger sets the parent logger for this instance.
+func SetParentLogger(l hclog.Logger) {
+	lb = l.Named("db")
+}
 
-	for b := range backends {
-		l = append(l, b)
+// log is a convenience function that will return a null logger if a
+// parent logger has not been specified, mostly useful for tests.
+func log() hclog.Logger {
+	if lb == nil {
+		lb = hclog.NewNullLogger()
 	}
-
-	return l
+	return lb
 }

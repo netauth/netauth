@@ -15,7 +15,7 @@ import (
 )
 
 func newServer(t *testing.T) *Server {
-	db, err := memdb.New()
+	db, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

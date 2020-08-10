@@ -1,6 +1,8 @@
 package db
 
 import (
+	"github.com/hashicorp/go-hclog"
+
 	pb "github.com/netauth/protocol"
 )
 
@@ -25,7 +27,7 @@ type DB interface {
 
 // Factory defines the function which can be used to register new
 // implementations.
-type Factory func() (DB, error)
+type Factory func(hclog.Logger) (DB, error)
 
 // Callback is a function type registered by an external customer that
 // is interested in some change that might happen in the storage

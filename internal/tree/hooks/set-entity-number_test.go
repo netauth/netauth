@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db/memdb"
 	"github.com/netauth/netauth/internal/tree"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestSetEntityNumber(t *testing.T) {
-	memdb, err := memdb.New()
+	memdb, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
