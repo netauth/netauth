@@ -1,7 +1,13 @@
+// Package null implements a testing shim for testing the token system
+// and some higher level components.  It is a prime candidate to be
+// replaced with a mocked version of the interface, since unlike some
+// other shims it is used exclusively for testing.
 package null
 
 import (
 	"encoding/json"
+
+	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/token"
 )
@@ -24,7 +30,7 @@ var (
 type Service struct{}
 
 // New returns a new token service
-func New() *Service {
+func New(_ hclog.Logger) *Service {
 	return &Service{}
 }
 

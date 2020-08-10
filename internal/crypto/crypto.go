@@ -19,7 +19,7 @@ type EMCrypto interface {
 // shall be fed to the Register function.
 type Factory func(hclog.Logger) (EMCrypto, error)
 
-// Callbacks are registered in init(), and must not attemtp to log or
+// A Callback is registered in init(), and must not attempt to log or
 // initialize.  They allow the order in which factories are called to
 // be handled in the right order.
 type Callback func()

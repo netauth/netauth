@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/internal/token"
@@ -100,7 +101,7 @@ func TestNewMissingKeys(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", false)
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyGenerationDisabled {
 		t.Fatal(err)
 	}
@@ -112,14 +113,14 @@ func TestNewExistingKey(t *testing.T) {
 
 	// This one should generate keys
 	viper.Set("token.jwt.generate", true)
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// This one should be loading the existing key
 	viper.Set("token.jwt.generate", false)
-	_, err = NewRSA()
+	_, err = NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +131,7 @@ func TestGenerateNoKey(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +156,7 @@ func TestValidateToken(t *testing.T) {
 
 	// Create the token service which will use the key generated
 	// earlier
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +178,7 @@ func TestValidateToken(t *testing.T) {
 	}
 
 	os.Remove(filepath.Join(testDir, "keys", "token.key"))
-	x, err = NewRSA()
+	x, err = NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,7 +204,7 @@ func TestValidateNoKey(t *testing.T) {
 
 	// Create the token service which will use the key generated
 	// earlier
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +230,7 @@ func TestValidateCorruptToken(t *testing.T) {
 
 	// Create the token service which will use the key generated
 	// earlier
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -248,7 +249,7 @@ func TestValidateWrongSigningMethod(t *testing.T) {
 
 	// Create the token service which will use the key generated
 	// earlier
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,7 +271,7 @@ func TestValidateExpiredToken(t *testing.T) {
 
 	// Create the token service which will use the key generated
 	// earlier
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -306,7 +307,7 @@ func TestGetKeysNoGenerate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrInternalError {
 		t.Error(err)
 	}
@@ -321,7 +322,7 @@ func TestGetKeysBadPublicKeyFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
@@ -338,7 +339,7 @@ func TestGetKeysBadPublicKeyMode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
@@ -357,7 +358,7 @@ func TestGetKeysBadBlockDecode(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
@@ -396,7 +397,7 @@ func TestGetKeysPublicKeyWrongType(t *testing.T) {
 		t.Fatal("Keys unavailable")
 	}
 
-	_, err = NewRSA()
+	_, err = NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
@@ -423,7 +424,7 @@ func TestGetKeysPublicKeyIsPrivate(t *testing.T) {
 		t.Fatal("Couldn't set mode on key")
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
@@ -439,7 +440,7 @@ func TestGetKeysNoPrivateKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -456,7 +457,7 @@ func TestGetKeysUnreadablePrivateKey(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -480,7 +481,7 @@ func TestGetKeysPrivateKeyIsPublic(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA()
+	_, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -491,7 +492,7 @@ func TestGenerateKeysSuccess(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -515,7 +516,7 @@ func TestGenerateKeysWrongBitNumber(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -535,7 +536,7 @@ func TestGenerateKeysBadPrivateKeyFile(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -565,7 +566,7 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -600,7 +601,7 @@ func TestHealthCheck(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -620,7 +621,7 @@ func TestHealthCheckNoPublicKey(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -642,7 +643,7 @@ func TestHealthCheckNoPrivateKey(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -664,7 +665,7 @@ func TestHealthCheckBadPrivateKeyPermissions(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -688,7 +689,7 @@ func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA()
+	x, err := NewRSA(hclog.NewNullLogger())
 	if err != nil {
 		t.Error(err)
 	}
@@ -708,7 +709,21 @@ func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
 }
 
 func TestCheckKeyModeOKBadStat(t *testing.T) {
-	if checkKeyModeOK("", "/var/empty/does-not-exist") {
+	testDir := mkTmpTestDir(t)
+	defer cleanTmpTestDir(testDir, t)
+	viper.Set("token.jwt.generate", true)
+
+	x, err := NewRSA(hclog.NewNullLogger())
+	if err != nil {
+		t.Error(err)
+	}
+
+	rx, ok := x.(*RSATokenService)
+	if !ok {
+		t.Fatal("Type Error")
+	}
+
+	if rx.checkKeyModeOK("", filepath.Join(testDir, "does-not-exist")) {
 		t.Error("Stat succeeded on a non-existent path")
 	}
 }

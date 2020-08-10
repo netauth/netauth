@@ -28,6 +28,7 @@ var (
 func init() {
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("core.port", 1729)
+	viper.SetDefault("token.backend", "jwt-rsa")
 }
 
 // New returns a complete client ready to use.
@@ -59,7 +60,9 @@ func New() (*NetAuthClient, error) {
 
 	// Get a token service, don't be a fatal error as most queries
 	// don't require authentication anyway.
-	ts, err := token.New()
+	token.SetParentLogger(log)
+	token.DoCallbacks()
+	ts, err := token.New(viper.GetString("token.backend"))
 	if err != nil {
 		log.Warn("Token validation will be unvavailable", "error", err)
 	}

@@ -31,6 +31,7 @@ func init() {
 	viper.SetDefault("core.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("token.cache", "memory")
+	viper.SetDefault("token.backend", "jwt-rsa")
 }
 
 // NewWithLog uses the specified logger to contruct a NetAuth client.
@@ -48,7 +49,9 @@ func NewWithLog(l hclog.Logger) (*Client, error) {
 		return nil, err
 	}
 
-	ts, err := token.New()
+	token.SetParentLogger(l)
+	token.DoCallbacks()
+	ts, err := token.New(viper.GetString("token.backend"))
 	if err != nil {
 		l.Warn("Token service initialization error", "error", err)
 	}

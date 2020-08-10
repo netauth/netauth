@@ -3,11 +3,13 @@ package null
 import (
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
+
 	"github.com/netauth/netauth/internal/token"
 )
 
 func TestGenerate(t *testing.T) {
-	tkn := New()
+	tkn := New(hclog.NewNullLogger())
 
 	cases := []struct {
 		claims    token.Claims
@@ -28,7 +30,7 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	tkn := New()
+	tkn := New(hclog.NewNullLogger())
 
 	if _, err := tkn.Validate("{\"EntityID\":\"valid\",\"Capabilities\":null}"); err != nil {
 		t.Errorf("Couldn't validate real token: %v", err)

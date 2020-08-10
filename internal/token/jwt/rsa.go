@@ -42,9 +42,9 @@ func init() {
 }
 
 // NewRSA returns an RSATokenService initialized and ready for use.
-func NewRSA() (token.Service, error) {
+func NewRSA(l hclog.Logger) (token.Service, error) {
 	x := RSATokenService{}
-	x.log = hclog.L().Named("jwt-rsa")
+	x.log = l.Named("jwt-rsa")
 
 	if err := x.GetKeys(); err != nil {
 		return nil, err
@@ -146,7 +146,7 @@ func (s *RSATokenService) GetKeys() error {
 		return token.ErrKeyUnavailable
 	}
 
-	if !checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
+	if !s.checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
 		s.log.Warn("Public key has incorrect mode bits")
 		return token.ErrKeyUnavailable
 	}
@@ -190,7 +190,7 @@ func (s *RSATokenService) GetKeys() error {
 		return nil
 	}
 
-	if !checkKeyModeOK("-r--------", s.privateKeyFile) {
+	if !s.checkKeyModeOK("-r--------", s.privateKeyFile) {
 		s.log.Warn("Private key has incorrect mode bits", "file", s.privateKeyFile)
 	}
 
@@ -266,12 +266,12 @@ func (s *RSATokenService) healthCheck() health.SubsystemStatus {
 		return status
 	}
 
-	if !checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
+	if !s.checkKeyModeOK("-rw-r--r--", s.publicKeyFile) {
 		status.Status = "Public key has incorrect mode"
 		return status
 	}
 
-	if !checkKeyModeOK("-r--------", s.privateKeyFile) {
+	if !s.checkKeyModeOK("-r--------", s.privateKeyFile) {
 		status.Status = "Private key has incorrect mode"
 		return status
 	}
@@ -280,6 +280,19 @@ func (s *RSATokenService) healthCheck() health.SubsystemStatus {
 	status.Status = "JWT-RSA TokenService is ready to issue/verify tokens"
 
 	return status
+}
+
+func (s *RSATokenService) checkKeyModeOK(mode string, path string) bool {
+	stat, err := os.Stat(path)
+	if err != nil {
+		s.log.Error("Error stating key", "error", err)
+		return false
+	}
+	if stat.Mode().Perm().String() != mode {
+		s.log.Error("Key permissions are wrong.", "current", stat.Mode().Perm(), "want", mode)
+		return false
+	}
+	return true
 }
 
 func marshalPrivateKey(key *rsa.PrivateKey, path string) error {
@@ -313,17 +326,4 @@ func marshalPublicKey(key *rsa.PublicKey, path string) error {
 		return token.ErrInternalError
 	}
 	return nil
-}
-
-func checkKeyModeOK(mode string, path string) bool {
-	stat, err := os.Stat(path)
-	if err != nil {
-		hclog.L().Named("jwt-rsa").Error("Error stating key", "error", err)
-		return false
-	}
-	if stat.Mode().Perm().String() != mode {
-		hclog.L().Named("jwt-rsa").Error("Key permissions are wrong.", "current", stat.Mode().Perm(), "want", mode)
-		return false
-	}
-	return true
 }

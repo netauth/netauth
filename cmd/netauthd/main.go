@@ -17,7 +17,7 @@ import (
 	_ "github.com/netauth/netauth/internal/db/all"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
 	"github.com/netauth/netauth/internal/token"
-	_ "github.com/netauth/netauth/internal/token/all"
+	_ "github.com/netauth/netauth/internal/token/jwt"
 
 	"github.com/netauth/netauth/internal/rpc"
 	"github.com/netauth/netauth/internal/rpc2"
@@ -197,12 +197,6 @@ func doInfoLogScroll() {
 	for _, b := range db.GetBackendList() {
 		appLogger.Info(fmt.Sprintf("  %s", b))
 	}
-
-	// Spit out the token services we know about
-	appLogger.Info("The following token services are registered:")
-	for _, b := range token.GetBackendList() {
-		appLogger.Info(fmt.Sprintf("  %s", b))
-	}
 }
 
 // doPluginEarlySetup takes care of some setup tasks needed to create
@@ -263,8 +257,11 @@ func main() {
 	}
 	appLogger.SetLevel(hclog.LevelFromString(viper.GetString("log.level")))
 
+	// Set up the loggers and process callbacks.
 	crypto.SetParentLogger(appLogger)
 	crypto.DoCallbacks()
+	token.SetParentLogger(appLogger)
+	token.DoCallbacks()
 
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up
@@ -331,7 +328,8 @@ func main() {
 	// token service is distinct from the tree, and can wait to
 	// come online until the tree has been initiailized (and by
 	// extension the plugin system).
-	tokenService, err := token.New()
+	token.SetLifetime(viper.GetDuration("token.lifetime"))
+	tokenService, err := token.New(viper.GetString("token.backend"))
 	if err != nil {
 		appLogger.Error("Fatal token error", "error", err)
 		os.Exit(1)
