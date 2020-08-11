@@ -23,10 +23,10 @@ type Manager struct {
 }
 
 // New returns a new manager instance
-func New() (Manager, error) {
+func New(l hclog.Logger) (Manager, error) {
 	x := Manager{
 		plugins: make(map[string]consumer.Ref),
-		logger:  hclog.L().Named("plugin"),
+		logger:  l.Named("tree.plugin"),
 	}
 
 	return x, nil

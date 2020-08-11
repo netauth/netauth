@@ -204,7 +204,7 @@ func doInfoLogScroll() {
 // these setup tasks if plugins are enabled, otherwise it will not
 // alter the configuration of the server.
 func doPluginEarlySetup() plugin.Manager {
-	p, err := plugin.New()
+	p, err := plugin.New(appLogger)
 	if err != nil {
 		appLogger.Warn("Problem initializing plugin manager", "error", err)
 	}
