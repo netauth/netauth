@@ -3,6 +3,7 @@ package hooks
 import (
 	"strings"
 
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -37,6 +38,10 @@ func (cie *CheckImmediateExpansions) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(checkImmediateExpansionsCB)
+}
+
+func checkImmediateExpansionsCB() {
 	tree.RegisterGroupHookConstructor("check-immediate-expansions", NewCheckImmediateExpansions)
 }
 

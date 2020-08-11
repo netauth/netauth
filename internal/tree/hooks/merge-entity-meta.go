@@ -2,6 +2,8 @@ package hooks
 
 import (
 	"github.com/golang/protobuf/proto"
+
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -29,6 +31,10 @@ func (*MergeEntityMeta) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(mergeEntityMetaCB)
+}
+
+func mergeEntityMetaCB() {
 	tree.RegisterEntityHookConstructor("merge-entity-meta", NewMergeEntityMeta)
 }
 

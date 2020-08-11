@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
@@ -23,6 +24,10 @@ func (mek *ManageEntityKeys) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(entityKeysCB)
+}
+
+func entityKeysCB() {
 	tree.RegisterEntityHookConstructor("add-entity-key", NewAddEntityKey)
 	tree.RegisterEntityHookConstructor("del-entity-key", NewDelEntityKey)
 }

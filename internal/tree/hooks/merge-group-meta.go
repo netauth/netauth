@@ -2,6 +2,8 @@ package hooks
 
 import (
 	"github.com/golang/protobuf/proto"
+
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -27,6 +29,10 @@ func (*MergeGroupMeta) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(mergeGroupMetaCB)
+}
+
+func mergeGroupMetaCB() {
 	tree.RegisterGroupHookConstructor("merge-group-meta", NewMergeGroupMeta)
 }
 

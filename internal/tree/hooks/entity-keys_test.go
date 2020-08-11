@@ -56,3 +56,7 @@ func TestDelEntityKey(t *testing.T) {
 		t.Fatal("Spec error - please trace plugin")
 	}
 }
+
+func TestEntityKeysCB(t *testing.T) {
+	entityKeysCB()
+}

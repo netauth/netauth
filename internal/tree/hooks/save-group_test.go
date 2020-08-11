@@ -33,3 +33,7 @@ func TestSaveGroup(t *testing.T) {
 		t.Fatal("Group wasn't saved", err)
 	}
 }
+
+func TestSaveGroupCB(t *testing.T) {
+	saveGroupCB()
+}

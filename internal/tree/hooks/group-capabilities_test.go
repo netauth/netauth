@@ -76,3 +76,7 @@ func TestRemoveGroupCapabilities(t *testing.T) {
 		t.Fatal("Spec failure, please examine hook execution")
 	}
 }
+
+func TestGroupCapabilitiesCB(t *testing.T) {
+	groupCapabilitiesCB()
+}

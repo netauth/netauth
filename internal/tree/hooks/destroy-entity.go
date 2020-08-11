@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -26,6 +27,10 @@ func (d *DestroyEntity) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(destroyEntityCB)
+}
+
+func destroyEntityCB() {
 	tree.RegisterEntityHookConstructor("destroy-entity", NewDestroyEntity)
 }
 

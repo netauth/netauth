@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -26,6 +27,10 @@ func (s *SetEntitySecret) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(setEntitySecretCB)
+}
+
+func setEntitySecretCB() {
 	tree.RegisterEntityHookConstructor("set-entity-secret", NewSetEntitySecret)
 }
 

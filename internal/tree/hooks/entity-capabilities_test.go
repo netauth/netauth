@@ -82,3 +82,7 @@ func TestRemoveEntityCapabilities(t *testing.T) {
 		t.Fatal("Spec failure, please examine hook execution")
 	}
 }
+
+func TestEntityCapabilitiesCB(t *testing.T) {
+	entityCapabilitiesCB()
+}

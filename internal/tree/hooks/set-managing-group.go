@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -46,6 +47,10 @@ func (c *SetManagingGroup) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(setManagingGroupCB)
+}
+
+func setManagingGroupCB() {
 	tree.RegisterGroupHookConstructor("set-managing-group", NewSetManagingGroup)
 }
 

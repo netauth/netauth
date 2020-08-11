@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -19,6 +20,10 @@ func (*SetEntityID) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(setEntityIDCB)
+}
+
+func setEntityIDCB() {
 	tree.RegisterEntityHookConstructor("set-entity-id", NewSetEntityID)
 }
 

@@ -131,3 +131,7 @@ func TestCheckGroupCyclesRecurser(t *testing.T) {
 		t.Fatal("Errored on an acceptable expansion")
 	}
 }
+
+func TestCheckExpansionCyclesCB(t *testing.T) {
+	checkExpansionCyclesCB()
+}

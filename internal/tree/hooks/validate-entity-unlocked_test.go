@@ -30,3 +30,7 @@ func TestValidateEntityUnlocked(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateEntityUnlockedCB(t *testing.T) {
+	validateEntityUnlockedCB()
+}

@@ -89,3 +89,7 @@ func TestCreateNew(t *testing.T) {
 		t.Fatal("Secret not set")
 	}
 }
+
+func TestCreateEntityIfMissingCB(t *testing.T) {
+	createEntityIfMissingCB()
+}

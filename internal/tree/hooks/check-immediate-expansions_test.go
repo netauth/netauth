@@ -53,3 +53,7 @@ func TestCheckImmediateExpansionsExisting(t *testing.T) {
 		t.Error("Spec error - please trace hook")
 	}
 }
+
+func TestCheckImmediateExpansionsCB(t *testing.T) {
+	checkImmediateExpansionsCB()
+}

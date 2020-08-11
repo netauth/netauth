@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -35,6 +36,10 @@ func (mec *ManageGroupCapabilities) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(groupCapabilitiesCB)
+}
+
+func groupCapabilitiesCB() {
 	tree.RegisterGroupHookConstructor("set-group-capability", NewSetGroupCapability)
 	tree.RegisterGroupHookConstructor("remove-group-capability", NewRemoveGroupCapability)
 }

@@ -54,3 +54,7 @@ func TestSetManagingGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestSetManagingGroupCB(t *testing.T) {
+	setManagingGroupCB()
+}

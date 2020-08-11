@@ -48,3 +48,7 @@ func TestFailOnExistingGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestFailOnExistingGroupCB(t *testing.T) {
+	failOnExistingGroupCB()
+}

@@ -4,6 +4,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
@@ -39,6 +40,10 @@ func (*PatchGroupExpansions) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(patchGroupExpansionsCB)
+}
+
+func patchGroupExpansionsCB() {
 	tree.RegisterGroupHookConstructor("patch-group-expansions", NewPatchGroupExpansions)
 }
 

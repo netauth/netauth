@@ -79,3 +79,7 @@ func TestDelExactGroupUM(t *testing.T) {
 		t.Fatal("Spec error - please trace hook")
 	}
 }
+
+func TestManageGroupUMCB(t *testing.T) {
+	manageGroupUMCB()
+}

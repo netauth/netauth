@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -35,6 +36,10 @@ func (mec *ManageEntityCapabilities) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(entityCapabilitiesCB)
+}
+
+func entityCapabilitiesCB() {
 	tree.RegisterEntityHookConstructor("set-entity-capability", NewSetEntityCapability)
 	tree.RegisterEntityHookConstructor("remove-entity-capability", NewRemoveEntityCapability)
 }

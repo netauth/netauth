@@ -43,3 +43,7 @@ func TestSetGroupNumber(t *testing.T) {
 		t.Error("Spec failure = please trace hook")
 	}
 }
+
+func TestSetGroupNumberCB(t *testing.T) {
+	setGroupNumberCB()
+}

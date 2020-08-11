@@ -47,3 +47,7 @@ func TestLoadEntity(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadEntityCB(t *testing.T) {
+	loadEntityCB()
+}

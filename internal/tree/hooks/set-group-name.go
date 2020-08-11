@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -19,6 +20,10 @@ func (*SetGroupName) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(setGroupNameCB)
+}
+
+func setGroupNameCB() {
 	tree.RegisterGroupHookConstructor("set-group-name", NewSetGroupName)
 }
 

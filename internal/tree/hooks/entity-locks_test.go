@@ -45,3 +45,7 @@ func TestEntityUnLock(t *testing.T) {
 		t.Fatal("Spec error - please trace hook")
 	}
 }
+
+func TestEntityLockCB(t *testing.T) {
+	entityLockCB()
+}

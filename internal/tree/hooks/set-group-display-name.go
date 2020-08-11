@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -18,6 +19,10 @@ func (*SetGroupDisplayName) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(setGroupDisplayNameCB)
+}
+
+func setGroupDisplayNameCB() {
 	tree.RegisterGroupHookConstructor("set-group-displayname", NewSetGroupDisplayName)
 }
 

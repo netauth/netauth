@@ -35,3 +35,7 @@ func TestSetEntitySecret(t *testing.T) {
 		t.Fatal("Spec error - please trace hook")
 	}
 }
+
+func TestSetEntitySecretCB(t *testing.T) {
+	setEntitySecretCB()
+}

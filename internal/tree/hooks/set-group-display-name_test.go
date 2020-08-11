@@ -28,3 +28,7 @@ func TestSetGroupDisplayName(t *testing.T) {
 		t.Error("Spec failure - please trace hook")
 	}
 }
+
+func TestSetGroupDisplayNameCB(t *testing.T) {
+	setGroupDisplayNameCB()
+}

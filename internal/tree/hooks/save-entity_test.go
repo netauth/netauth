@@ -33,3 +33,7 @@ func TestSaveEntity(t *testing.T) {
 		t.Fatal("Entity wasn't saved", err)
 	}
 }
+
+func TestSaveEntityCB(t *testing.T) {
+	saveEntityCB()
+}

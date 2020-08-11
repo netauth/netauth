@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -27,6 +28,10 @@ func (l *FailOnExistingEntity) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(failOnExistingEntityCB)
+}
+
+func failOnExistingEntityCB() {
 	tree.RegisterEntityHookConstructor("fail-on-existing-entity", NewFailOnExistingEntity)
 }
 

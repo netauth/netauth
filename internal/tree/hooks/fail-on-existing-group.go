@@ -2,6 +2,7 @@ package hooks
 
 import (
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -25,6 +26,10 @@ func (f *FailOnExistingGroup) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(failOnExistingGroupCB)
+}
+
+func failOnExistingGroupCB() {
 	tree.RegisterGroupHookConstructor("fail-on-existing-group", NewFailOnExistingGroup)
 }
 

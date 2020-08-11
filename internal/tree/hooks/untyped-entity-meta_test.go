@@ -89,3 +89,7 @@ func TestDelExactEntityUM(t *testing.T) {
 		t.Fatal("Spec error - please trace hook")
 	}
 }
+
+func TestManageEntityUMCB(t *testing.T) {
+	manageEntityUMCB()
+}

@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
@@ -27,6 +28,10 @@ func (mm *ManageGroupUM) Run(g, dg *pb.Group) error {
 }
 
 func init() {
+	startup.RegisterCallback(manageGroupUMCB)
+}
+
+func manageGroupUMCB() {
 	tree.RegisterGroupHookConstructor("add-untyped-metadata", NewAddGroupUM)
 	tree.RegisterGroupHookConstructor("del-untyped-metadata-fuzzy", NewDelFuzzyGroupUM)
 	tree.RegisterGroupHookConstructor("del-untyped-metadata-exact", NewDelExactGroupUM)

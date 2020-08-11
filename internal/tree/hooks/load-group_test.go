@@ -46,3 +46,7 @@ func TestLoadGroup(t *testing.T) {
 		}
 	}
 }
+
+func TestLoadGroupCB(t *testing.T) {
+	loadGroupCB()
+}

@@ -37,3 +37,7 @@ func TestSetEntityNumber(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestSetEntityNumberCB(t *testing.T) {
+	setEntityNumberCB()
+}

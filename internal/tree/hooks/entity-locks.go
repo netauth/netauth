@@ -2,6 +2,8 @@ package hooks
 
 import (
 	"github.com/golang/protobuf/proto"
+
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -22,6 +24,10 @@ func (elm *EntityLockManager) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(entityLockCB)
+}
+
+func entityLockCB() {
 	tree.RegisterEntityHookConstructor("lock-entity", NewELMLock)
 	tree.RegisterEntityHookConstructor("unlock-entity", NewELMUnlock)
 }

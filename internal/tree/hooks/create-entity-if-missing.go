@@ -3,6 +3,7 @@ package hooks
 import (
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	"github.com/golang/protobuf/proto"
@@ -61,6 +62,10 @@ func (c *CreateEntityIfMissing) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(createEntityIfMissingCB)
+}
+
+func createEntityIfMissingCB() {
 	tree.RegisterEntityHookConstructor("create-entity-if-missing", NewCreateEntityIfMissing)
 }
 

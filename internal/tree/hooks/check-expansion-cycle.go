@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -66,7 +67,9 @@ func (cec *CheckExpansionCycles) checkGroupCycles(g *pb.Group, candidate string)
 	return false
 }
 
-func init() {
+func init() { startup.RegisterCallback(checkExpansionCyclesCB) }
+
+func checkExpansionCyclesCB() {
 	tree.RegisterGroupHookConstructor("check-expansion-cycles", NewCheckExpansionCycles)
 }
 

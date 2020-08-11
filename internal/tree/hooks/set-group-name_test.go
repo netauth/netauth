@@ -28,3 +28,7 @@ func TestSetGroupName(t *testing.T) {
 		t.Error("Spec error - please trace hook")
 	}
 }
+
+func TestSetGroupNameCB(t *testing.T) {
+	setGroupNameCB()
+}

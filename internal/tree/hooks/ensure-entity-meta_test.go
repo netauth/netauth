@@ -24,3 +24,7 @@ func TestEnsureEntityMeta(t *testing.T) {
 		t.Fatal("Spec error - please trace hook")
 	}
 }
+
+func TestEnsureEntityMetaCB(t *testing.T) {
+	ensureEntityMetaCB()
+}

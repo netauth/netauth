@@ -43,3 +43,7 @@ func TestDestroyEntity(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDestroyEntityCB(t *testing.T) {
+	destroyEntityCB()
+}

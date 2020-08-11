@@ -29,3 +29,7 @@ func TestValidateEntitySecret(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestValidateEntitySecretCB(t *testing.T) {
+	validateEntitySecretCB()
+}

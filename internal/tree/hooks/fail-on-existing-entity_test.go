@@ -49,3 +49,7 @@ func TestFailOnExistingEntity(t *testing.T) {
 		}
 	}
 }
+
+func TestFailOnExistingEntityCB(t *testing.T) {
+	failOnExistingEntityCB()
+}

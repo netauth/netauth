@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
@@ -27,6 +28,10 @@ func (mm *ManageEntityUM) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(manageEntityUMCB)
+}
+
+func manageEntityUMCB() {
 	tree.RegisterEntityHookConstructor("add-untyped-metadata", NewAddEntityUM)
 	tree.RegisterEntityHookConstructor("del-untyped-metadata-fuzzy", NewDelFuzzyEntityUM)
 	tree.RegisterEntityHookConstructor("del-untyped-metadata-exact", NewDelExactEntityUM)

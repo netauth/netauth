@@ -26,3 +26,7 @@ func TestSetEntityID(t *testing.T) {
 		t.Error("Spec error - please trace hook")
 	}
 }
+
+func TestSetEntityIDCB(t *testing.T) {
+	setEntityIDCB()
+}

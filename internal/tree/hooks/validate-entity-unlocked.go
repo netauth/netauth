@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -21,6 +22,10 @@ func (*ValidateEntityUnlocked) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(validateEntityUnlockedCB)
+}
+
+func validateEntityUnlockedCB() {
 	tree.RegisterEntityHookConstructor("validate-entity-unlocked", NewValidateEntityUnlocked)
 }
 

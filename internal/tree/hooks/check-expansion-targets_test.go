@@ -57,3 +57,7 @@ func TestCheckExpansionTargetsBad(t *testing.T) {
 		t.Error("Spec error - please trace hook")
 	}
 }
+
+func TestCheckExpansionTargetsCB(t *testing.T) {
+	checkExpansionTargetsCB()
+}

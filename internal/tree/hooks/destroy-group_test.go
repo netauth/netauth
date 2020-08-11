@@ -43,3 +43,7 @@ func TestDestroyGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestDestroyGroupCB(t *testing.T) {
+	destroyGroupCB()
+}

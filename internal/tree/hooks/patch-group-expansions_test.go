@@ -57,3 +57,7 @@ func TestPatchGroupExpansionsDrop(t *testing.T) {
 	}
 
 }
+
+func TestPatchGroupExpansionsCB(t *testing.T) {
+	patchGroupExpansionsCB()
+}

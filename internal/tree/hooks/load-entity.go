@@ -2,7 +2,9 @@ package hooks
 
 import (
 	"github.com/golang/protobuf/proto"
+
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -33,6 +35,10 @@ func (l *LoadEntity) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(loadEntityCB)
+}
+
+func loadEntityCB() {
 	tree.RegisterEntityHookConstructor("load-entity", NewLoadEntity)
 }
 

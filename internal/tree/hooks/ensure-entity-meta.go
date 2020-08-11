@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
@@ -22,6 +23,10 @@ func (*EnsureEntityMeta) Run(e, de *pb.Entity) error {
 }
 
 func init() {
+	startup.RegisterCallback(ensureEntityMetaCB)
+}
+
+func ensureEntityMetaCB() {
 	tree.RegisterEntityHookConstructor("ensure-entity-meta", NewEnsureEntityMeta)
 }
 
