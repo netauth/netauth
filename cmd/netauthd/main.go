@@ -258,9 +258,10 @@ func main() {
 
 	// Set up the loggers for key subsystems
 	crypto.SetParentLogger(appLogger)
-	token.SetParentLogger(appLogger)
 	db.SetParentLogger(appLogger)
 	health.SetParentLogger(appLogger)
+	token.SetParentLogger(appLogger)
+	tree.SetParentLogger(appLogger)
 
 	// This spits out all the bootup information, debugging
 	// tokens, and some other diagnostic information that make up

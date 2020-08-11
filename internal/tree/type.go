@@ -51,11 +51,3 @@ type RefContext struct {
 // groups, but as these each have separate chains, different configs
 // must be created and loaded for each.
 type ChainConfig map[string][]string
-
-// This logger is special, since it needs to be available very early
-// on, and needs to be able to be setup by package main very early in
-// initialization.  Everything that's part of a manager instance
-// should use the logger from the instance.
-var (
-	logger = hclog.L().Named("tree")
-)

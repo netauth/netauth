@@ -7,6 +7,13 @@ import (
 	"github.com/netauth/netauth/internal/db"
 )
 
+var (
+	// This logger is very special, and is meant for exclusive use
+	// by early init tasks that happen at the package scope and
+	// are not bound to a tree instance.
+	initlb hclog.Logger
+)
+
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
 func New(db db.DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
@@ -50,4 +57,18 @@ func New(db db.DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
 	x.log.Debug("Initialized new Entity Manager")
 
 	return &x, nil
+}
+
+// SetParentLogger sets the parent logger for this instance.
+func SetParentLogger(l hclog.Logger) {
+	initlb = l.Named("tree.init")
+}
+
+// log is a convenience function that will return a null logger if a
+// parent logger has not been specified, mostly useful for tests.
+func log() hclog.Logger {
+	if initlb == nil {
+		initlb = hclog.NewNullLogger()
+	}
+	return initlb
 }

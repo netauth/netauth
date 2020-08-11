@@ -34,11 +34,11 @@ func init() {
 func RegisterGroupHookConstructor(name string, c GroupHookConstructor) {
 	if _, ok := gHookConstructors[name]; ok {
 		// Already registered
-		logger.Trace("Duplicate GroupHookConstructor registration attempt", "hook", name)
+		log().Trace("Duplicate GroupHookConstructor registration attempt", "hook", name)
 		return
 	}
 	gHookConstructors[name] = c
-	logger.Trace("GroupHookConstructor registered", "constructor", name)
+	log().Trace("GroupHookConstructor registered", "constructor", name)
 }
 
 // InitializeGroupHooks runs all the GroupHookConstructors and

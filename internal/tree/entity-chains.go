@@ -34,11 +34,11 @@ func init() {
 func RegisterEntityHookConstructor(name string, c EntityHookConstructor) {
 	if _, ok := eHookConstructors[name]; ok {
 		// Already registered
-		logger.Trace("Duplicate EntityHookConstructor registration attempt", "hook", name)
+		log().Trace("Duplicate EntityHookConstructor registration attempt", "hook", name)
 		return
 	}
 	eHookConstructors[name] = c
-	logger.Trace("EntityHookConstructor registered", "constructor", name)
+	log().Trace("EntityHookConstructor registered", "constructor", name)
 }
 
 // InitializeEntityHooks runs all the EntityHookConstructors and
