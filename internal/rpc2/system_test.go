@@ -173,5 +173,4 @@ func TestSystemStatus(t *testing.T) {
 	if status.GetSystemOK() != true {
 		t.Error("Status does not reflect green state")
 	}
-	t.Logf("Full status: %v", status)
 }

@@ -31,7 +31,6 @@ func TestParseKV(t *testing.T) {
 	}
 
 	res := parseKV(kv1)
-	t.Log(res)
 
 	if len(res["key"]) != 3 {
 		t.Errorf("key output is the wrong length: %v", res["key"])

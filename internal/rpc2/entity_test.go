@@ -855,8 +855,8 @@ func TestEntityGroups(t *testing.T) {
 		initTree(t, s)
 		res, err := s.EntityGroups(context.Background(), &c.req)
 		if err != c.wantErr {
+			t.Log(res)
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
-		t.Log(res)
 	}
 }

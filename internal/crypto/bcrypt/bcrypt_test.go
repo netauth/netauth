@@ -18,12 +18,10 @@ func TestEncryptDecrypt(t *testing.T) {
 		t.Fatal(err)
 	}
 	hash, err := e.SecureSecret(secret)
-	t.Log("Testing GenerateFromPassword")
 	if err != nil {
 		t.Errorf("Bcrypt error: %s", err)
 	}
 
-	t.Log("Testing CompareHashAndPassword")
 	if err := e.VerifySecret(secret, hash); err != nil {
 		t.Log(hash)
 		t.Errorf("Bcrypt error: %s", err)
@@ -56,7 +54,6 @@ func TestCostTooHigh(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err = e.SecureSecret(secret)
-	t.Log("Testing GenerateFromPassword")
 	if err != crypto.ErrInternalError {
 		t.Errorf("Bcrypt error: %s", err)
 	}
