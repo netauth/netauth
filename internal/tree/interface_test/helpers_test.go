@@ -30,7 +30,7 @@ func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {
 		Crypto: crypto,
 	}
 
-	em, err := tree.New(ctx.DB, ctx.Crypto)
+	em, err := tree.New(ctx.DB, ctx.Crypto, hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}

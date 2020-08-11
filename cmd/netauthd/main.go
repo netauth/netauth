@@ -301,7 +301,7 @@ func main() {
 	// being used, then the tree action configurations (chains)
 	// need to be reconfigured to enable the external plugin
 	// hooks.
-	tree, err := tree.New(dbImpl, cryptoImpl)
+	tree, err := tree.New(dbImpl, cryptoImpl, appLogger)
 	if err != nil {
 		appLogger.Error("Fatal initialization error", "error", err)
 		os.Exit(1)

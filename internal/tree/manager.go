@@ -9,9 +9,9 @@ import (
 
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
-func New(db db.DB, crypto crypto.EMCrypto) (*Manager, error) {
+func New(db db.DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
 	x := Manager{}
-	x.log = hclog.L().Named("tree")
+	x.log = l.Named("tree")
 	x.bootstrapDone = false
 	x.db = db
 	x.crypto = crypto

@@ -25,7 +25,7 @@ func newServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 
-	m, err := tree.New(db, crypto)
+	m, err := tree.New(db, crypto, hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
 	}
