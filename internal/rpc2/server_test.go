@@ -7,6 +7,7 @@ import (
 
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
 	"github.com/netauth/netauth/internal/db/memdb"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/token/null"
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
@@ -15,6 +16,8 @@ import (
 )
 
 func newServer(t *testing.T) *Server {
+	startup.DoCallbacks()
+
 	db, err := memdb.New(hclog.NewNullLogger())
 	if err != nil {
 		t.Fatal(err)
