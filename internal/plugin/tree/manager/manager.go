@@ -87,7 +87,7 @@ func (m *Manager) RegisterEntityHooks() {
 			}, nil
 		}
 		m.logger.Trace("Registering EntityHookConstructor", "action", action)
-		tree.RegisterEntityHookConstructor(string(action), hc)
+		tree.RegisterEntityHookConstructor(action.String(), hc)
 	}
 }
 
@@ -131,7 +131,7 @@ func (m *Manager) RegisterGroupHooks() {
 			}, nil
 		}
 		m.logger.Trace("Registering GroupHookConstructor", "action", action)
-		tree.RegisterGroupHookConstructor(string(action), hc)
+		tree.RegisterGroupHookConstructor(action.String(), hc)
 	}
 }
 
