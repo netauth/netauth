@@ -90,7 +90,6 @@ github.com/mitchellh/mapstructure v1.1.2 h1:fmNYVwqnSfB9mZU6OS2O6GsXM+wcskZDuKQz
 github.com/mitchellh/mapstructure v1.1.2/go.mod h1:FVVH3fgwuzCH5S8UJGiWEs2h04kUh9fWfEaFds41c1Y=
 github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae h1:VeRdUYdCw49yizlSbMEn2SZ+gT+3IUKx8BqxyQdz+BY=
 github.com/mschoch/smat v0.0.0-20160514031455-90eadee771ae/go.mod h1:qAyveg+e4CE+eKJXWVjKXM4ck2QobLqTDytGJbLLhJg=
-github.com/netauth/protocol v0.0.0-20191103001152-2815518e2f36/go.mod h1:xaNx5CDzZAIQf/05XC49krheuDM51d0ghkBw8liKAag=
 github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72 h1:TRWDX4YIgajtmV3DHPrj7J/mNcg1C0YiRNppdQACstg=
 github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72/go.mod h1:xaNx5CDzZAIQf/05XC49krheuDM51d0ghkBw8liKAag=
 github.com/oklog/run v1.0.0 h1:Ru7dDtJNOyC66gQ5dQmaCa0qIsAUFY3sFpK1Xk8igrw=
