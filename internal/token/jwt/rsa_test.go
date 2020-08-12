@@ -591,8 +591,6 @@ func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
 
 	if err := rx.generateKeys(256); err != token.ErrInternalError {
 		t.Error(err)
-	} else {
-		t.Logf("%T", err)
 	}
 }
 
