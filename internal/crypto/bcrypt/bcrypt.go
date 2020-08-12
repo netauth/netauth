@@ -42,7 +42,7 @@ func New(l hclog.Logger) (crypto.EMCrypto, error) {
 func (b *Engine) SecureSecret(secret string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(secret), b.cost)
 	if err != nil {
-		b.l.Error("Bcrypt Error has occurred", "error", err)
+		b.l.Debug("Bcrypt Error has occurred", "error", err)
 		return "", crypto.ErrInternalError
 	}
 	return string(hash[:]), nil
@@ -54,7 +54,7 @@ func (b *Engine) SecureSecret(secret string) (string, error) {
 func (b *Engine) VerifySecret(secret, hash string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(secret))
 	if err != nil {
-		b.l.Error("Bcrypt Error has occurred", "error", err)
+		b.l.Debug("Bcrypt Error has occurred", "error", err)
 		return crypto.ErrAuthorizationFailure
 	}
 	return nil
