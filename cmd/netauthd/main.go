@@ -19,7 +19,6 @@ import (
 	"github.com/netauth/netauth/internal/token"
 	_ "github.com/netauth/netauth/internal/token/jwt"
 
-	"github.com/netauth/netauth/internal/rpc"
 	"github.com/netauth/netauth/internal/rpc2"
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
@@ -33,7 +32,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	pb "github.com/netauth/protocol"
 	rpb "github.com/netauth/protocol/v2"
 )
 
@@ -86,17 +84,6 @@ func init() {
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("tls.key", "keys/tls.key")
 	viper.SetDefault("plugin.path", filepath.Join(viper.GetString("core.home"), "plugins"))
-}
-
-// newServer sets up a version 1 RPC server interface.  This should
-// really be a part of internal/rpc, but that entire interface is
-// deprecated and so no refactoring will happen to it.
-func newServer(tree rpc.EntityTree, tokenService token.Service) *rpc.NetAuthServer {
-	return &rpc.NetAuthServer{
-		Tree:  tree,
-		Token: tokenService,
-		Log:   appLogger.Named("rpc"),
-	}
 }
 
 // newSocket binds the listening socket to the ports specified in the
@@ -355,13 +342,6 @@ func main() {
 	// A NetAuth server may serve more than one protocol version
 	// at a time.  This section binds the different application
 	// protocol versions to the grpcServer.
-	pb.RegisterNetAuthServer(
-		grpcServer,
-		newServer(
-			tree,
-			tokenService,
-		),
-	)
 	rpb.RegisterNetAuth2Server(
 		grpcServer,
 		rpc2.New(
