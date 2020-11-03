@@ -46,4 +46,17 @@ var (
 	// acquired, but it was empty.  In theory this shouldn't ever
 	// happen, but its possible.
 	ErrEmptyHookChain = errors.New("the specified chain is empty")
+
+	// ErrKeyExists is returned when an operation would conflict
+	// with an already existing key.
+	ErrKeyExists = errors.New("the specified key already exists")
+
+	// ErrNoSuchKey is returned if an operation expected a key to
+	// exist but found that it did not.
+	ErrNoSuchKey = errors.New("no key exists by that name")
+
+	// ErrFailedPrecondition is returned when a request must meet
+	// certain criteria to be successfully procesed, and these
+	// criteria are not met.
+	ErrFailedPrecondition = errors.New("precondition failed")
 )
