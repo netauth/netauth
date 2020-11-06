@@ -264,6 +264,69 @@ func (m *Manager) ManageUntypedEntityMeta(ID, mode, key, value string) ([]string
 	return nil, nil
 }
 
+// EntityKVAdd handles adding a new key to the KV store for an entity
+// identified by ID.  The key must not previously exist.
+func (m *Manager) EntityKVAdd(ID string, d []*pb.KVData) error {
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			KV: d,
+		},
+	}
+
+	_, err := m.RunEntityChain("KV-ADD", de)
+	return err
+}
+
+// EntityKVDel handles removing an existing key from the entity
+// identified by ID.  An attempt to remove a key that does not exist
+// will return an error.
+func (m *Manager) EntityKVDel(ID string, d []*pb.KVData) error {
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			KV: d,
+		},
+	}
+
+	_, err := m.RunEntityChain("KV-DEL", de)
+	return err
+}
+
+// EntityKVReplace handles replacing an existing key on the entity
+// identified by ID.  An attempt to replace a key that does not exist
+// will return an error.
+func (m *Manager) EntityKVReplace(ID string, d []*pb.KVData) error {
+	de := &pb.Entity{
+		ID: &ID,
+		Meta: &pb.EntityMeta{
+			KV: d,
+		},
+	}
+
+	_, err := m.RunEntityChain("KV-REPLACE", de)
+	return err
+}
+
+// EntityKVGet returns a selected key or keys to the caller.
+func (m *Manager) EntityKVGet(ID string, keys []*pb.KVData) ([]*pb.KVData, error) {
+	e, err := m.FetchEntity(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := []*pb.KVData{}
+	for _, haystack := range e.GetMeta().GetKV() {
+		for _, needle := range keys {
+			if haystack.GetKey() != needle.GetKey() {
+				continue
+			}
+			out = append(out, haystack)
+		}
+	}
+	return out, nil
+}
+
 // LockEntity allows external callers to lock entities directly.
 // Internal users can just set the value directly.
 func (m *Manager) LockEntity(ID string) error {

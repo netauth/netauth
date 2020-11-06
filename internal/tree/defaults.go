@@ -95,6 +95,24 @@ var (
 			"del-untyped-metadata-exact",
 			"save-entity",
 		},
+		"KV-ADD": {
+			"load-entity",
+			"ensure-entity-meta",
+			"kv-add",
+			"save-entity",
+		},
+		"KV-DEL": {
+			"load-entity",
+			"ensure-entity-meta",
+			"kv-del",
+			"save-entity",
+		},
+		"KV-REPLACE": {
+			"load-entity",
+			"ensure-entity-meta",
+			"kv-replace",
+			"save-entity",
+		},
 		"GROUP-ADD": {
 			"load-entity",
 			"ensure-entity-meta",

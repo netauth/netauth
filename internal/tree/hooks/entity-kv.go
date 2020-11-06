@@ -76,27 +76,27 @@ func (ekv *EntityKV) replace(e, de *pb.Entity) error {
 
 func newEntityKVAdd(c tree.RefContext) (tree.EntityHook, error) {
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("entity-kv-add", 50)
+	x.BaseHook = tree.NewBaseHook("kv-add", 50)
 	x.do = x.add
 	return x, nil
 }
 
 func newEntityKVDel(c tree.RefContext) (tree.EntityHook, error) {
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("entity-kv-del", 50)
+	x.BaseHook = tree.NewBaseHook("kv-del", 50)
 	x.do = x.del
 	return x, nil
 }
 
 func newEntityKVReplace(c tree.RefContext) (tree.EntityHook, error) {
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("entity-kv-replace", 50)
+	x.BaseHook = tree.NewBaseHook("kv-replace", 50)
 	x.do = x.replace
 	return x, nil
 }
 
 func entitykvcb() {
-	tree.RegisterEntityHookConstructor("entity-kv-add", newEntityKVAdd)
-	tree.RegisterEntityHookConstructor("entity-kv-del", newEntityKVDel)
-	tree.RegisterEntityHookConstructor("entity-kv-replace", newEntityKVReplace)
+	tree.RegisterEntityHookConstructor("kv-add", newEntityKVAdd)
+	tree.RegisterEntityHookConstructor("kv-del", newEntityKVDel)
+	tree.RegisterEntityHookConstructor("kv-replace", newEntityKVReplace)
 }

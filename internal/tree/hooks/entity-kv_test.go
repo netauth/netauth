@@ -85,7 +85,7 @@ func TestEntityKVAdd(t *testing.T) {
 					},
 				},
 			},
-			de: &pb.Entity{},
+			de:      &pb.Entity{},
 			wantErr: tree.ErrFailedPrecondition,
 		},
 	}
@@ -175,7 +175,7 @@ func TestEntityKVDel(t *testing.T) {
 					},
 				},
 			},
-			de: &pb.Entity{},
+			de:      &pb.Entity{},
 			wantErr: tree.ErrFailedPrecondition,
 		},
 	}
