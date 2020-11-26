@@ -88,7 +88,7 @@ func TestGroupCreate(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupCreate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -179,7 +179,7 @@ func TestGroupUpdate(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupUpdate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -224,7 +224,7 @@ func TestGroupInfo(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		resp, err := s.GroupInfo(context.Background(), &c.req)
 		if err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -350,7 +350,7 @@ func TestGroupUM(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.CreateGroup("load-error", "", "", -1)
 		s.readonly = c.readonly
 		_, err := s.GroupUM(c.ctx, &c.req)
@@ -470,7 +470,7 @@ func TestGroupUpdateRules(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupUpdateRules(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -579,7 +579,7 @@ func TestGroupAddMember(t *testing.T) {
 	}
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupAddMember(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -688,7 +688,7 @@ func TestGroupDelMember(t *testing.T) {
 	}
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupDelMember(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -773,7 +773,7 @@ func TestGroupDestroy(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.GroupDestroy(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -806,7 +806,7 @@ func TestGroupMembers(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 
 		req := pb.GroupRequest{
 			Group: &types.Group{
@@ -844,7 +844,7 @@ func TestGroupSearch(t *testing.T) {
 
 	for i, c := range cases {
 		s, d, _ := newServerWithRefs(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		d.(*db.DB).IndexGroup(&types.Group{Name: proto.String("load-error")})
 		if _, err := s.GroupSearch(context.Background(), &pb.SearchRequest{Expression: &c.expr}); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)

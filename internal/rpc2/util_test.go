@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc/metadata"
 
 	"github.com/netauth/netauth/internal/token"
@@ -14,7 +15,7 @@ import (
 
 func TestGetCapabilitiesForEntity(t *testing.T) {
 	s := newServer(t)
-	initTree(t, s)
+	initTree(t, s.Manager)
 
 	s.CreateGroup("lockout", "", "", -1)
 	s.AddEntityToGroup("admin", "lockout")
@@ -156,10 +157,52 @@ func TestManageByMembership(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 
 		if got := s.manageByMembership(c.id, &c.g); got != c.wantRes {
 			t.Errorf("%d: Got %v; Want %v", i, got, c.wantRes)
 		}
+	}
+}
+
+func TestMutablePrequisitesMet(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		cap     types.Capability
+		wantErr error
+	}{
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			cap:     types.Capability_CREATE_ENTITY,
+			wantErr: ErrReadOnly,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			cap:     types.Capability_CREATE_ENTITY,
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			cap:     types.Capability_CREATE_ENTITY,
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			cap:     types.Capability_CREATE_ENTITY,
+			wantErr: nil,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.readonly = c.ro
+
+		assert.Equalf(t, c.wantErr, s.mutablePrequisitesMet(c.ctx, c.cap), "Test Number %d", i)
 	}
 }

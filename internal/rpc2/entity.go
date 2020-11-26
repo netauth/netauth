@@ -14,27 +14,11 @@ import (
 // correct token is held, which must contain either CREATE_ENTITY or
 // GLOBAL_ROOT permissions.
 func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_CREATE_ENTITY); err != nil {
+		return &pb.Empty{}, err
+	}
+
 	e := r.GetEntity()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "EntityCreate",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_CREATE_ENTITY); err != nil {
-		return &pb.Empty{}, err
-	}
-
 	switch err := s.CreateEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err {
 	case tree.ErrDuplicateEntityID, tree.ErrDuplicateNumber:
 		s.log.Warn("Attempt to create duplicate entity",
@@ -72,27 +56,11 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 // must be in possession of a token with MODIFY_ENTITY_META
 // capabilities.
 func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
 	de := r.GetData()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "EntityUpdate",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
-		return &pb.Empty{}, err
-	}
-
 	switch err := s.UpdateEntityMeta(de.GetID(), de.GetMeta()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -238,6 +206,182 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 	}
 }
 
+// EntityKVGet returns key/value data from a single entity.
+func (s *Server) EntityKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKVData, error) {
+	res, err := s.Manager.EntityKVGet(r.GetTarget(), []*types.KVData{r.GetData()})
+	out := &pb.ListOfKVData{KVData: res}
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, ErrDoesNotExist
+	case tree.ErrNoSuchKey:
+		s.log.Warn("Key does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, ErrDoesNotExist
+	case nil:
+		s.log.Info("Entity KV Data Dumped",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, nil
+	default:
+		s.log.Warn("Error Loading Entity",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return out, ErrInternal
+	}
+}
+
+// EntityKVAdd takes the input KV2 data and adds it to an entity if an
+// only if it does not conflict with an existing key.
+func (s *Server) EntityKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.EntityKVAdd(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case tree.ErrKeyExists:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrExists
+	case nil:
+		s.log.Info("Entity KV Updated",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
+}
+
+// EntityKVDel removes an existing key from an entity.  If the key is
+// not present an error will be returned.
+func (s *Server) EntityKVDel(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.EntityKVDel(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case tree.ErrNoSuchKey:
+		s.log.Warn("Key does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Entity KV Data Dumped",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
+}
+
+// EntityKVReplace replaces an existing key with new values provided.
+// The key must already exist on the entity or an error will be
+// returned.
+func (s *Server) EntityKVReplace(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_ENTITY_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.EntityKVReplace(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownEntity:
+		s.log.Warn("Entity does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case tree.ErrNoSuchKey:
+		s.log.Warn("Key does not exist!",
+			"method", "EntityUM",
+			"entity", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Entity KV Data Updated",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Entity",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
+}
+
 // EntityKeys handles updates and reads to keys for entities.
 func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrings, error) {
 	if r.GetAction() != pb.Action_READ &&
@@ -304,27 +448,11 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 // generally discouraged, but if you must then this function will do
 // it.
 func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_DESTROY_ENTITY); err != nil {
+		return &pb.Empty{}, err
+	}
+
 	e := r.GetEntity()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "EntityDestroy",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_DESTROY_ENTITY); err != nil {
-		return &pb.Empty{}, err
-	}
-
 	switch err := s.DestroyEntity(e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -357,27 +485,11 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 
 // EntityLock sets the lock flag on an entity.
 func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_LOCK_ENTITY); err != nil {
+		return &pb.Empty{}, err
+	}
+
 	e := r.GetEntity()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "EntityLock",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_LOCK_ENTITY); err != nil {
-		return &pb.Empty{}, err
-	}
-
 	switch err := s.LockEntity(e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -410,27 +522,11 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 
 // EntityUnlock clears the lock flag on an entity.
 func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_UNLOCK_ENTITY); err != nil {
+		return &pb.Empty{}, err
+	}
+
 	e := r.GetEntity()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "EntityUnlock",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_UNLOCK_ENTITY); err != nil {
-		return &pb.Empty{}, err
-	}
-
 	switch err := s.UnlockEntity(e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",

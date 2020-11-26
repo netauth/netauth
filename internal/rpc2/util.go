@@ -192,3 +192,28 @@ func (s *Server) manageByMembership(entityID string, g *types.Group) bool {
 	}
 	return false
 }
+
+// mutablePrequisitesAreMet checks for common mutable prerequisites
+// such as the server being in a writeable mode, and the correct
+// capability being present in a valid token.
+func (s *Server) mutablePrequisitesMet(ctx context.Context, c types.Capability) error {
+	if s.readonly {
+		s.log.Warn("Mutable request in read-only mode!",
+			"method", "EntityUM",
+			"client", getClientName(ctx),
+			"service", getServiceName(ctx),
+		)
+		return ErrReadOnly
+	}
+
+	// Token validation and authorization
+	var err error
+	ctx, err = s.checkToken(ctx)
+	if err != nil {
+		return err
+	}
+	if err := s.isAuthorized(ctx, c); err != nil {
+		return err
+	}
+	return nil
+}

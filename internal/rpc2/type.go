@@ -43,6 +43,10 @@ type Manager interface {
 	LockEntity(string) error
 	UnlockEntity(string) error
 	UpdateEntityMeta(string, *pb.EntityMeta) error
+	EntityKVGet(string, []*pb.KVData) ([]*pb.KVData, error)
+	EntityKVAdd(string, []*pb.KVData) error
+	EntityKVDel(string, []*pb.KVData) error
+	EntityKVReplace(string, []*pb.KVData) error
 	UpdateEntityKeys(string, string, string, string) ([]string, error)
 	ManageUntypedEntityMeta(string, string, string, string) ([]string, error)
 	DestroyEntity(string) error
@@ -52,6 +56,10 @@ type Manager interface {
 	SearchGroups(db.SearchRequest) ([]*pb.Group, error)
 	UpdateGroupMeta(string, *pb.Group) error
 	ManageUntypedGroupMeta(string, string, string, string) ([]string, error)
+	GroupKVGet(string, []*pb.KVData) ([]*pb.KVData, error)
+	GroupKVAdd(string, []*pb.KVData) error
+	GroupKVDel(string, []*pb.KVData) error
+	GroupKVReplace(string, []*pb.KVData) error
 	DestroyGroup(string) error
 
 	AddEntityToGroup(string, string) error

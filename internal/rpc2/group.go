@@ -217,6 +217,58 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 	}
 }
 
+// GroupKVGet returns key/value data from a single group.
+func (s *Server) GroupKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKVData, error) {
+	res, err := s.Manager.GroupKVGet(r.GetTarget(), []*types.KVData{r.GetData()})
+	out := &pb.ListOfKVData{KVData: res}
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUM",
+			"group", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group KV Data Dumped",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return out, ErrInternal
+	}
+}
+
+// GroupKVAdd takes the input KV2 data and adds it to an group if an
+// only if it does not conflict with an existing key.
+func (s *Server) GroupKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	return nil, nil
+}
+
+// GroupKVDel removes an existing key from an group.  If the key is
+// not present an error will be returned.
+func (s *Server) GroupKVDel(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	return nil, nil
+}
+
+// GroupKVReplace replaces an existing key with new values provided.
+// The key must already exist on the group or an error will be
+// returned.
+func (s *Server) GroupKVReplace(context.Context, *pb.KV2Request) (*pb.Empty, error) {
+	return nil, nil
+}
+
 // GroupUpdateRules updates the expansion rules on a particular group.
 func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) (*pb.Empty, error) {
 	g := r.GetGroup()

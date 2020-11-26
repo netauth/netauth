@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
 
@@ -91,7 +93,7 @@ func TestEntityCreate(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.EntityCreate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -195,7 +197,7 @@ func TestEntityUpdate(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		s.readonly = c.readonly
-		initTree(t, s)
+		initTree(t, s.Manager)
 		if _, err := s.EntityUpdate(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
@@ -242,7 +244,7 @@ func TestEntityInfo(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		if res, err := s.EntityInfo(context.Background(), &c.req); err != c.wantErr || len(res.Entities) != c.wantLen {
 			t.Errorf("%d: Got %d, %v; Want %d, %v", i, len(res.Entities), err, c.wantLen, c.wantErr)
 		}
@@ -272,7 +274,7 @@ func TestEntitySearch(t *testing.T) {
 
 	for i, c := range cases {
 		s, d, _ := newServerWithRefs(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		d.(*db.DB).IndexEntity(&types.Entity{ID: proto.String("load-error")})
 		if _, err := s.EntitySearch(context.Background(), &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -395,7 +397,7 @@ func TestEntityUM(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.CreateEntity("load-error", -1, "")
 		s.readonly = c.readonly
 		_, err := s.EntityUM(c.ctx, &c.req)
@@ -411,6 +413,235 @@ func TestEntityUM(t *testing.T) {
 		if len(res.GetStrings()) != 0 && res.GetStrings()[0] != c.wantRes {
 			t.Errorf("%d: Got '%s'; Want '%s'", i, res, c.wantRes)
 		}
+	}
+}
+
+func TestEntityKVGet(t *testing.T) {
+	cases := []struct {
+		req     *pb.KV2Request
+		wantErr error
+		wantRes *pb.ListOfKVData
+	}{
+		{
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrDoesNotExist,
+			wantRes: &pb.ListOfKVData{},
+		},
+		{
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+			wantRes: &pb.ListOfKVData{},
+		},
+		{
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+			wantRes: &pb.ListOfKVData{},
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+
+		res, err := s.EntityKVGet(UnprivilegedContext, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test case %d", i)
+		assert.Equalf(t, c.wantRes, res, "Test case %d", i)
+	}
+}
+
+func TestEntityKVAdd(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.readonly = c.ro
+
+		_, err := s.EntityKVAdd(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
+	}
+}
+
+func TestEntityKVDel(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.Manager.EntityKVAdd("entity1", []*types.KVData{
+			&types.KVData{
+				Key: proto.String("key1"),
+				Values: []*types.KVValue{
+					&types.KVValue{Value: proto.String("value1")},
+				},
+			},
+		})
+		s.readonly = c.ro
+
+		_, err := s.EntityKVDel(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
+	}
+}
+
+func TestEntityKVReplace(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("entity1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.Manager.EntityKVAdd("entity1", []*types.KVData{
+			&types.KVData{
+				Key: proto.String("key1"),
+				Values: []*types.KVValue{
+					&types.KVValue{Value: proto.String("value1")},
+				},
+			},
+		})
+		s.readonly = c.ro
+
+		_, err := s.EntityKVReplace(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
 	}
 }
 
@@ -542,7 +773,7 @@ func TestEntityKeys(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.CreateEntity("valid", -1, "")
 		s.CreateEntity("load-error", -1, "")
 		s.readonly = c.readonly
@@ -639,7 +870,7 @@ func TestEntityDestroy(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.EntityDestroy(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -724,7 +955,7 @@ func TestEntityLock(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.EntityLock(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -809,7 +1040,7 @@ func TestEntityUnlock(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		s.readonly = c.readonly
 		if _, err := s.EntityUnlock(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
@@ -853,7 +1084,7 @@ func TestEntityGroups(t *testing.T) {
 
 	for i, c := range cases {
 		s := newServer(t)
-		initTree(t, s)
+		initTree(t, s.Manager)
 		res, err := s.EntityGroups(context.Background(), &c.req)
 		if err != c.wantErr {
 			t.Log(res)

@@ -324,6 +324,9 @@ func (m *Manager) EntityKVGet(ID string, keys []*pb.KVData) ([]*pb.KVData, error
 			out = append(out, haystack)
 		}
 	}
+	if len(out) == 0 {
+		return nil, ErrNoSuchKey
+	}
 	return out, nil
 }
 

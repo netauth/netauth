@@ -90,6 +90,30 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 	return nil, nil
 }
 
+// GroupKVGet returns an existing key from a group.  If the key does
+// not exist an error is returned.
+func (m *Manager) GroupKVGet(string, []*pb.KVData) ([]*pb.KVData, error) {
+	return nil, nil
+}
+
+// GroupKVAdd adds a new key to a group.  If the key already exists
+// an error is returned.
+func (m *Manager) GroupKVAdd(string, []*pb.KVData) error {
+	return nil
+}
+
+// GroupKVDel removes an existing key from a group.  If the key does
+// not exist an error is returned.
+func (m *Manager) GroupKVDel(string, []*pb.KVData) error {
+	return nil
+}
+
+// GroupKVReplace replaces an existing key on a group.  If the key
+// does not exist an error is returned.
+func (m *Manager) GroupKVReplace(string, []*pb.KVData) error {
+	return nil
+}
+
 // SetGroupCapability adds a capability to an existing group.  It
 // should be preferred to add capabilities to groups rather than to
 // entities directly.
