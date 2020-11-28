@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -12,7 +11,7 @@ import (
 // saving a modified group to the database.
 type SaveGroup struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will pass the group specified by g to the datastore and request

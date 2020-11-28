@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -12,7 +11,7 @@ import (
 // processes on groups.
 type FailOnExistingGroup struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run contacts the datastore and attempts to load the group specified

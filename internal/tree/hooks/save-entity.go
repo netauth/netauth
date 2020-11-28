@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -12,7 +11,7 @@ import (
 // success, the provided entity will be saved to the data store.
 type SaveEntity struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will pass e to the data storage mechanism's "SaveEntity"

@@ -4,7 +4,6 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto"
-	"github.com/netauth/netauth/internal/db"
 )
 
 var (
@@ -16,7 +15,7 @@ var (
 
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
-func New(db db.DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
+func New(db DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
 	x := Manager{}
 	x.log = l.Named("tree")
 	x.bootstrapDone = false

@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -13,7 +12,7 @@ import (
 // duplicate ID already exists.
 type FailOnExistingEntity struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run contacts the data store, attempts to load an entity and

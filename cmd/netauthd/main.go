@@ -14,7 +14,6 @@ import (
 	"github.com/netauth/netauth/internal/crypto"
 	_ "github.com/netauth/netauth/internal/crypto/bcrypt"
 	"github.com/netauth/netauth/internal/db"
-	_ "github.com/netauth/netauth/internal/db/all"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
 	"github.com/netauth/netauth/internal/token"
 	_ "github.com/netauth/netauth/internal/token/jwt"
@@ -67,7 +66,7 @@ func init() {
 	pflag.Int("server.port", 1729, "Serving port")
 	pflag.String("core.home", "", "Base directory for NetAuth")
 
-	pflag.String("db.backend", "ProtoDB", "Database implementation to use")
+	pflag.String("db.backend", "filesystem", "Database storage backend to use")
 
 	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
 

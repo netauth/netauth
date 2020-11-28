@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -12,7 +11,7 @@ import (
 // and then sets it.
 type SetManagingGroup struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will attempt to set the managing group of g to the specified

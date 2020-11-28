@@ -3,7 +3,6 @@ package hooks
 import (
 	"strings"
 
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -15,7 +14,7 @@ import (
 // cycle in the inclusion graph.
 type CheckExpansionCycles struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will iterate through all expansions requested in dg and ensure

@@ -24,4 +24,7 @@ var (
 	// ErrBadSearch is returned when a search request cannot be
 	// filled for some reason.
 	ErrBadSearch = errors.New("the provided SearchRequest is invalid")
+
+	// ErrNoValue is returned when no value exists for a given key.
+	ErrNoValue = errors.New("no value exists")
 )

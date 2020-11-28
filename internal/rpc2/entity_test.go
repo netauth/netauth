@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/netauth/netauth/internal/db"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"
@@ -270,9 +271,9 @@ func TestEntitySearch(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		s := newServer(t)
+		s, d, _ := newServerWithRefs(t)
 		initTree(t, s)
-		s.CreateEntity("load-error", -1, "")
+		d.(*db.DB).IndexEntity(&types.Entity{ID: proto.String("load-error")})
 		if _, err := s.EntitySearch(context.Background(), &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}

@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -13,7 +12,7 @@ import (
 // database.
 type SetGroupNumber struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will set the group number on g.  If dg.Number is provided as a

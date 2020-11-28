@@ -4,22 +4,24 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
-	"github.com/netauth/netauth/internal/db/memdb"
+	_ "github.com/netauth/netauth/internal/db/memory"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
 )
 
 func TestCheckExpansionCyclesDrop(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,12 +37,14 @@ func TestCheckExpansionCyclesDrop(t *testing.T) {
 }
 
 func TestCheckExpansionCycleUnknownChild(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,17 +60,19 @@ func TestCheckExpansionCycleUnknownChild(t *testing.T) {
 }
 
 func TestCheckExpansionCycleCycleFound(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := memdb.SaveGroup(&pb.Group{Name: proto.String("group2"), Expansions: []string{"INCLUDE:group1"}}); err != nil {
+	if err := mdb.SaveGroup(&pb.Group{Name: proto.String("group2"), Expansions: []string{"INCLUDE:group1"}}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -81,12 +87,14 @@ func TestCheckExpansionCycleCycleFound(t *testing.T) {
 }
 
 func TestCheckGroupCyclesRecurser(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +108,7 @@ func TestCheckGroupCyclesRecurser(t *testing.T) {
 		Name:       proto.String("group1"),
 		Expansions: []string{"INCLUDE:group2"},
 	}
-	if err := memdb.SaveGroup(grp1); err != nil {
+	if err := mdb.SaveGroup(grp1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -112,7 +120,7 @@ func TestCheckGroupCyclesRecurser(t *testing.T) {
 		Name:       proto.String("group2"),
 		Expansions: []string{"INCLUDE:group3"},
 	}
-	if err := memdb.SaveGroup(grp2); err != nil {
+	if err := mdb.SaveGroup(grp2); err != nil {
 		t.Fatal(err)
 	}
 
@@ -123,7 +131,7 @@ func TestCheckGroupCyclesRecurser(t *testing.T) {
 	grp3 := &pb.Group{
 		Name: proto.String("group3"),
 	}
-	if err := memdb.SaveGroup(grp3); err != nil {
+	if err := mdb.SaveGroup(grp3); err != nil {
 		t.Fatal(err)
 	}
 

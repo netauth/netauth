@@ -18,7 +18,7 @@ import (
 // happens.
 type CreateEntityIfMissing struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 	crypto.EMCrypto
 }
 

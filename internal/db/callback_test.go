@@ -11,10 +11,12 @@ var (
 func dummyCallback(Event) { dummyCalled = true }
 
 func TestCallbacks(t *testing.T) {
-	RegisterCallback("foo", dummyCallback)
-	RegisterCallback("foo", dummyCallback)
+	x := &DB{cbs: make(map[string]Callback)}
 
-	if len(callbacks) != 1 {
+	x.RegisterCallback("foo", dummyCallback)
+	x.RegisterCallback("foo", dummyCallback)
+
+	if len(x.cbs) != 1 {
 		t.Error("Duplicate callback registered")
 	}
 
@@ -23,12 +25,11 @@ func TestCallbacks(t *testing.T) {
 		PK:   "null",
 	}
 
-	FireEvent(e)
+	x.FireEvent(e)
 
 	if !dummyCalled {
 		t.Error("Callbacks run but dummy was not called")
 	}
-	DeregisterCallback("foo")
 }
 
 func TestEventIsEmpty(t *testing.T) {

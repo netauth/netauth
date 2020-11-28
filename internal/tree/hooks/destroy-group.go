@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -11,7 +10,7 @@ import (
 // DestroyGroup removes an entity from the system.
 type DestroyGroup struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will request the underlying datastore to remove the group,

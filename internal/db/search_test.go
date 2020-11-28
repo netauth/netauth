@@ -1,12 +1,10 @@
-package util
+package db
 
 import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
-
-	"github.com/netauth/netauth/internal/db"
 
 	pb "github.com/netauth/protocol"
 )
@@ -23,7 +21,7 @@ func dummyEntityLoader(e string) (*pb.Entity, error) {
 			},
 		}, nil
 	default:
-		return nil, db.ErrUnknownEntity
+		return nil, ErrUnknownEntity
 	}
 }
 
@@ -36,7 +34,7 @@ func dummyGroupLoader(g string) (*pb.Group, error) {
 			UntypedMeta: []string{"UEM:UEM"},
 		}, nil
 	default:
-		return nil, db.ErrUnknownGroup
+		return nil, ErrUnknownGroup
 	}
 }
 
@@ -47,7 +45,7 @@ func dummyGroupLoader(g string) (*pb.Group, error) {
 // panic in the incorrect case.
 func TestIndexCallbackUnconfigured(t *testing.T) {
 	si := NewIndex(hclog.NewNullLogger())
-	si.IndexCallback(db.Event{Type: db.EventEntityCreate, PK: "entity1"})
+	si.IndexCallback(Event{Type: EventEntityCreate, PK: "entity1"})
 }
 
 func TestIndexCallbackEntity(t *testing.T) {
@@ -55,7 +53,7 @@ func TestIndexCallbackEntity(t *testing.T) {
 	si.ConfigureCallback(dummyEntityLoader, dummyGroupLoader)
 
 	// Check that the entity isn't present
-	r, err := si.SearchEntities(db.SearchRequest{Expression: "ID:entity1"})
+	r, err := si.SearchEntities(SearchRequest{Expression: "ID:entity1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,10 +62,10 @@ func TestIndexCallbackEntity(t *testing.T) {
 	}
 
 	// Index the entity
-	si.IndexCallback(db.Event{Type: db.EventEntityCreate, PK: "entity1"})
+	si.IndexCallback(Event{Type: EventEntityCreate, PK: "entity1"})
 
 	// Check for entity being present in results
-	r, err = si.SearchEntities(db.SearchRequest{Expression: "ID:entity1"})
+	r, err = si.SearchEntities(SearchRequest{Expression: "ID:entity1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,11 +76,11 @@ func TestIndexCallbackEntity(t *testing.T) {
 	// Index an entity that doesn't exist.  This is primarily to
 	// make sure that the loader doesn't explode when trying to
 	// fetch an entity that doesn't exist.
-	si.IndexCallback(db.Event{Type: db.EventEntityCreate, PK: "entity2"})
+	si.IndexCallback(Event{Type: EventEntityCreate, PK: "entity2"})
 
 	// Fire a "delete" and make sure the entity drops out of the search results
-	si.IndexCallback(db.Event{Type: db.EventEntityDestroy, PK: "entity1"})
-	r, err = si.SearchEntities(db.SearchRequest{Expression: "ID:entity1"})
+	si.IndexCallback(Event{Type: EventEntityDestroy, PK: "entity1"})
+	r, err = si.SearchEntities(SearchRequest{Expression: "ID:entity1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +94,7 @@ func TestIndexCallbackGroup(t *testing.T) {
 	si.ConfigureCallback(dummyEntityLoader, dummyGroupLoader)
 
 	// Check that the group isn't present
-	r, err := si.SearchGroups(db.SearchRequest{Expression: "Name:group1"})
+	r, err := si.SearchGroups(SearchRequest{Expression: "Name:group1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,10 +103,10 @@ func TestIndexCallbackGroup(t *testing.T) {
 	}
 
 	// Index the group
-	si.IndexCallback(db.Event{Type: db.EventGroupCreate, PK: "group1"})
+	si.IndexCallback(Event{Type: EventGroupCreate, PK: "group1"})
 
 	// Check for group being present in results
-	r, err = si.SearchGroups(db.SearchRequest{Expression: "Name:group1"})
+	r, err = si.SearchGroups(SearchRequest{Expression: "Name:group1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,11 +117,11 @@ func TestIndexCallbackGroup(t *testing.T) {
 	// Index an group that doesn't exist.  This is primarily to
 	// make sure that the loader doesn't explode when trying to
 	// fetch an group that doesn't exist.
-	si.IndexCallback(db.Event{Type: db.EventGroupCreate, PK: "group2"})
+	si.IndexCallback(Event{Type: EventGroupCreate, PK: "group2"})
 
 	// Fire a "delete" and make sure the group drops out of the search results
-	si.IndexCallback(db.Event{Type: db.EventGroupDestroy, PK: "group1"})
-	r, err = si.SearchGroups(db.SearchRequest{Expression: "Name:group1"})
+	si.IndexCallback(Event{Type: EventGroupDestroy, PK: "group1"})
+	r, err = si.SearchGroups(SearchRequest{Expression: "Name:group1"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +167,7 @@ func TestSearchEntities(t *testing.T) {
 	}
 
 	// Check to make sure secrets didn't get indexed
-	r, err := si.SearchEntities(db.SearchRequest{Expression: "secret"})
+	r, err := si.SearchEntities(SearchRequest{Expression: "secret"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,7 +177,7 @@ func TestSearchEntities(t *testing.T) {
 
 	// Run a test search and make sure there are the right number
 	// of answers in it
-	r, err = si.SearchEntities(db.SearchRequest{Expression: "meta.Shell:korn"})
+	r, err = si.SearchEntities(SearchRequest{Expression: "meta.Shell:korn"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +191,7 @@ func TestSearchEntities(t *testing.T) {
 	if err := si.DeleteEntity(&entities[1]); err != nil {
 		t.Error(err)
 	}
-	r, err = si.SearchEntities(db.SearchRequest{Expression: "meta.Shell:fish"})
+	r, err = si.SearchEntities(SearchRequest{Expression: "meta.Shell:fish"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -207,8 +205,8 @@ func TestSearchEntities(t *testing.T) {
 func TestSearchEntitiesBadRequest(t *testing.T) {
 	si := NewIndex(hclog.NewNullLogger())
 
-	r, err := si.SearchEntities(db.SearchRequest{})
-	if err != db.ErrBadSearch || r != nil {
+	r, err := si.SearchEntities(SearchRequest{})
+	if err != ErrBadSearch || r != nil {
 		t.Error(err)
 	}
 }
@@ -240,7 +238,7 @@ func TestSearchGroups(t *testing.T) {
 		}
 	}
 	// Check to make sure UEM wasn't indexed
-	r, err := si.SearchGroups(db.SearchRequest{Expression: "UEM"})
+	r, err := si.SearchGroups(SearchRequest{Expression: "UEM"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,7 +248,7 @@ func TestSearchGroups(t *testing.T) {
 
 	// Check a search to make sure its got the right amount of
 	// stuff in it.
-	r, err = si.SearchGroups(db.SearchRequest{Expression: "DisplayName:Group"})
+	r, err = si.SearchGroups(SearchRequest{Expression: "DisplayName:Group"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,7 +262,7 @@ func TestSearchGroups(t *testing.T) {
 	if err := si.DeleteGroup(&groups[2]); err != nil {
 		t.Fatal(err)
 	}
-	r, err = si.SearchGroups(db.SearchRequest{Expression: "DisplayName:match"})
+	r, err = si.SearchGroups(SearchRequest{Expression: "DisplayName:match"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -277,8 +275,8 @@ func TestSearchGroups(t *testing.T) {
 func TestSearchGroupsBadRequest(t *testing.T) {
 	si := NewIndex(hclog.NewNullLogger())
 
-	r, err := si.SearchGroups(db.SearchRequest{})
-	if err != db.ErrBadSearch || r != nil {
+	r, err := si.SearchGroups(SearchRequest{})
+	if err != ErrBadSearch || r != nil {
 		t.Error(err)
 	}
 }

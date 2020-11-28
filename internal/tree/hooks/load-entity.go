@@ -3,7 +3,6 @@ package hooks
 import (
 	"github.com/golang/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -13,7 +12,7 @@ import (
 // LoadEntity loads an entity from the database.
 type LoadEntity struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run attempts to load the entity specified by de.ID and if

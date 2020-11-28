@@ -1,7 +1,6 @@
 package hooks
 
 import (
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -13,7 +12,7 @@ import (
 // number.
 type SetEntityNumber struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run will provision a number in one of two ways.  If the number is

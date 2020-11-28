@@ -3,22 +3,23 @@ package hooks
 import (
 	"testing"
 
-	"github.com/hashicorp/go-hclog"
-
 	"github.com/netauth/netauth/internal/db"
-	"github.com/netauth/netauth/internal/db/memdb"
+	_ "github.com/netauth/netauth/internal/db/memory"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
 )
 
 func TestCheckExpansionTargetsDrop(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,12 +37,14 @@ func TestCheckExpansionTargetsDrop(t *testing.T) {
 }
 
 func TestCheckExpansionTargetsBad(t *testing.T) {
-	memdb, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: memdb})
+	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: mdb})
 	if err != nil {
 		t.Fatal(err)
 	}

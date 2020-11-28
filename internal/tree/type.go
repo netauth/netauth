@@ -5,6 +5,8 @@ import (
 
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/db"
+
+	types "github.com/netauth/protocol"
 )
 
 // The Manager binds all methods for managing a tree of entities with
@@ -18,7 +20,7 @@ type Manager struct {
 
 	// The persistence layer contains the functions that actually
 	// deal with the disk and make this a useable server.
-	db db.DB
+	db DB
 
 	// The Crypto layer allows us to plug in different crypto
 	// engines
@@ -39,10 +41,29 @@ type Manager struct {
 	log hclog.Logger
 }
 
+// DB specifies the methods that a DB engine must provide.
+type DB interface {
+	// Entity handling
+	DiscoverEntityIDs() ([]string, error)
+	LoadEntity(string) (*types.Entity, error)
+	SaveEntity(*types.Entity) error
+	DeleteEntity(string) error
+	NextEntityNumber() (int32, error)
+	SearchEntities(db.SearchRequest) ([]*types.Entity, error)
+
+	// Group handling
+	DiscoverGroupNames() ([]string, error)
+	LoadGroup(string) (*types.Group, error)
+	SaveGroup(*types.Group) error
+	DeleteGroup(string) error
+	NextGroupNumber() (int32, error)
+	SearchGroups(db.SearchRequest) ([]*types.Group, error)
+}
+
 // A RefContext is a container of references that are needed to
 // bootstrap the tree manager and associated plugins.
 type RefContext struct {
-	DB     db.DB
+	DB     DB
 	Crypto crypto.EMCrypto
 }
 

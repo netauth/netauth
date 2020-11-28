@@ -3,7 +3,6 @@ package hooks
 import (
 	"strings"
 
-	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -14,7 +13,7 @@ import (
 // groups that exist, unless the expansion type is DROP.
 type CheckExpansionTargets struct {
 	tree.BaseHook
-	db.DB
+	tree.DB
 }
 
 // Run iterates through all expansions on dg and ensures that if the

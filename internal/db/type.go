@@ -3,31 +3,41 @@ package db
 import (
 	"github.com/hashicorp/go-hclog"
 
-	pb "github.com/netauth/protocol"
+	types "github.com/netauth/protocol"
 )
 
-// DB specifies the methods that a DB engine must provide.
-type DB interface {
-	// Entity handling
-	DiscoverEntityIDs() ([]string, error)
-	LoadEntity(string) (*pb.Entity, error)
-	SaveEntity(*pb.Entity) error
-	DeleteEntity(string) error
-	NextEntityNumber() (int32, error)
-	SearchEntities(SearchRequest) ([]*pb.Entity, error)
+// KVFactory returns a KVStore, and is a registeryable function during
+// init to be called later.
+type KVFactory func(hclog.Logger) (KVStore, error)
 
-	// Group handling
-	DiscoverGroupNames() ([]string, error)
-	LoadGroup(string) (*pb.Group, error)
-	SaveGroup(*pb.Group) error
-	DeleteGroup(string) error
-	NextGroupNumber() (int32, error)
-	SearchGroups(SearchRequest) ([]*pb.Group, error)
+// A KVStore is the backing mechanism that deals with persisting data
+// to somewhere that won't lose it.  This can be the disk, a remote
+// blob store, the desk of a particularly trusted employee, etc.
+type KVStore interface {
+	Put(string, []byte) error
+	Get(string) ([]byte, error)
+	Del(string) error
+
+	Keys(string) ([]string, error)
+	Close() error
+
+	Capabilities() []KVCapability
+	SetEventFunc(func(Event))
 }
 
-// Factory defines the function which can be used to register new
-// implementations.
-type Factory func(hclog.Logger) (DB, error)
+// A DB is a collection of methods satisfying tree.DB, and which read
+// and write data to a KVStore
+type DB struct {
+	log hclog.Logger
+	kv  KVStore
+	cbs map[string]Callback
+
+	*Index
+}
+
+// A KVCapability is a specific property that a KV Store might have.
+// It allows stores to express things like supporting HA access.
+type KVCapability int
 
 // Callback is a function type registered by an external customer that
 // is interested in some change that might happen in the storage
@@ -68,3 +78,10 @@ const (
 type SearchRequest struct {
 	Expression string
 }
+
+// These allow the index to get limited access to the db itself.  You
+// might ask why we can't embed an interface here, and its because the
+// database embeds an index, so this would create an embed cycle which
+// is not allowed.
+type loadEntityFunc func(string) (*types.Entity, error)
+type loadGroupFunc func(string) (*types.Group, error)

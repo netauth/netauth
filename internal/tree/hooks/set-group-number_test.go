@@ -4,16 +4,19 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hashicorp/go-hclog"
 
-	"github.com/netauth/netauth/internal/db/memdb"
+	"github.com/netauth/netauth/internal/db"
+	_ "github.com/netauth/netauth/internal/db/memory"
+	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
 	pb "github.com/netauth/protocol"
 )
 
 func TestSetGroupNumber(t *testing.T) {
-	db, err := memdb.New(hclog.NewNullLogger())
+	startup.DoCallbacks()
+
+	db, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}

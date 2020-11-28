@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/netauth/netauth/internal/db"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"
@@ -842,9 +843,9 @@ func TestGroupSearch(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		s := newServer(t)
+		s, d, _ := newServerWithRefs(t)
 		initTree(t, s)
-		s.CreateGroup("load-error", "", "", -1)
+		d.(*db.DB).IndexGroup(&types.Group{Name: proto.String("load-error")})
 		if _, err := s.GroupSearch(context.Background(), &pb.SearchRequest{Expression: &c.expr}); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
