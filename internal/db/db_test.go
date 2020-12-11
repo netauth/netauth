@@ -51,14 +51,14 @@ func TestLoadEntity(t *testing.T) {
 		wantErr error
 	}{
 		{"missing", ErrUnknownEntity},
-		{"bad-error", errors.New("something internal")},
-		{"bad-proto", errors.New("unexpected EOF")},
+		{"bad-error", ErrInternalError},
+		{"bad-proto", ErrInternalError},
 		{"good", nil},
 	}
 
 	for _, c := range cases {
 		_, err := m.LoadEntity(c.id)
-		assert.Equal(t, err, c.wantErr)
+		assert.Equal(t, c.wantErr, err)
 	}
 }
 

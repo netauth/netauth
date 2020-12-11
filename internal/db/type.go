@@ -39,6 +39,15 @@ type DB struct {
 // It allows stores to express things like supporting HA access.
 type KVCapability int
 
+const (
+	// KVMutable signifies that the key/value store is able to
+	// accept mutable queries.  Note that sending a mutation to a
+	// KV that does not advertise this capability does not
+	// necessarily mean that the KV isn't mutable, only that it
+	// would prefer you not.
+	KVMutable KVCapability = iota
+)
+
 // Callback is a function type registered by an external customer that
 // is interested in some change that might happen in the storage
 // system.  These are returned with a DBEvent populated of whether or

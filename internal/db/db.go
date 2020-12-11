@@ -50,13 +50,13 @@ func (db *DB) LoadEntity(ID string) (*types.Entity, error) {
 	}
 	if err != nil {
 		db.log.Debug("Error loading entity from KV store", "error", err, "ID", ID)
-		return nil, err
+		return nil, ErrInternalError
 	}
 
 	e := &types.Entity{}
 	if err := proto.Unmarshal(b, e); err != nil {
 		db.log.Warn("Error unmarshaling entity", "error", err)
-		return nil, err
+		return nil, ErrInternalError
 	}
 	return e, nil
 }
@@ -71,7 +71,7 @@ func (db *DB) SaveEntity(e *types.Entity) error {
 
 	if err := db.kv.Put(path.Join("/entities", e.GetID()), b); err != nil {
 		db.log.Warn("Error storing entity", "error", err)
-		return err
+		return ErrInternalError
 	}
 	return nil
 }
