@@ -131,4 +131,6 @@ func (kv *KV) Keys(filter string) ([]string, error) {
 func (kv *KV) Close() error { return nil }
 
 // Capabilities is used to interrogate a KV store for capabilities.
-func (kv *KV) Capabilities() []db.KVCapability { return nil }
+func (kv *KV) Capabilities() []db.KVCapability {
+	return []db.KVCapability{db.KVMutable}
+}

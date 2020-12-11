@@ -94,5 +94,5 @@ func TestCapabilities(t *testing.T) {
 	kv, _ := NewKV(hclog.NewNullLogger())
 	kv.SetEventFunc(func(db.Event) {})
 
-	assert.Nil(t, kv.Capabilities())
+	assert.Equal(t, []db.KVCapability{db.KVMutable}, kv.Capabilities())
 }
