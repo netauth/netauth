@@ -92,26 +92,61 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 
 // GroupKVGet returns an existing key from a group.  If the key does
 // not exist an error is returned.
-func (m *Manager) GroupKVGet(string, []*pb.KVData) ([]*pb.KVData, error) {
-	return nil, nil
+func (m *Manager) GroupKVGet(name string, keys []*pb.KVData) ([]*pb.KVData, error) {
+	g, err := m.FetchGroup(name)
+	if err != nil {
+		return nil, err
+	}
+
+	out := []*pb.KVData{}
+	for _, haystack := range g.GetKV() {
+		for _, needle := range keys {
+			if haystack.GetKey() != needle.GetKey() {
+				continue
+			}
+			out = append(out, haystack)
+		}
+	}
+	if len(out) == 0 {
+		return nil, ErrNoSuchKey
+	}
+	return out, nil
 }
 
 // GroupKVAdd adds a new key to a group.  If the key already exists
 // an error is returned.
-func (m *Manager) GroupKVAdd(string, []*pb.KVData) error {
-	return nil
+func (m *Manager) GroupKVAdd(name string, d []*pb.KVData) error {
+	dg := &pb.Group{
+		Name: &name,
+		KV:   d,
+	}
+
+	_, err := m.RunGroupChain("KV-ADD", dg)
+	return err
 }
 
 // GroupKVDel removes an existing key from a group.  If the key does
 // not exist an error is returned.
-func (m *Manager) GroupKVDel(string, []*pb.KVData) error {
-	return nil
+func (m *Manager) GroupKVDel(name string, d []*pb.KVData) error {
+	dg := &pb.Group{
+		Name: &name,
+		KV:   d,
+	}
+
+	_, err := m.RunGroupChain("KV-DEL", dg)
+	return err
 }
 
 // GroupKVReplace replaces an existing key on a group.  If the key
 // does not exist an error is returned.
-func (m *Manager) GroupKVReplace(string, []*pb.KVData) error {
-	return nil
+func (m *Manager) GroupKVReplace(name string, d []*pb.KVData) error {
+	dg := &pb.Group{
+		Name: &name,
+		KV:   d,
+	}
+
+	_, err := m.RunGroupChain("KV-REPLACE", dg)
+	return err
 }
 
 // SetGroupCapability adds a capability to an existing group.  It

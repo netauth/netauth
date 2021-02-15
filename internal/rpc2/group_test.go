@@ -6,6 +6,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
+	"github.com/stretchr/testify/assert"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"
@@ -366,6 +367,246 @@ func TestGroupUM(t *testing.T) {
 		if len(res.GetStrings()) != 0 && res.GetStrings()[0] != c.wantRes {
 			t.Errorf("%d: Got '%s'; Want '%s'", i, res, c.wantRes)
 		}
+	}
+}
+
+func TestGroupKVGet(t *testing.T) {
+	cases := []struct {
+		req     *pb.KV2Request
+		wantErr error
+		wantRes *pb.ListOfKVData
+	}{
+		{
+			req: &pb.KV2Request{
+				Target: proto.String("group1"),
+				Data:   &types.KVData{Key: proto.String("key1")},
+			},
+			wantErr: nil,
+			wantRes: &pb.ListOfKVData{KVData: []*types.KVData{{
+				Key:    proto.String("key1"),
+				Values: []*types.KVValue{{Value: proto.String("value1")}}}},
+			},
+		},
+		{
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrDoesNotExist,
+			wantRes: &pb.ListOfKVData{},
+		},
+		{
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+			wantRes: &pb.ListOfKVData{},
+		},
+		{
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+			wantRes: &pb.ListOfKVData{},
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+
+		res, err := s.GroupKVGet(UnprivilegedContext, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test case %d", i)
+		assert.Equalf(t, c.wantRes, res, "Test case %d", i)
+	}
+}
+
+func TestGroupKVAdd(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("group1"),
+				Data: &types.KVData{
+					Key: proto.String("key2"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.readonly = c.ro
+
+		_, err := s.GroupKVAdd(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
+	}
+}
+
+func TestGroupKVDel(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("group1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.Manager.GroupKVAdd("group1", []*types.KVData{
+			&types.KVData{
+				Key: proto.String("key1"),
+				Values: []*types.KVValue{
+					&types.KVValue{Value: proto.String("value1")},
+				},
+			},
+		})
+		s.readonly = c.ro
+
+		_, err := s.GroupKVDel(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
+	}
+}
+
+func TestGroupKVReplace(t *testing.T) {
+	cases := []struct {
+		ro      bool
+		ctx     context.Context
+		req     *pb.KV2Request
+		wantErr error
+	}{
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("group1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			ro:      false,
+			ctx:     UnprivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrRequestorUnqualified,
+		},
+		{
+			ro:      false,
+			ctx:     InvalidAuthContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrUnauthenticated,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:      false,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("load-error")},
+			wantErr: ErrInternal,
+		},
+		{
+			ro:      true,
+			ctx:     PrivilegedContext,
+			req:     &pb.KV2Request{Target: proto.String("group1")},
+			wantErr: ErrReadOnly,
+		},
+	}
+
+	for i, c := range cases {
+		s := newServer(t)
+		initTree(t, s.Manager)
+		s.Manager.GroupKVAdd("group1", []*types.KVData{
+			&types.KVData{
+				Key: proto.String("key1"),
+				Values: []*types.KVValue{
+					&types.KVValue{Value: proto.String("value1")},
+				},
+			},
+		})
+		s.readonly = c.ro
+
+		_, err := s.GroupKVReplace(c.ctx, c.req)
+		assert.Equalf(t, c.wantErr, err, "Test Case %d", i)
 	}
 }
 

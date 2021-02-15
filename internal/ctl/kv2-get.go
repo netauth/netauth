@@ -56,7 +56,7 @@ func kv2GetRun(cmd *cobra.Command, args []string) {
 	case "entity":
 		res, err = rpc.EntityKVGet(ctx, args[1], args[2])
 	case "group":
-		res, err = nil, nil
+		res, err = rpc.GroupKVGet(ctx, args[1], args[2])
 	}
 	if err != nil {
 		fmt.Fprint(os.Stderr, err)

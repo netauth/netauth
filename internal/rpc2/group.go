@@ -16,22 +16,7 @@ import (
 func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
 
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupCreate",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_CREATE_GROUP); err != nil {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_CREATE_GROUP); err != nil {
 		return &pb.Empty{}, err
 	}
 
@@ -70,23 +55,8 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 // untyped metadata.
 func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
-
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupUpdate",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
+	err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
+	if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
@@ -164,23 +134,9 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 	}
 
 	if r.GetAction() != pb.Action_READ {
-		if s.readonly {
-			s.log.Warn("Mutable request in read-only mode!",
-				"method", "GroupUM",
-				"client", getClientName(ctx),
-				"service", getServiceName(ctx),
-			)
-			return &pb.ListOfStrings{}, ErrReadOnly
-		}
-
-		// Token validation and authorization
-		var err error
-		ctx, err = s.checkToken(ctx)
-		if err != nil {
-			return &pb.ListOfStrings{}, err
-		}
+		err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
 		g := types.Group{Name: proto.String(r.GetTarget())}
-		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_META); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &g) {
+		if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &g) {
 			return &pb.ListOfStrings{}, err
 		}
 	}
@@ -224,7 +180,15 @@ func (s *Server) GroupKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKV
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
-			"method", "GroupUM",
+			"method", "GroupKV",
+			"group", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return out, ErrDoesNotExist
+	case tree.ErrNoSuchKey:
+		s.log.Warn("Key does not exist!",
+			"method", "GroupKV",
 			"group", r.GetTarget(),
 			"service", getServiceName(ctx),
 			"client", getClientName(ctx),
@@ -253,42 +217,121 @@ func (s *Server) GroupKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKV
 // GroupKVAdd takes the input KV2 data and adds it to an group if an
 // only if it does not conflict with an existing key.
 func (s *Server) GroupKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
-	return nil, nil
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.GroupKVAdd(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUM",
+			"group", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group KV Updated Dumped",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // GroupKVDel removes an existing key from an group.  If the key is
 // not present an error will be returned.
 func (s *Server) GroupKVDel(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
-	return nil, nil
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.GroupKVDel(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUM",
+			"group", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group KV Data Dumped",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // GroupKVReplace replaces an existing key with new values provided.
 // The key must already exist on the group or an error will be
 // returned.
-func (s *Server) GroupKVReplace(context.Context, *pb.KV2Request) (*pb.Empty, error) {
-	return nil, nil
+func (s *Server) GroupKVReplace(ctx context.Context, r *pb.KV2Request) (*pb.Empty, error) {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META); err != nil {
+		return &pb.Empty{}, err
+	}
+
+	err := s.Manager.GroupKVReplace(r.GetTarget(), []*types.KVData{r.GetData()})
+	switch err {
+	case db.ErrUnknownGroup:
+		s.log.Warn("Group does not exist!",
+			"method", "GroupUM",
+			"group", r.GetTarget(),
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, ErrDoesNotExist
+	case nil:
+		s.log.Info("Group KV Data Updated",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+		)
+		return &pb.Empty{}, nil
+	default:
+		s.log.Warn("Error Updating Group",
+			"group", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrInternal
+	}
 }
 
 // GroupUpdateRules updates the expansion rules on a particular group.
 func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
 
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupUM",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
+	err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
+	if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
@@ -326,31 +369,16 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
 
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupAddMember",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-
+	preErr := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_MEMBERS)
 	for _, g := range e.GetMeta().GetGroups() {
 		grp := types.Group{Name: proto.String(g)}
-		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+		if preErr != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
 			s.log.Warn("Insufficient authority to add entity to group",
 				"entity", e.GetID(),
 				"group", g,
 				"authority", getTokenClaims(ctx).EntityID,
 			)
-			return &pb.Empty{}, err
+			return &pb.Empty{}, preErr
 		}
 		if err := s.AddEntityToGroup(e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
@@ -371,31 +399,16 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
 
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupAddMember",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-
+	preErr := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_MEMBERS)
 	for _, g := range e.GetMeta().GetGroups() {
 		grp := types.Group{Name: proto.String(g)}
-		if err := s.isAuthorized(ctx, types.Capability_MODIFY_GROUP_MEMBERS); err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+		if preErr != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
 			s.log.Warn("Insufficient authority to add entity to group",
 				"entity", e.GetID(),
 				"group", g,
 				"authority", getTokenClaims(ctx).EntityID,
 			)
-			return &pb.Empty{}, err
+			return &pb.Empty{}, preErr
 		}
 		if err := s.RemoveEntityFromGroup(e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
@@ -418,22 +431,7 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
 
-	if s.readonly {
-		s.log.Warn("Mutable request in read-only mode!",
-			"method", "GroupDestroy",
-			"client", getClientName(ctx),
-			"service", getServiceName(ctx),
-		)
-		return &pb.Empty{}, ErrReadOnly
-	}
-
-	// Token validation and authorization
-	var err error
-	ctx, err = s.checkToken(ctx)
-	if err != nil {
-		return &pb.Empty{}, err
-	}
-	if err := s.isAuthorized(ctx, types.Capability_DESTROY_GROUP); err != nil {
+	if err := s.mutablePrequisitesMet(ctx, types.Capability_DESTROY_GROUP); err != nil {
 		return &pb.Empty{}, err
 	}
 

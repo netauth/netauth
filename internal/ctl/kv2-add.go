@@ -59,7 +59,7 @@ func kv2AddRun(cmd *cobra.Command, args []string) {
 	case "entity":
 		err = rpc.EntityKVAdd(ctx, args[1], args[2], args[3:])
 	case "group":
-		err = nil
+		err = rpc.GroupKVAdd(ctx, args[1], args[2], args[3:])
 	}
 
 	if err != nil {

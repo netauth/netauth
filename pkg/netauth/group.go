@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/golang/protobuf/proto"
@@ -119,6 +120,110 @@ func (c *Client) GroupUM(ctx context.Context, target, action, key, value string)
 
 	// Not in read mode, return nil for both.
 	return nil, nil
+}
+
+// GroupKVGet returns the values for a key if it exists.
+func (c *Client) GroupKVGet(ctx context.Context, id, key string) ([]string, error) {
+	ctx = c.appendMetadata(ctx)
+	r := rpc.KV2Request{
+		Target: &id,
+		Data: &pb.KVData{
+			Key: &key,
+		},
+	}
+
+	res, err := c.rpc.GroupKVGet(ctx, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	// We can blind index this because the rpc layer allows
+	// interacting with only one key at a time.
+	values := res.GetKVData()[0].GetValues()
+
+	sort.Slice(values, func(i, j int) bool {
+		return values[i].GetIndex() < values[j].GetIndex()
+	})
+
+	out := make([]string, len(values))
+	for i, v := range values {
+		out[i] = v.GetValue()
+	}
+	return out, nil
+}
+
+// GroupKVAdd adds a single key to the specified group.  The key
+// specified must not already exist.  The order values are provided
+// will be preserved.
+func (c *Client) GroupKVAdd(ctx context.Context, id, key string, values []string) error {
+	if err := c.makeWritable(); err != nil {
+		return err
+	}
+	ctx = c.appendMetadata(ctx)
+
+	r := rpc.KV2Request{
+		Target: &id,
+		Data: &pb.KVData{
+			Key: &key,
+		},
+	}
+
+	v := make([]*pb.KVValue, len(values))
+	for i := range values {
+		v[i] = &pb.KVValue{
+			Value: &values[i],
+			Index: proto.Int32(int32(i)),
+		}
+	}
+	r.Data.Values = v
+
+	_, err := c.rpc.GroupKVAdd(ctx, &r)
+	return err
+}
+
+// GroupKVDel deletes a single existing key from the target.
+func (c *Client) GroupKVDel(ctx context.Context, id, key string) error {
+	if err := c.makeWritable(); err != nil {
+		return err
+	}
+	ctx = c.appendMetadata(ctx)
+
+	r := rpc.KV2Request{
+		Target: &id,
+		Data: &pb.KVData{
+			Key: &key,
+		},
+	}
+	_, err := c.rpc.GroupKVDel(ctx, &r)
+	return err
+}
+
+// GroupKVReplace replaces a the values for a single key that must
+// already exist.  Similar to add, ordering will be preserved.
+func (c *Client) GroupKVReplace(ctx context.Context, id, key string, values []string) error {
+	if err := c.makeWritable(); err != nil {
+		return err
+	}
+	ctx = c.appendMetadata(ctx)
+
+	r := rpc.KV2Request{
+		Target: &id,
+		Data: &pb.KVData{
+			Key: &key,
+		},
+	}
+
+	v := make([]*pb.KVValue, len(values))
+	for i := range values {
+		v[i] = &pb.KVValue{
+			Value: &values[i],
+			Index: proto.Int32(int32(i)),
+		}
+	}
+	r.Data.Values = v
+
+	_, err := c.rpc.GroupKVReplace(ctx, &r)
+	return err
 }
 
 // GroupUpdateRules manages the rules on groups.  These rules can

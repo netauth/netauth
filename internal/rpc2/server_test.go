@@ -104,6 +104,7 @@ func initTree(t *testing.T, m Manager) {
 
 	m.SetEntityCapability2("admin", types.Capability_GLOBAL_ROOT.Enum())
 
+	m.GroupKVAdd("group1", []*types.KVData{{Key: proto.String("key1"), Values: []*types.KVValue{{Value: proto.String("value1")}}}})
 	m.EntityKVAdd("entity1", []*types.KVData{{Key: proto.String("key1"), Values: []*types.KVValue{{Value: proto.String("value1")}}}})
 }
 

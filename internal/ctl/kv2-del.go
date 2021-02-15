@@ -55,7 +55,7 @@ func kv2DelRun(cmd *cobra.Command, args []string) {
 	case "entity":
 		err = rpc.EntityKVDel(ctx, args[1], args[2])
 	case "group":
-		err = nil
+		err = rpc.GroupKVDel(ctx, args[1], args[2])
 	}
 
 	if err != nil {

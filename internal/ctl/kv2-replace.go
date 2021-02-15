@@ -57,7 +57,7 @@ func kv2ReplaceRun(cmd *cobra.Command, args []string) {
 	case "entity":
 		err = rpc.EntityKVReplace(ctx, args[1], args[2], args[3:])
 	case "group":
-		err = nil
+		err = rpc.GroupKVReplace(ctx, args[1], args[2], args[3:])
 	}
 
 	if err != nil {

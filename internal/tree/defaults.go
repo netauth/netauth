@@ -181,5 +181,20 @@ var (
 			"patch-group-expansions",
 			"save-group",
 		},
+		"KV-ADD": {
+			"load-group",
+			"kv-add",
+			"save-group",
+		},
+		"KV-DEL": {
+			"load-group",
+			"kv-del",
+			"save-group",
+		},
+		"KV-REPLACE": {
+			"load-group",
+			"kv-replace",
+			"save-group",
+		},
 	}
 )
