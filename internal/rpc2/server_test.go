@@ -4,6 +4,7 @@ import (
 	"path"
 	"testing"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto/nocrypto"
@@ -102,6 +103,8 @@ func initTree(t *testing.T, m Manager) {
 	m.AddEntityToGroup("entity1", "group1")
 
 	m.SetEntityCapability2("admin", types.Capability_GLOBAL_ROOT.Enum())
+
+	m.EntityKVAdd("entity1", []*types.KVData{{Key: proto.String("key1"), Values: []*types.KVValue{{Value: proto.String("value1")}}}})
 }
 
 func TestNew(t *testing.T) {

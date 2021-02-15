@@ -423,6 +423,17 @@ func TestEntityKVGet(t *testing.T) {
 		wantRes *pb.ListOfKVData
 	}{
 		{
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data:   &types.KVData{Key: proto.String("key1")},
+			},
+			wantErr: nil,
+			wantRes: &pb.ListOfKVData{KVData: []*types.KVData{{
+				Key:    proto.String("key1"),
+				Values: []*types.KVValue{{Value: proto.String("value1")}}}},
+			},
+		},
+		{
 			req:     &pb.KV2Request{Target: proto.String("entity1")},
 			wantErr: ErrDoesNotExist,
 			wantRes: &pb.ListOfKVData{},
@@ -462,10 +473,21 @@ func TestEntityKVAdd(t *testing.T) {
 			req: &pb.KV2Request{
 				Target: proto.String("entity1"),
 				Data: &types.KVData{
-					Key: proto.String("key1"),
+					Key: proto.String("key2"),
 				},
 			},
 			wantErr: nil,
+		},
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: ErrExists,
 		},
 		{
 			ro:      false,
@@ -546,6 +568,17 @@ func TestEntityKVDel(t *testing.T) {
 			wantErr: ErrDoesNotExist,
 		},
 		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key2"),
+				},
+			},
+			wantErr: ErrDoesNotExist,
+		},
+		{
 			ro:      false,
 			ctx:     PrivilegedContext,
 			req:     &pb.KV2Request{Target: proto.String("load-error")},
@@ -611,6 +644,17 @@ func TestEntityKVReplace(t *testing.T) {
 			ro:      false,
 			ctx:     PrivilegedContext,
 			req:     &pb.KV2Request{Target: proto.String("unknown")},
+			wantErr: ErrDoesNotExist,
+		},
+		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("entity1"),
+				Data: &types.KVData{
+					Key: proto.String("key2"),
+				},
+			},
 			wantErr: ErrDoesNotExist,
 		},
 		{

@@ -5,6 +5,8 @@ import (
 
 	"github.com/golang/protobuf/proto"
 
+	"github.com/netauth/netauth/internal/tree"
+
 	pb "github.com/netauth/protocol"
 )
 
@@ -38,7 +40,7 @@ func TestEntityKVDel(t *testing.T) {
 	}
 
 	res, err := m.EntityKVGet("entity1", kv1)
-	if err != nil {
+	if err != tree.ErrNoSuchKey {
 		t.Fatal(err)
 	}
 	if len(res) != 0 {
