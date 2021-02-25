@@ -98,6 +98,10 @@ func (m *Manager) GroupKVGet(name string, keys []*pb.KVData) ([]*pb.KVData, erro
 		return nil, err
 	}
 
+	if len(keys) == 1 && keys[0].GetKey() == "*" {
+		return g.GetKV(), nil
+	}
+
 	out := []*pb.KVData{}
 	for _, haystack := range g.GetKV() {
 		for _, needle := range keys {

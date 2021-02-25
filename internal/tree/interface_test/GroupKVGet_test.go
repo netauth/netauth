@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"
@@ -54,4 +55,8 @@ func TestGroupKVGet(t *testing.T) {
 	if _, err := m.GroupKVGet("group1", []*pb.KVData{{Key: proto.String("does-not-exist")}}); err != tree.ErrNoSuchKey {
 		t.Error(err)
 	}
+
+	res, err := m.GroupKVGet("group1", []*pb.KVData{{Key: proto.String("*")}})
+	assert.Nil(t, err)
+	assert.Equal(t, res, []*pb.KVData{kv1, kv2})
 }

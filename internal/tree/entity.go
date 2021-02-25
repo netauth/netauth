@@ -315,6 +315,12 @@ func (m *Manager) EntityKVGet(ID string, keys []*pb.KVData) ([]*pb.KVData, error
 		return nil, err
 	}
 
+	if len(keys) == 1 && keys[0].GetKey() == "*" {
+		// In the special case of a single star as the key
+		// return the entire keyspace
+		return e.GetMeta().GetKV(), nil
+	}
+
 	out := []*pb.KVData{}
 	for _, haystack := range e.GetMeta().GetKV() {
 		for _, needle := range keys {

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/golang/protobuf/proto"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/netauth/netauth/internal/db"
 
@@ -49,4 +50,8 @@ func TestEntityKVGet(t *testing.T) {
 	if _, err := m.EntityKVGet("does-not-exist", []*pb.KVData{kv1}); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
+
+	res, err := m.EntityKVGet("entity1", []*pb.KVData{{Key: proto.String("*")}})
+	assert.Nil(t, err)
+	assert.Equal(t, res, []*pb.KVData{kv1, kv2})
 }

@@ -49,7 +49,7 @@ func kv2GetArgs(cmd *cobra.Command, args []string) error {
 }
 
 func kv2GetRun(cmd *cobra.Command, args []string) {
-	var res []string
+	var res map[string][]string
 	var err error
 
 	switch strings.ToLower(args[0]) {
@@ -62,9 +62,10 @@ func kv2GetRun(cmd *cobra.Command, args []string) {
 		fmt.Fprint(os.Stderr, err)
 		os.Exit(1)
 	}
-	if len(res) > 0 {
-		for i := range res {
-			fmt.Println(res[i])
+	for key, values := range res {
+		fmt.Println(key)
+		for _, value := range values {
+			fmt.Println("  " + value)
 		}
 	}
 }

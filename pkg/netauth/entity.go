@@ -129,7 +129,7 @@ func (c *Client) EntityUM(ctx context.Context, target, action, key, value string
 }
 
 // EntityKVGet returns the values for a key if it exists.
-func (c *Client) EntityKVGet(ctx context.Context, id, key string) ([]string, error) {
+func (c *Client) EntityKVGet(ctx context.Context, id, key string) (map[string][]string, error) {
 	ctx = c.appendMetadata(ctx)
 	r := rpc.KV2Request{
 		Target: &id,
@@ -143,18 +143,16 @@ func (c *Client) EntityKVGet(ctx context.Context, id, key string) ([]string, err
 		return nil, err
 	}
 
-	// We can blind index this because the rpc layer allows
-	// interacting with only one key at a time.
-	values := res.GetKVData()[0].GetValues()
-
-	sort.Slice(values, func(i, j int) bool {
-		return values[i].GetIndex() < values[j].GetIndex()
-	})
-
-	out := make([]string, len(values))
-	for i, v := range values {
-		out[i] = v.GetValue()
+	out := make(map[string][]string, len(res.GetKVData()))
+	for _, kvd := range res.GetKVData() {
+		sort.Slice(kvd.Values, func(i, j int) bool {
+			return kvd.Values[i].GetIndex() < kvd.Values[j].GetIndex()
+		})
+		for _, v := range kvd.GetValues() {
+			out[kvd.GetKey()] = append(out[kvd.GetKey()], v.GetValue())
+		}
 	}
+
 	return out, nil
 }
 
