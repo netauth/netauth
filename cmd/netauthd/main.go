@@ -65,7 +65,9 @@ func init() {
 
 	pflag.String("server.bind", "localhost", "Bind address, defaults to localhost")
 	pflag.Int("server.port", 1729, "Serving port")
-	pflag.String("core.home", "", "Base directory for NetAuth")
+
+	pflag.String("core.home", "", "Data directory for NetAuth")
+	pflag.String("core.conf", "", "Config directory for NetAuth (inferred from config file location)")
 
 	pflag.String("db.backend", "filesystem", "Database storage backend to use")
 
@@ -76,9 +78,6 @@ func init() {
 
 	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
 	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
-
-	pflag.Bool("pdb.watcher", false, "Enable the pdb filesystem watcher")
-	pflag.Duration("pdb.watch-interval", 1*time.Second, "Watch Interval")
 
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
@@ -112,10 +111,10 @@ func newGRPCServer() (*grpc.Server, error) {
 		cFile := viper.GetString("tls.certificate")
 		ckFile := viper.GetString("tls.key")
 		if !filepath.IsAbs(cFile) {
-			cFile = filepath.Join(viper.GetString("core.home"), cFile)
+			cFile = filepath.Join(viper.GetString("core.conf"), cFile)
 		}
 		if !filepath.IsAbs(ckFile) {
-			ckFile = filepath.Join(viper.GetString("core.home"), ckFile)
+			ckFile = filepath.Join(viper.GetString("core.conf"), ckFile)
 		}
 		appLogger.Debug("TLS Enabled", "certificate", cFile, "key", ckFile)
 		creds, err := credentials.NewServerTLSFromFile(cFile, ckFile)
@@ -183,6 +182,7 @@ func writeDefaultConfig() error {
 func doInfoLogScroll() {
 	appLogger.Info("NetAuth server is starting!")
 	appLogger.Debug("Server home directory", "directory", viper.GetString("core.home"))
+	appLogger.Debug("Server config directory", "directory", viper.GetString("core.conf"))
 	appLogger.Debug("Build information as follows", "version", version, "commit", commit, "builddate", date)
 }
 
@@ -241,6 +241,10 @@ func main() {
 	// errors are encountered we take the whole server down here.
 	if err := loadConfig(); err != nil {
 		os.Exit(1)
+	}
+
+	if viper.GetString("core.conf") == "" {
+		viper.Set("core.conf", filepath.Dir(viper.ConfigFileUsed()))
 	}
 
 	// Set up the loggers for key subsystems

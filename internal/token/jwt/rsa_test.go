@@ -43,7 +43,7 @@ func mkTmpTestDir(t *testing.T) string {
 	if err != nil {
 		t.Error(err)
 	}
-	viper.Set("core.home", dir)
+	viper.Set("core.conf", dir)
 	return dir
 }
 
@@ -492,7 +492,7 @@ func TestGenerateKeysSuccess(t *testing.T) {
 	defer cleanTmpTestDir(testDir, t)
 	viper.Set("token.jwt.generate", true)
 
-	x, err := NewRSA(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.L())
 	if err != nil {
 		t.Error(err)
 	}

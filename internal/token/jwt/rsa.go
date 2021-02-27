@@ -119,8 +119,8 @@ func (s *RSATokenService) Validate(tkn string) (token.Claims, error) {
 // not available and it is not disabled, then a keypair will be
 // generated.
 func (s *RSATokenService) GetKeys() error {
-	s.publicKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.pem")
-	s.privateKeyFile = filepath.Join(viper.GetString("core.home"), "keys", "token.key")
+	s.publicKeyFile = filepath.Join(viper.GetString("core.conf"), "keys", "token.pem")
+	s.privateKeyFile = filepath.Join(viper.GetString("core.conf"), "keys", "token.key")
 
 	s.log.Debug("Loading public key", "file", s.publicKeyFile)
 	f, err := ioutil.ReadFile(s.publicKeyFile)
@@ -131,6 +131,7 @@ func (s *RSATokenService) GetKeys() error {
 			s.log.Warn("Key generation is disabled")
 			return token.ErrKeyGenerationDisabled
 		}
+		s.log.Info("Generating keys")
 
 		// Request the keys be generated
 		if err := s.generateKeys(viper.GetInt("token.jwt.bits")); err != nil {
@@ -219,7 +220,7 @@ func (s *RSATokenService) generateKeys(bits int) error {
 
 	// First create the directory for the keys if it doesn't
 	// already exist.
-	path := filepath.Join(viper.GetString("core.home"), "keys")
+	path := filepath.Join(viper.GetString("core.conf"), "keys")
 	if err := os.MkdirAll(path, 0755); err != nil {
 		s.log.Error("Could not create key directory", "path", path)
 		return token.ErrInternalError

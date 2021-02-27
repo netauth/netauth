@@ -103,7 +103,7 @@ func connect(writable bool) (*grpc.ClientConn, error) {
 		// directory.
 		certPath := viper.GetString("tls.certificate")
 		if !filepath.IsAbs(certPath) {
-			certPath = filepath.Join(viper.GetString("core.home"), certPath)
+			certPath = filepath.Join(viper.GetString("core.conf"), certPath)
 		}
 
 		creds, err := credentials.NewClientTLSFromFile(certPath, "")
