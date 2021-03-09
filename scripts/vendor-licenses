@@ -19,7 +19,7 @@ list_files() {
 
 generate_notice() {
     last=
-    $0 -all | while IFS=$'\n' read license; do
+    $0 -all | while IFS=$'\n' read -r license; do
         pkg="${license%%::*}"
         if [ "$pkg" != "$license" ]; then
             license="${license#${pkg}::}"
@@ -28,7 +28,7 @@ generate_notice() {
             pkg="${pkg%/*}"
         fi
 
-        printf ${last:+'\n\n\n'}
+        printf "%s" "${last:+'\n\n\n'}"
         last=x
 
         echo "$pkg" | sed 'p;s/./-/g'
