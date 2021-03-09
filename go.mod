@@ -2,8 +2,6 @@ module github.com/netauth/netauth
 
 go 1.11
 
-replace github.com/netauth/protocol => ../protocol
-
 require (
 	github.com/RoaringBitmap/roaring v0.4.17 // indirect
 	github.com/Smerity/govarint v0.0.0-20150407073650-7265e41f48f1 // indirect
@@ -29,8 +27,7 @@ require (
 	github.com/hashicorp/go-plugin v1.0.1
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
-	github.com/netauth/protocol v0.0.0-20191124005711-167b58b61c72
-	github.com/radovskyb/watcher v1.0.6
+	github.com/netauth/protocol v0.0.0-20210308093302-0e6e0dd6dfb2
 	github.com/remyoudompheng/bigfft v0.0.0-20190321074620-2f0d2b0e0001 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3
@@ -40,5 +37,9 @@ require (
 	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20181010114359-8752a9433481 // indirect
 	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
-	google.golang.org/grpc v1.34.0
+	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110 // indirect
+	golang.org/x/sys v0.0.0-20210305230114-8fe3ee5dd75b // indirect
+	golang.org/x/text v0.3.5 // indirect
+	google.golang.org/genproto v0.0.0-20210303154014-9728d6b83eeb // indirect
+	google.golang.org/grpc v1.36.0
 )
