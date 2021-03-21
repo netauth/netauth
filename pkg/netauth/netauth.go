@@ -40,6 +40,11 @@ func init() {
 // handler that is provided should have the correct name and be
 // parented to the correct point on the log tree.
 func NewWithLog(l hclog.Logger) (*Client, error) {
+	if viper.GetString("core.conf") == "" {
+		viper.Set("core.conf", filepath.Dir(viper.ConfigFileUsed()))
+		l.Debug("Config relative load path set", "path", viper.GetString("core.conf"))
+	}
+
 	conn, err := connect(false)
 	if err != nil {
 		return nil, err
