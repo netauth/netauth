@@ -148,8 +148,10 @@ func (fs *Filesystem) Keys(f string) ([]string, error) {
 	i := 0
 	for _, k := range keys {
 		k, _ = filepath.Rel(fs.basePath, k)
+		k = "/" + k
 		if m, _ := filepath.Match(f, k); m {
-			out[i] = "/" + k
+			out[i] = k
+			fs.l.Trace("Matched filter", "key", k)
 			i++
 		}
 	}

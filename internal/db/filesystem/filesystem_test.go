@@ -91,11 +91,11 @@ func TestKeys(t *testing.T) {
 	assert.Nil(t, kv.Put("/bar/foo", []byte("some bytes")))
 	assert.Nil(t, kv.Put("/baz/foo", []byte("some bytes")))
 
-	res, err := kv.Keys("*/*")
+	res, err := kv.Keys("/*/*")
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"/bar/foo", "/baz/foo", "/foo/foo"}, res) //lexical
 
-	res, err = kv.Keys("ba*/*")
+	res, err = kv.Keys("/ba*/*")
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"/bar/foo", "/baz/foo"}, res) //lexical
 

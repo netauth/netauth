@@ -278,6 +278,7 @@ func main() {
 		appLogger.Error("Fatal database error", "error", err)
 		os.Exit(1)
 	}
+	dbImpl.PrimeIndexes()
 	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
 
 	cryptoImpl, err := crypto.New(viper.GetString("crypto.backend"))

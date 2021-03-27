@@ -23,6 +23,86 @@ func TestNew(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestPrimeIndexes(t *testing.T) {
+	RegisterKV("mock", newMockKV)
+
+	// No error, no keys returned
+	m, err := New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, nil)
+	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{}, nil)
+	err = m.PrimeIndexes()
+	assert.Nil(t, err)
+
+	// Error, bad entity
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{"/entities/bad-proto"}, nil)
+	m.kv.(*mockKV).On("Get", "/entities/bad-proto").Return([]byte{42}, nil)
+	err = m.PrimeIndexes()
+	assert.NotNil(t, err)
+
+	// Error, bad group
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, nil)
+	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{"/groups/bad-proto"}, nil)
+	m.kv.(*mockKV).On("Get", "/groups/bad-proto").Return([]byte{42}, nil)
+	err = m.PrimeIndexes()
+	assert.NotNil(t, err)
+
+}
+
+func TestLoadEntityIndex(t *testing.T) {
+	RegisterKV("mock", newMockKV)
+	m, err := New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, ErrInternalError)
+	err = m.loadEntityIndex()
+	assert.NotNil(t, err)
+
+	// Works fine
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{"/entities/good"}, nil)
+	m.kv.(*mockKV).On("Get", "/entities/good").Return(goodEntityBytes1, nil)
+	err = m.loadEntityIndex()
+	assert.Nil(t, err)
+
+	// Fails load
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{"/entities/bad-proto"}, nil)
+	m.kv.(*mockKV).On("Get", "/entities/bad-proto").Return([]byte{42}, nil)
+	err = m.loadEntityIndex()
+	assert.NotNil(t, err)
+}
+
+func TestLoadGroupIndex(t *testing.T) {
+	RegisterKV("mock", newMockKV)
+	m, err := New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{}, ErrInternalError)
+	err = m.loadGroupIndex()
+	assert.NotNil(t, err)
+
+	// Works fine
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{"/groups/good"}, nil)
+	m.kv.(*mockKV).On("Get", "/groups/good").Return(goodGroupBytes1, nil)
+	err = m.loadGroupIndex()
+	assert.Nil(t, err)
+
+	// Fails load
+	m, err = New("mock")
+	assert.Nil(t, err)
+	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{"/groups/bad-proto"}, nil)
+	m.kv.(*mockKV).On("Get", "/groups/bad-proto").Return([]byte{42}, nil)
+	err = m.loadGroupIndex()
+	assert.NotNil(t, err)
+}
+
 func TestDiscoverEntityIDs(t *testing.T) {
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
