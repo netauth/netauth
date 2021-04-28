@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree/util"
 
 	pb "github.com/netauth/protocol"
@@ -209,4 +210,27 @@ func (m *Manager) DropGroupCapability2(name string, c *pb.Capability) error {
 
 	_, err := m.RunGroupChain("DROP-CAPABILITY", rg)
 	return err
+}
+
+func (m *Manager) groupResolverCallback(e db.Event) {
+	switch e.Type {
+	case db.EventGroupCreate:
+		fallthrough
+	case db.EventGroupUpdate:
+		grp, err := m.db.LoadGroup(e.PK)
+		if err != nil {
+			m.log.Warn("Unchecked load error in groupResolverCallback", "error", err)
+			return
+		}
+		exps := make(map[string][]string, 2)
+		for _, r := range grp.GetExpansions() {
+			parts := strings.SplitN(r, ":", 2)
+			exps[parts[0]] = append(exps[parts[0]], parts[1])
+		}
+		m.resolver.SyncGroup(grp.GetName(), exps["INCLUDE"], exps["EXCLUDE"])
+	case db.EventGroupDestroy:
+		m.resolver.RemoveGroup(e.PK)
+	default:
+		return
+	}
 }

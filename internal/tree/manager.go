@@ -4,6 +4,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto"
+	"github.com/netauth/netauth/internal/mresolver"
 )
 
 var (
@@ -21,10 +22,15 @@ func New(db DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
 	x.bootstrapDone = false
 	x.db = db
 	x.crypto = crypto
+	x.resolver = mresolver.New()
+	x.resolver.SetParentLogger(x.log)
 	x.refContext = RefContext{
 		DB:     db,
 		Crypto: crypto,
 	}
+
+	x.db.RegisterCallback("entity-resolver", x.entityResolverCallback)
+	x.db.RegisterCallback("group-resolver", x.groupResolverCallback)
 
 	// Initialize all entity hooks and bind to names.
 	x.entityHooks = make(map[string]EntityHook)

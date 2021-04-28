@@ -583,12 +583,7 @@ func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.Lis
 		return &pb.ListOfGroups{}, ErrInternal
 	}
 
-	// Summoning memberhips without indirects is confusing, not
-	// fully understood by the general user, and of exceedingly
-	// limited utility.  As a result of this the feature is being
-	// removed.  Until that happens though, this interface still
-	// needs to be fed a "true" to maintain the feature.
-	groups := s.GetMemberships(ent, true)
+	groups := s.GetMemberships(ent)
 
 	out := make([]*types.Group, len(groups))
 	for i := range groups {

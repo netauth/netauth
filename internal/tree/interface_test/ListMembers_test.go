@@ -12,6 +12,7 @@ func TestListMembers(t *testing.T) {
 	m, ctx := newTreeManager(t)
 
 	buildSampleTree(t, ctx)
+	ctx.DB.(*db.DB).EventUpdateAll()
 
 	// Meta-group ALL, contains all five entities
 	mbrs, err := m.ListMembers("ALL")
@@ -61,12 +62,5 @@ func TestListMembers(t *testing.T) {
 	})
 	if len(mbrs) != 1 || mbrs[0].GetID() != "entity1" {
 		t.Error("group4 has wrong membership")
-	}
-}
-
-func TestListMembersBadGroup(t *testing.T) {
-	m, _ := newTreeManager(t)
-	if _, err := m.ListMembers("unknown"); err != db.ErrUnknownGroup {
-		t.Fatal(err)
 	}
 }

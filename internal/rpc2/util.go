@@ -38,7 +38,7 @@ func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 	// case is a group is returned that is completely empty.  In
 	// this case there will simply be no additional capabilities
 	// granted, and this function can continue without incident.
-	groupNames := s.GetMemberships(e, true)
+	groupNames := s.GetMemberships(e)
 	for _, name := range groupNames {
 		g, _ := s.FetchGroup(name)
 		for _, c := range g.GetCapabilities() {
@@ -181,11 +181,7 @@ func (s *Server) manageByMembership(entityID string, g *types.Group) bool {
 		return false
 	}
 
-	// Indirects are included as a hard coded set here as the
-	// filter to use direct groups only is being removed.  This
-	// functionality was unintuitive to use, and increased the
-	// complexity of the code considerably.
-	for _, name := range s.GetMemberships(e, true) {
+	for _, name := range s.GetMemberships(e) {
 		if name == g.GetManagedBy() {
 			return true
 		}

@@ -7,6 +7,8 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/tree/util"
 
+	"github.com/netauth/netauth/internal/db"
+
 	pb "github.com/netauth/protocol"
 )
 
@@ -356,6 +358,24 @@ func (m *Manager) UnlockEntity(ID string) error {
 
 	_, err := m.RunEntityChain("UNLOCK", de)
 	return err
+}
+
+func (m *Manager) entityResolverCallback(e db.Event) {
+	switch e.Type {
+	case db.EventEntityCreate:
+		fallthrough
+	case db.EventEntityUpdate:
+		ent, err := m.db.LoadEntity(e.PK)
+		if err != nil {
+			m.log.Warn("Unchecked load error in entityResolverCallback", "error", err)
+			return
+		}
+		m.resolver.SyncDirectGroups(ent.GetID(), ent.GetMeta().GetGroups())
+	case db.EventEntityDestroy:
+		m.resolver.RemoveEntity(e.PK)
+	default:
+		return
+	}
 }
 
 // safeCopyEntity makes a copy of the entity provided but removes

@@ -65,7 +65,7 @@ type Manager interface {
 	AddEntityToGroup(string, string) error
 	RemoveEntityFromGroup(string, string) error
 	ListMembers(string) ([]*pb.Entity, error)
-	GetMemberships(*pb.Entity, bool) []string
+	GetMemberships(*pb.Entity) []string
 	ModifyGroupRule(string, string, rpc.RuleAction) error
 
 	SetEntityCapability2(string, *pb.Capability) error

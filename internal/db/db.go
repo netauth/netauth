@@ -37,61 +37,6 @@ func New(backend string) (*DB, error) {
 	return x, nil
 }
 
-// PrimeIndexes loads the indexes by crawling everything from the KV
-// store and loading it back into the bleve index.
-func (db *DB) PrimeIndexes() error {
-	if err := db.loadEntityIndex(); err != nil {
-		return err
-	}
-
-	if err := db.loadGroupIndex(); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (db *DB) loadEntityIndex() error {
-	// Loading Entity Index
-	db.l.Debug("Indexing Entities")
-	ids, err := db.DiscoverEntityIDs()
-	if err != nil {
-		return err
-	}
-	for i := range ids {
-		ids[i] = path.Base(ids[i])
-	}
-	db.l.Debug("Loaded entity IDs", "count", len(ids), "list", ids)
-	ents, err := db.loadEntityBatch(ids)
-	if err != nil {
-		return err
-	}
-	for i := range ents {
-		db.Index.IndexEntity(ents[i])
-	}
-	return nil
-}
-
-func (db *DB) loadGroupIndex() error {
-	// Loading Groups Index
-	db.l.Debug("Indexing Groups")
-	ids, err := db.DiscoverGroupNames()
-	if err != nil {
-		return err
-	}
-	for i := range ids {
-		ids[i] = path.Base(ids[i])
-	}
-	db.l.Debug("Loaded groups IDs", "count", len(ids), "list", ids)
-	grps, err := db.loadGroupBatch(ids)
-	if err != nil {
-		return err
-	}
-	for i := range grps {
-		db.Index.IndexGroup(grps[i])
-	}
-	return nil
-}
-
 // DiscoverEntityIDs searches the keyspace for all entity IDs.  All
 // returned strings are loadable entities.
 func (db *DB) DiscoverEntityIDs() ([]string, error) {

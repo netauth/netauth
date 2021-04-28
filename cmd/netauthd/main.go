@@ -278,7 +278,6 @@ func main() {
 		appLogger.Error("Fatal database error", "error", err)
 		os.Exit(1)
 	}
-	dbImpl.PrimeIndexes()
 	appLogger.Info("Database initialized", "backend", viper.GetString("db.backend"))
 
 	cryptoImpl, err := crypto.New(viper.GetString("crypto.backend"))
@@ -302,6 +301,16 @@ func main() {
 	if viper.GetBool("plugin.enabled") {
 		pluginManager.ConfigureEntityChains(tree.RegisterEntityHookToChain)
 		pluginManager.ConfigureGroupChains(tree.RegisterGroupHookToChain)
+	}
+
+	// All internal components have initialized and registered for
+	// storage callbacks at this point.  We now run a storage
+	// callback claiming that everything on the server has been
+	// updated to allow data to load into memory that is not
+	// persisted to disk.
+	if err := dbImpl.EventUpdateAll(); err != nil {
+		appLogger.Error("Error during initial event preload", "error", err)
+		os.Exit(1)
 	}
 
 	// Bootstrapping a new server, or recovering from certain

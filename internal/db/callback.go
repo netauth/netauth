@@ -1,5 +1,7 @@
 package db
 
+import "path"
+
 // RegisterCallback takes a callback name and handle and registers
 // them for later calling.
 func (db *DB) RegisterCallback(name string, c Callback) {
@@ -19,6 +21,29 @@ func (db *DB) FireEvent(e Event) {
 		log().Trace("Calling callback", "callback", name)
 		c(e)
 	}
+}
+
+// EventUpdateAll fires an event for all entities and all groups with
+// the type set to "Update".  This is used to allow the async
+// components that are event driven to pre-load on a server startup
+// and begin monitoring changes after the load completes.
+func (db *DB) EventUpdateAll() error {
+	ids, err := db.DiscoverEntityIDs()
+	if err != nil {
+		return err
+	}
+	for _, i := range ids {
+		db.FireEvent(Event{Type: EventEntityUpdate, PK: path.Base(i)})
+	}
+
+	ids, err = db.DiscoverGroupNames()
+	if err != nil {
+		return err
+	}
+	for _, i := range ids {
+		db.FireEvent(Event{Type: EventGroupUpdate, PK: path.Base(i)})
+	}
+	return nil
 }
 
 // IsEmpty is used to test for an empty event being returned.

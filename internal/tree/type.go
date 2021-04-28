@@ -5,6 +5,7 @@ import (
 
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/db"
+	"github.com/netauth/netauth/internal/mresolver"
 
 	types "github.com/netauth/protocol"
 )
@@ -38,6 +39,8 @@ type Manager struct {
 	entityProcesses map[string][]EntityHook
 	groupProcesses  map[string][]GroupHook
 
+	resolver *mresolver.MResolver
+
 	log hclog.Logger
 }
 
@@ -58,6 +61,9 @@ type DB interface {
 	DeleteGroup(string) error
 	NextGroupNumber() (int32, error)
 	SearchGroups(db.SearchRequest) ([]*types.Group, error)
+
+	// Callbacks
+	RegisterCallback(string, db.Callback)
 }
 
 // A RefContext is a container of references that are needed to
