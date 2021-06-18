@@ -14,6 +14,7 @@ import (
 	"github.com/netauth/netauth/internal/crypto"
 	_ "github.com/netauth/netauth/internal/crypto/bcrypt"
 	"github.com/netauth/netauth/internal/db"
+	_ "github.com/netauth/netauth/internal/db/bitcask"
 	_ "github.com/netauth/netauth/internal/db/filesystem"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
 	"github.com/netauth/netauth/internal/token"
