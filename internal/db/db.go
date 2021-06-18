@@ -18,7 +18,7 @@ var (
 
 // New returns a db struct.
 func New(backend string) (*DB, error) {
-	kv, err := newKV(backend, log())
+	kv, err := NewKV(backend, log())
 	if err != nil {
 		return nil, err
 	}

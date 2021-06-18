@@ -21,7 +21,9 @@ func RegisterKV(name string, factory KVFactory) {
 	kvBackends[name] = factory
 }
 
-func newKV(name string, l hclog.Logger) (KVStore, error) {
+// NewKV returns a KV.  This is exported to enable usage in nsutil,
+// but should generally not be imported by external consumers.
+func NewKV(name string, l hclog.Logger) (KVStore, error) {
 	f, ok := kvBackends[name]
 	if !ok {
 		log().Debug("Requested bad backend", "backend", name, "known", kvBackends)
