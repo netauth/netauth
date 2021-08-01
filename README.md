@@ -72,7 +72,7 @@ If you use Okta, you'll probably be interested in the
 automatically mirror your NetAuth entities and groups into Okta.
 
 Other modules are coming, if you want to help out, reach out in
-`#netauth-dev` on freenode.
+`#netauth-dev` on Libera.
 
 Why wouldn't you use LDAP and Kerberos?  Why did you build this?
 ----------------------------------------------------------------
