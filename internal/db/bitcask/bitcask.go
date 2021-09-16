@@ -1,3 +1,4 @@
+//go:build !windows
 // +build !windows
 
 package bitcask
@@ -7,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-hclog"
 	"git.mills.io/prologic/bitcask"
+	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/internal/db"
