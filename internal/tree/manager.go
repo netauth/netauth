@@ -19,7 +19,6 @@ var (
 func New(db DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
 	x := Manager{}
 	x.log = l.Named("tree")
-	x.bootstrapDone = false
 	x.db = db
 	x.crypto = crypto
 	x.resolver = mresolver.New()

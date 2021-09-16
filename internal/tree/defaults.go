@@ -16,14 +16,6 @@ var (
 		"FETCH": {
 			"load-entity",
 		},
-		"BOOTSTRAP-SERVER": {
-			"create-entity-if-missing",
-			"ensure-entity-meta",
-			"unlock-entity",
-			"set-entity-secret",
-			"set-entity-capability",
-			"save-entity",
-		},
 		"SET-SECRET": {
 			"load-entity",
 			"set-entity-secret",

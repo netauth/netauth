@@ -1,13 +1,11 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 
@@ -37,8 +35,7 @@ import (
 )
 
 var (
-	bootstrap = pflag.String("server.bootstrap", "", "ID:secret to give GLOBAL_ROOT - for bootstrapping")
-	insecure  = pflag.Bool("tls.PWN_ME", false, "Disable TLS; Don't set on a production server!")
+	insecure = pflag.Bool("tls.PWN_ME", false, "Disable TLS; Don't set on a production server!")
 
 	writeDefConfig = pflag.String("write-config", "", "Write the default configuration to the specified file")
 
@@ -207,21 +204,6 @@ func doPluginEarlySetup() plugin.Manager {
 	return p
 }
 
-// doSuperuserBootstrap handles the text parsing to create a new
-// superuser in the system.  Most importantly this function ensures
-// that the format is correct for the bootstrap string prior to trying
-// to split it.
-func doSuperuserBootstrap(t *tree.Manager) error {
-	if !strings.Contains(*bootstrap, ":") {
-		return errors.New("bootstrap string must be in the format of <entity>:<secret>")
-	}
-	appLogger.Info("Beginning Bootstrap")
-	eParts := strings.SplitN(*bootstrap, ":", 2)
-	t.Bootstrap(eParts[0], eParts[1])
-	appLogger.Info("Bootstrap complete")
-	return nil
-}
-
 func main() {
 	// Parse flags first, this is required to be able to chose
 	// whether or not to write out the default configuration
@@ -313,23 +295,6 @@ func main() {
 		appLogger.Error("Error during initial event preload", "error", err)
 		os.Exit(1)
 	}
-
-	// Bootstrapping a new server, or recovering from certain
-	// scenarios requires being able to generate a new user, or
-	// elevate an existing one, to the global superuser state.
-	// This action requires the user to have the root on the
-	// NetAuth server, and this is generally accepted to be enough
-	// to override the internal permissions model based on
-	// external authority.  After this action is taken or not
-	// taken, the capability to bootstrap is disabled for the
-	// lifetime of the server.
-	if len(*bootstrap) != 0 {
-		if err := doSuperuserBootstrap(tree); err != nil {
-			appLogger.Error("Critical error during superuser bootstrap", "error", err)
-			os.Exit(1)
-		}
-	}
-	tree.DisableBootstrap()
 
 	// NetAuth's internal security model is token based.  The
 	// token service is distinct from the tree, and can wait to

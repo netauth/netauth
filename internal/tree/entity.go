@@ -29,41 +29,6 @@ func (m *Manager) CreateEntity(ID string, number int32, secret string) error {
 	return err
 }
 
-// Bootstrap is a function that can be called during the startup of
-// the srever to create an entity that has the appropriate authority
-// to create more entities and otherwise manage the server.  This can
-// only be called once during startup, attepts to call it again will
-// result in no change.  The bootstrap user will always get the next
-// available number which in most cases will be 1.
-func (m *Manager) Bootstrap(ID string, secret string) {
-	if m.bootstrapDone {
-		return
-	}
-
-	de := &pb.Entity{
-		ID:     &ID,
-		Secret: &secret,
-		Meta: &pb.EntityMeta{
-			Capabilities: []pb.Capability{pb.Capability_GLOBAL_ROOT},
-		},
-	}
-
-	_, err := m.RunEntityChain("BOOTSTRAP-SERVER", de)
-	m.DisableBootstrap()
-
-	if err != nil {
-		m.log.Error("Bootstrap Failed", "error", err)
-	}
-}
-
-// DisableBootstrap disables the ability to bootstrap after the
-// opportunity to do so has passed.
-func (m *Manager) DisableBootstrap() {
-	m.log.Debug("Disabling bootstrap")
-	m.bootstrapDone = true
-	m.log.Info("Bootstrap disabled")
-}
-
 // DestroyEntity deletes the named entity.  This function will
 // delete the entity in a non-atomic way, but will ensure that the
 // entity cannot be authenticated with before returning.  If the named

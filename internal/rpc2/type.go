@@ -32,9 +32,6 @@ type Manager interface {
 	RegisterEntityHookToChain(string, string) error
 	RegisterGroupHookToChain(string, string) error
 
-	Bootstrap(string, string)
-	DisableBootstrap()
-
 	CreateEntity(string, int32, string) error
 	FetchEntity(string) (*pb.Entity, error)
 	SearchEntities(db.SearchRequest) ([]*pb.Entity, error)
