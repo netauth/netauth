@@ -47,11 +47,11 @@ func testAtom(mr *MResolver) {
 
 	// This is only partial to test that removing works.
 	mr.atom.ga = map[string]map[string]struct{}{
-		"group0": map[string]struct{}{
-			"group5": struct{}{},
+		"group0": {
+			"group5": {},
 		},
-		"group1": map[string]struct{}{
-			"group2": struct{}{},
+		"group1": {
+			"group2": {},
 		},
 	}
 }

@@ -596,10 +596,10 @@ func TestEntityKVDel(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s.Manager)
 		s.Manager.EntityKVAdd("entity1", []*types.KVData{
-			&types.KVData{
+			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
-					&types.KVValue{Value: proto.String("value1")},
+					{Value: proto.String("value1")},
 				},
 			},
 		})
@@ -675,10 +675,10 @@ func TestEntityKVReplace(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s.Manager)
 		s.Manager.EntityKVAdd("entity1", []*types.KVData{
-			&types.KVData{
+			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
-					&types.KVValue{Value: proto.String("value1")},
+					{Value: proto.String("value1")},
 				},
 			},
 		})

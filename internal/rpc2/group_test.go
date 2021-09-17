@@ -528,10 +528,10 @@ func TestGroupKVDel(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s.Manager)
 		s.Manager.GroupKVAdd("group1", []*types.KVData{
-			&types.KVData{
+			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
-					&types.KVValue{Value: proto.String("value1")},
+					{Value: proto.String("value1")},
 				},
 			},
 		})
@@ -596,10 +596,10 @@ func TestGroupKVReplace(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s.Manager)
 		s.Manager.GroupKVAdd("group1", []*types.KVData{
-			&types.KVData{
+			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
-					&types.KVValue{Value: proto.String("value1")},
+					{Value: proto.String("value1")},
 				},
 			},
 		})
