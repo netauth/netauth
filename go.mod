@@ -16,11 +16,11 @@ require (
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
 	github.com/cznic/mathutil v0.0.0-20181122101859-297441e03548 // indirect
 	github.com/cznic/strutil v0.0.0-20181122101858-275e90344537 // indirect
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/facebookgo/ensure v0.0.0-20160127193407-b4ab57deab51 // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.0.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/renameio v0.1.0
 	github.com/hashicorp/go-hclog v0.9.2

@@ -15,7 +15,7 @@ import (
 	"github.com/netauth/netauth/internal/health"
 	"github.com/netauth/netauth/internal/token"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 // An RSAToken is a token that provides both the token.Claims required
