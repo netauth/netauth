@@ -28,10 +28,10 @@ func TestRegisterKV(t *testing.T) {
 
 func TestNewKV(t *testing.T) {
 	RegisterKV("dummy", newDummyKV)
-	res, err := newKV("dummy", hclog.NewNullLogger())
+	res, err := NewKV("dummy", hclog.NewNullLogger())
 	assert.Nil(t, err)
 	assert.Implements(t, new(KVStore), res)
 
-	_, err = newKV("does-not-exist", hclog.NewNullLogger())
+	_, err = NewKV("does-not-exist", hclog.NewNullLogger())
 	assert.Equal(t, err, ErrUnknownDatabase)
 }

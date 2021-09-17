@@ -120,14 +120,14 @@ func TestLoadGroup(t *testing.T) {
 		wantErr error
 	}{
 		{"missing", ErrUnknownGroup},
-		{"bad-error", errors.New("something internal")},
-		{"bad-proto", errors.New("unexpected EOF")},
+		{"bad-error", ErrInternalError},
+		{"bad-proto", ErrInternalError},
 		{"good", nil},
 	}
 
-	for _, c := range cases {
+	for i, c := range cases {
 		_, err := m.LoadGroup(c.id)
-		assert.Equal(t, err, c.wantErr)
+		assert.Equalf(t, err, c.wantErr, "Test Case %d", i)
 	}
 }
 

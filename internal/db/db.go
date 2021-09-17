@@ -100,13 +100,13 @@ func (db *DB) LoadGroup(ID string) (*types.Group, error) {
 	}
 	if err != nil {
 		db.log.Debug("Error loading group from KV store", "error", err, "ID", ID)
-		return nil, err
+		return nil, ErrInternalError
 	}
 
 	g := &types.Group{}
 	if err := proto.Unmarshal(b, g); err != nil {
 		db.log.Warn("Error unmarshaling group", "error", err)
-		return nil, err
+		return nil, ErrInternalError
 	}
 	return g, nil
 }
