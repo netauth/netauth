@@ -3,8 +3,8 @@ package db
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/netauth/protocol"
 )

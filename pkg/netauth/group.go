@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/netauth/protocol"
 	rpc "github.com/netauth/protocol/v2"

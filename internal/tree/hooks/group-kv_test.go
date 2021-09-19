@@ -3,8 +3,8 @@ package hooks
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/tree"
+	"google.golang.org/protobuf/proto"
 
 	pb "github.com/netauth/protocol"
 )

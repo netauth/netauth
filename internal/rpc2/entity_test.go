@@ -6,8 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"

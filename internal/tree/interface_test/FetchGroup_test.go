@@ -3,7 +3,7 @@ package interface_test
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestFetchGroup(t *testing.T) {

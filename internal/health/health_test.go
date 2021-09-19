@@ -3,8 +3,8 @@ package health
 import (
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
+	"google.golang.org/protobuf/proto"
 )
 
 func subsystemSuccess() SubsystemStatus {

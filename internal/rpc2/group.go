@@ -3,7 +3,7 @@ package rpc2
 import (
 	"context"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/tree"

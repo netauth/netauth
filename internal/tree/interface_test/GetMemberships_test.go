@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/db"
 

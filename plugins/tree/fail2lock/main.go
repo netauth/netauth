@@ -5,9 +5,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
 	"github.com/spf13/viper"
+	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/tree/util"
 	"github.com/netauth/netauth/pkg/plugin/tree"

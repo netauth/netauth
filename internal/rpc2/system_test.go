@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"

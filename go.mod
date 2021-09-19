@@ -21,12 +21,11 @@ require (
 	github.com/facebookgo/subset v0.0.0-20150612182917-8dac2c3c4870 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0
-	github.com/golang/protobuf v1.5.2
 	github.com/google/renameio v0.1.0
 	github.com/hashicorp/go-hclog v0.9.2
 	github.com/hashicorp/go-plugin v1.0.1
 	github.com/jmhodges/levigo v1.0.0 // indirect
-	github.com/netauth/protocol v0.0.0-20210308093302-0e6e0dd6dfb2
+	github.com/netauth/protocol v0.0.0-20210918062754-7fee492ffcbd
 	github.com/remyoudompheng/bigfft v0.0.0-20190321074620-2f0d2b0e0001 // indirect
 	github.com/spf13/cobra v0.0.7
 	github.com/spf13/pflag v1.0.5
@@ -40,4 +39,5 @@ require (
 	golang.org/x/exp v0.0.0-20210826195003-46c773283d9d // indirect
 	golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf // indirect
 	google.golang.org/grpc v1.38.0
+	google.golang.org/protobuf v1.27.1
 )

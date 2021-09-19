@@ -7,9 +7,9 @@ package db
 import (
 	"errors"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 )

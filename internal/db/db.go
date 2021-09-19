@@ -6,8 +6,8 @@ package db
 import (
 	"path"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 )
@@ -64,11 +64,10 @@ func (db *DB) LoadEntity(ID string) (*types.Entity, error) {
 
 // SaveEntity writes an entity to the kv store.
 func (db *DB) SaveEntity(e *types.Entity) error {
-	b, err := proto.Marshal(e)
-	if err != nil {
-		db.log.Warn("Error marshaling entity", "error", err)
-		return err
-	}
+	// The only way for this to error is if the proto is invalid;
+	// i.e. a missing required field.  Since there are no required
+	// fields in the Entity proto, this cannot return an error.
+	b, _ := proto.Marshal(e)
 
 	if err := db.kv.Put(path.Join("/entities", e.GetID()), b); err != nil {
 		db.log.Warn("Error storing entity", "error", err)
@@ -113,11 +112,10 @@ func (db *DB) LoadGroup(ID string) (*types.Group, error) {
 
 // SaveGroup writes an group to the kv store.
 func (db *DB) SaveGroup(g *types.Group) error {
-	b, err := proto.Marshal(g)
-	if err != nil {
-		db.log.Warn("Error marshaling group", "error", err)
-		return err
-	}
+	// The only way for this to error is if the proto is invalid;
+	// i.e. a missing required field.  Since there are no required
+	// fields in the Group proto, this cannot return an error.
+	b, _ := proto.Marshal(g)
 
 	if err := db.kv.Put(path.Join("/groups", g.GetName()), b); err != nil {
 		db.log.Warn("Error storing group", "error", err)

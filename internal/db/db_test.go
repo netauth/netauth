@@ -4,10 +4,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 )
@@ -72,9 +72,6 @@ func TestSaveEntity(t *testing.T) {
 
 	err = m.SaveEntity(&types.Entity{ID: proto.String("good")})
 	assert.Nil(t, err)
-
-	err = m.SaveEntity(nil)
-	assert.NotNil(t, err)
 
 	err = m.SaveEntity(&types.Entity{ID: proto.String("bad")})
 	assert.NotNil(t, err)
@@ -141,9 +138,6 @@ func TestSaveGroup(t *testing.T) {
 
 	err = m.SaveGroup(&types.Group{Name: proto.String("good")})
 	assert.Nil(t, err)
-
-	err = m.SaveGroup(nil)
-	assert.NotNil(t, err)
 
 	err = m.SaveGroup(&types.Group{Name: proto.String("bad")})
 	assert.NotNil(t, err)

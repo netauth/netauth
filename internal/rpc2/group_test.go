@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/netauth/netauth/internal/db"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/proto"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"
@@ -1035,13 +1035,13 @@ func TestGroupMembers(t *testing.T) {
 		},
 		{
 			group:      "does-not-exist",
-			wantErr:    ErrDoesNotExist,
-			wantMember: "entity1",
+			wantErr:    nil,
+			wantMember: "",
 		},
 		{
 			group:      "load-error",
-			wantErr:    ErrInternal,
-			wantMember: "entity1",
+			wantErr:    nil,
+			wantMember: "",
 		},
 	}
 
@@ -1057,7 +1057,7 @@ func TestGroupMembers(t *testing.T) {
 
 		res, err := s.GroupMembers(context.Background(), &req)
 		if err != c.wantErr {
-			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
+			t.Errorf("%d (%s): Got %v; Want %v", i, c.group, err, c.wantErr)
 		}
 		if err != nil || len(res.GetEntities()) < 1 {
 			continue
