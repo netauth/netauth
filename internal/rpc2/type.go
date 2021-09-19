@@ -29,9 +29,6 @@ type Refs struct {
 
 // The Manager handles backend data and is an equivalent interface to rpc.EntityTree
 type Manager interface {
-	RegisterEntityHookToChain(string, string) error
-	RegisterGroupHookToChain(string, string) error
-
 	CreateEntity(string, int32, string) error
 	FetchEntity(string) (*pb.Entity, error)
 	SearchEntities(db.SearchRequest) ([]*pb.Entity, error)
