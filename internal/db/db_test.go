@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -24,6 +25,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestDiscoverEntityIDs(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -31,12 +33,13 @@ func TestDiscoverEntityIDs(t *testing.T) {
 	entList := []string{"/entities/foo", "/entities/bar"}
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return(entList, nil)
 
-	res, err := m.DiscoverEntityIDs()
+	res, err := m.DiscoverEntityIDs(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, res, entList)
 }
 
 func TestLoadEntity(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -57,12 +60,13 @@ func TestLoadEntity(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		_, err := m.LoadEntity(c.id)
+		_, err := m.LoadEntity(ctx, c.id)
 		assert.Equal(t, c.wantErr, err)
 	}
 }
 
 func TestSaveEntity(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -70,14 +74,15 @@ func TestSaveEntity(t *testing.T) {
 	m.kv.(*mockKV).On("Put", "/entities/good", mock.Anything).Return(nil)
 	m.kv.(*mockKV).On("Put", "/entities/bad", mock.Anything).Return(errors.New("something internal"))
 
-	err = m.SaveEntity(&types.Entity{ID: proto.String("good")})
+	err = m.SaveEntity(ctx, &types.Entity{ID: proto.String("good")})
 	assert.Nil(t, err)
 
-	err = m.SaveEntity(&types.Entity{ID: proto.String("bad")})
+	err = m.SaveEntity(ctx, &types.Entity{ID: proto.String("bad")})
 	assert.NotNil(t, err)
 }
 
 func TestDeleteEntity(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -85,11 +90,12 @@ func TestDeleteEntity(t *testing.T) {
 	m.kv.(*mockKV).On("Del", "/entities/good").Return(nil)
 	m.kv.(*mockKV).On("Del", "/entities/missing").Return(ErrNoValue)
 
-	assert.Nil(t, m.DeleteEntity("good"))
-	assert.Equal(t, m.DeleteEntity("missing"), ErrUnknownEntity)
+	assert.Nil(t, m.DeleteEntity(ctx, "good"))
+	assert.Equal(t, m.DeleteEntity(ctx, "missing"), ErrUnknownEntity)
 }
 
 func TestDiscoverGroupNames(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -97,12 +103,13 @@ func TestDiscoverGroupNames(t *testing.T) {
 	grpList := []string{"/groups/foo", "/groups/bar"}
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return(grpList, nil)
 
-	res, err := m.DiscoverGroupNames()
+	res, err := m.DiscoverGroupNames(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, res, grpList)
 }
 
 func TestLoadGroup(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -123,12 +130,13 @@ func TestLoadGroup(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		_, err := m.LoadGroup(c.id)
+		_, err := m.LoadGroup(ctx, c.id)
 		assert.Equalf(t, err, c.wantErr, "Test Case %d", i)
 	}
 }
 
 func TestSaveGroup(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -136,14 +144,15 @@ func TestSaveGroup(t *testing.T) {
 	m.kv.(*mockKV).On("Put", "/groups/good", mock.Anything).Return(nil)
 	m.kv.(*mockKV).On("Put", "/groups/bad", mock.Anything).Return(errors.New("something internal"))
 
-	err = m.SaveGroup(&types.Group{Name: proto.String("good")})
+	err = m.SaveGroup(ctx, &types.Group{Name: proto.String("good")})
 	assert.Nil(t, err)
 
-	err = m.SaveGroup(&types.Group{Name: proto.String("bad")})
+	err = m.SaveGroup(ctx, &types.Group{Name: proto.String("bad")})
 	assert.NotNil(t, err)
 }
 
 func TestDeleteGroup(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -151,8 +160,8 @@ func TestDeleteGroup(t *testing.T) {
 	m.kv.(*mockKV).On("Del", "/groups/good").Return(nil)
 	m.kv.(*mockKV).On("Del", "/groups/missing").Return(ErrNoValue)
 
-	assert.Nil(t, m.DeleteGroup("good"))
-	assert.Equal(t, m.DeleteGroup("missing"), ErrUnknownGroup)
+	assert.Nil(t, m.DeleteGroup(ctx, "good"))
+	assert.Equal(t, m.DeleteGroup(ctx, "missing"), ErrUnknownGroup)
 }
 
 func TestShutdown(t *testing.T) {
@@ -165,6 +174,7 @@ func TestShutdown(t *testing.T) {
 }
 
 func TestNextEntityNumber(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -174,29 +184,30 @@ func TestNextEntityNumber(t *testing.T) {
 	m.kv.(*mockKV).On("Get", "/entities/entity2").Return(goodEntityBytes2, nil)
 
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, nil).Once()
-	res, err := m.NextEntityNumber()
+	res, err := m.NextEntityNumber(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), res)
 
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, errors.New("retrieval error")).Once()
-	_, err = m.NextEntityNumber()
+	_, err = m.NextEntityNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{}, errors.New("retrieval error")).Once()
-	_, err = m.NextEntityNumber()
+	_, err = m.NextEntityNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{"/entities/entity1", "/entities/load-error"}, nil).Once()
-	_, err = m.NextEntityNumber()
+	_, err = m.NextEntityNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/entities/*").Return([]string{"/entities/entity1", "/entities/entity2"}, nil).Once()
-	res, err = m.NextEntityNumber()
+	res, err = m.NextEntityNumber(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(8), res)
 }
 
 func TestNextGroupNumber(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -206,24 +217,24 @@ func TestNextGroupNumber(t *testing.T) {
 	m.kv.(*mockKV).On("Get", "/groups/group2").Return(goodGroupBytes2, nil)
 
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{}, nil).Once()
-	res, err := m.NextGroupNumber()
+	res, err := m.NextGroupNumber(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(1), res)
 
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{}, errors.New("retrieval error")).Once()
-	_, err = m.NextGroupNumber()
+	_, err = m.NextGroupNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{}, errors.New("retrieval error")).Once()
-	_, err = m.NextGroupNumber()
+	_, err = m.NextGroupNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{"/groups/group1", "/groups/load-error"}, nil).Once()
-	_, err = m.NextGroupNumber()
+	_, err = m.NextGroupNumber(ctx)
 	assert.NotNil(t, err)
 
 	m.kv.(*mockKV).On("Keys", "/groups/*").Return([]string{"/groups/group1", "/groups/group2"}, nil).Once()
-	res, err = m.NextGroupNumber()
+	res, err = m.NextGroupNumber(ctx)
 	assert.Nil(t, err)
 	assert.Equal(t, int32(8), res)
 }
@@ -239,34 +250,37 @@ func TestCapabilities(t *testing.T) {
 }
 
 func TestDBSearchEntities(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
 
-	res, err := m.SearchEntities(SearchRequest{})
+	res, err := m.SearchEntities(ctx, SearchRequest{})
 	assert.Equal(t, ErrBadSearch, err)
 	assert.Equal(t, []*types.Entity(nil), res)
 
-	res, err = m.SearchEntities(SearchRequest{Expression: "*"})
+	res, err = m.SearchEntities(ctx, SearchRequest{Expression: "*"})
 	assert.Nil(t, err)
 	assert.Equal(t, []*types.Entity{}, res)
 }
 
 func TestDBSearchGroups(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
 
-	res, err := m.SearchGroups(SearchRequest{})
+	res, err := m.SearchGroups(ctx, SearchRequest{})
 	assert.Equal(t, ErrBadSearch, err)
 	assert.Equal(t, []*types.Group(nil), res)
 
-	res, err = m.SearchGroups(SearchRequest{Expression: "*"})
+	res, err = m.SearchGroups(ctx, SearchRequest{Expression: "*"})
 	assert.Nil(t, err)
 	assert.Equal(t, []*types.Group{}, res)
 }
 
 func TestLoadEntityBatch(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -275,15 +289,16 @@ func TestLoadEntityBatch(t *testing.T) {
 	m.kv.(*mockKV).On("Get", "/entities/entity1").Return(goodEntityBytes1, nil)
 	m.kv.(*mockKV).On("Get", "/entities/entity2").Return(goodEntityBytes2, nil)
 
-	res, err := m.loadEntityBatch([]string{"entity1", "load-error"})
+	res, err := m.loadEntityBatch(ctx, []string{"entity1", "load-error"})
 	assert.NotNil(t, err)
 	assert.Nil(t, res)
 
-	_, err = m.loadEntityBatch([]string{"entity1", "entity2"})
+	_, err = m.loadEntityBatch(ctx, []string{"entity1", "entity2"})
 	assert.Nil(t, err)
 }
 
 func TestLoadGroupBatch(t *testing.T) {
+	ctx := context.Background()
 	RegisterKV("mock", newMockKV)
 	m, err := New("mock")
 	assert.Nil(t, err)
@@ -292,11 +307,11 @@ func TestLoadGroupBatch(t *testing.T) {
 	m.kv.(*mockKV).On("Get", "/groups/group1").Return(goodGroupBytes1, nil)
 	m.kv.(*mockKV).On("Get", "/groups/group2").Return(goodGroupBytes2, nil)
 
-	res, err := m.loadGroupBatch([]string{"group1", "load-error"})
+	res, err := m.loadGroupBatch(ctx, []string{"group1", "load-error"})
 	assert.NotNil(t, err)
 	assert.Nil(t, res)
 
-	_, err = m.loadGroupBatch([]string{"group1", "group2"})
+	_, err = m.loadGroupBatch(ctx, []string{"group1", "group2"})
 	assert.Nil(t, err)
 }
 

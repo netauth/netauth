@@ -1,6 +1,8 @@
 package tree
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/crypto"
@@ -42,20 +44,20 @@ type Manager struct {
 // DB specifies the methods that a DB engine must provide.
 type DB interface {
 	// Entity handling
-	DiscoverEntityIDs() ([]string, error)
-	LoadEntity(string) (*types.Entity, error)
-	SaveEntity(*types.Entity) error
-	DeleteEntity(string) error
-	NextEntityNumber() (int32, error)
-	SearchEntities(db.SearchRequest) ([]*types.Entity, error)
+	DiscoverEntityIDs(context.Context) ([]string, error)
+	LoadEntity(context.Context, string) (*types.Entity, error)
+	SaveEntity(context.Context, *types.Entity) error
+	DeleteEntity(context.Context, string) error
+	NextEntityNumber(context.Context) (int32, error)
+	SearchEntities(context.Context, db.SearchRequest) ([]*types.Entity, error)
 
 	// Group handling
-	DiscoverGroupNames() ([]string, error)
-	LoadGroup(string) (*types.Group, error)
-	SaveGroup(*types.Group) error
-	DeleteGroup(string) error
-	NextGroupNumber() (int32, error)
-	SearchGroups(db.SearchRequest) ([]*types.Group, error)
+	DiscoverGroupNames(context.Context) ([]string, error)
+	LoadGroup(context.Context, string) (*types.Group, error)
+	SaveGroup(context.Context, *types.Group) error
+	DeleteGroup(context.Context, string) error
+	NextGroupNumber(context.Context) (int32, error)
+	SearchGroups(context.Context, db.SearchRequest) ([]*types.Group, error)
 
 	// Callbacks
 	RegisterCallback(string, db.Callback)

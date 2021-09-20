@@ -13,6 +13,7 @@
 package filesystem
 
 import (
+	"context"
 	"errors"
 	"io/ioutil"
 	"os"
@@ -77,7 +78,7 @@ func (fs *Filesystem) SetEventFunc(ef func(db.Event)) {
 
 // Put stores a series of bytes on the filesystem, checking to make
 // sure that the path is inside of the basePath
-func (fs *Filesystem) Put(k string, v []byte) error {
+func (fs *Filesystem) Put(_ context.Context, k string, v []byte) error {
 	p, err := fs.cleanPath(k)
 	if err != nil {
 		return err
@@ -97,7 +98,7 @@ func (fs *Filesystem) Put(k string, v []byte) error {
 
 // Get returns a series of bytes from the filesystem, checking to make
 // sure that the bytes come from inside the base path.
-func (fs *Filesystem) Get(k string) ([]byte, error) {
+func (fs *Filesystem) Get(_ context.Context, k string) ([]byte, error) {
 	p, err := fs.cleanPath(k)
 	if err != nil {
 		return nil, err
@@ -114,7 +115,7 @@ func (fs *Filesystem) Get(k string) ([]byte, error) {
 }
 
 // Del removes a file from disk that is inside the base path.
-func (fs *Filesystem) Del(k string) error {
+func (fs *Filesystem) Del(_ context.Context, k string) error {
 	p, err := fs.cleanPath(k)
 	if err != nil {
 		return err
@@ -139,7 +140,7 @@ func (fs *Filesystem) Del(k string) error {
 // possible to do something dumb with an entity or group name that
 // includes a path seperator, but this should be filtered out at a
 // higher level.
-func (fs *Filesystem) Keys(f string) ([]string, error) {
+func (fs *Filesystem) Keys(_ context.Context, f string) ([]string, error) {
 	// Discard error because the hard coded pattern cannot return
 	// an os.PathError
 	keys, _ := filepath.Glob(filepath.Join(fs.basePath, "*", "*"))

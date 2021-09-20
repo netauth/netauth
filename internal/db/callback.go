@@ -1,6 +1,9 @@
 package db
 
-import "path"
+import (
+	"context"
+	"path"
+)
 
 // RegisterCallback takes a callback name and handle and registers
 // them for later calling.
@@ -28,7 +31,7 @@ func (db *DB) FireEvent(e Event) {
 // components that are event driven to pre-load on a server startup
 // and begin monitoring changes after the load completes.
 func (db *DB) EventUpdateAll() error {
-	ids, err := db.DiscoverEntityIDs()
+	ids, err := db.DiscoverEntityIDs(context.Background())
 	if err != nil {
 		return err
 	}
@@ -36,7 +39,7 @@ func (db *DB) EventUpdateAll() error {
 		db.FireEvent(Event{Type: EventEntityUpdate, PK: path.Base(i)})
 	}
 
-	ids, err = db.DiscoverGroupNames()
+	ids, err = db.DiscoverGroupNames(context.Background())
 	if err != nil {
 		return err
 	}

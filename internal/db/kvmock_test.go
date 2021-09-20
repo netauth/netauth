@@ -5,6 +5,7 @@ package db
 // simpler.
 
 import (
+	"context"
 	"errors"
 
 	"github.com/hashicorp/go-hclog"
@@ -35,21 +36,21 @@ func newMockKVError(hclog.Logger) (KVStore, error) {
 	return nil, errors.New("Initialization error")
 }
 
-func (mkv *mockKV) Put(k string, v []byte) error {
+func (mkv *mockKV) Put(_ context.Context, k string, v []byte) error {
 	args := mkv.Called(k, v)
 	return args.Error(0)
 }
 
-func (mkv *mockKV) Get(k string) ([]byte, error) {
+func (mkv *mockKV) Get(_ context.Context, k string) ([]byte, error) {
 	args := mkv.Called(k)
 	return args.Get(0).([]byte), args.Error(1)
 }
 
-func (mkv *mockKV) Del(k string) error {
+func (mkv *mockKV) Del(_ context.Context, k string) error {
 	return mkv.Called(k).Error(0)
 }
 
-func (mkv *mockKV) Keys(f string) ([]string, error) {
+func (mkv *mockKV) Keys(_ context.Context, f string) ([]string, error) {
 	args := mkv.Called(f)
 	return args.Get(0).([]string), args.Error(1)
 }

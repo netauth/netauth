@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -9,7 +10,7 @@ import (
 	pb "github.com/netauth/protocol"
 )
 
-func dummyEntityLoader(e string) (*pb.Entity, error) {
+func dummyEntityLoader(_ context.Context, e string) (*pb.Entity, error) {
 	switch e {
 	case "entity1":
 		return &pb.Entity{
@@ -25,7 +26,7 @@ func dummyEntityLoader(e string) (*pb.Entity, error) {
 	}
 }
 
-func dummyGroupLoader(g string) (*pb.Group, error) {
+func dummyGroupLoader(_ context.Context, g string) (*pb.Group, error) {
 	switch g {
 	case "group1":
 		return &pb.Group{

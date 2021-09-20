@@ -3,6 +3,7 @@
 package memory
 
 import (
+	"context"
 	"path"
 	"strings"
 	"sync"
@@ -52,7 +53,7 @@ func (kv *KV) SetEventFunc(ef func(db.Event)) {
 }
 
 // Put stores a value
-func (kv *KV) Put(k string, v []byte) error {
+func (kv *KV) Put(_ context.Context, k string, v []byte) error {
 	kv.Lock()
 	kv.l.Trace("PUT", "key", k, "value", v)
 	kv.m[k] = v
@@ -74,7 +75,7 @@ func (kv *KV) Put(k string, v []byte) error {
 }
 
 // Get retrives a value
-func (kv *KV) Get(k string) ([]byte, error) {
+func (kv *KV) Get(_ context.Context, k string) ([]byte, error) {
 	kv.RLock()
 	defer kv.RUnlock()
 	v, ok := kv.m[k]
@@ -87,7 +88,7 @@ func (kv *KV) Get(k string) ([]byte, error) {
 }
 
 // Del removes a value for a given key
-func (kv *KV) Del(k string) error {
+func (kv *KV) Del(_ context.Context, k string) error {
 	kv.Lock()
 	delete(kv.m, k)
 	kv.Unlock()
@@ -110,7 +111,7 @@ func (kv *KV) Del(k string) error {
 
 // Keys returns a set of keys optionally filtered by the filter
 // expression.  filter should be a regex/shell type glob.
-func (kv *KV) Keys(filter string) ([]string, error) {
+func (kv *KV) Keys(_ context.Context, filter string) ([]string, error) {
 	kv.RLock()
 	defer kv.RUnlock()
 

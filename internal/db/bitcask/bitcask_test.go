@@ -1,6 +1,7 @@
 package bitcask
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -46,72 +47,76 @@ func TestSetEventFunc(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
+	ctx := context.Background()
 	viper.Set("core.home", t.TempDir())
 	kv, err := New(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.SetEventFunc(func(db.Event) {})
 
-	assert.Nil(t, kv.Put("/entities/entity1", []byte("some data")))
-	assert.Nil(t, kv.Put("/groups/group1", []byte("some more data")))
+	assert.Nil(t, kv.Put(ctx, "/entities/entity1", []byte("some data")))
+	assert.Nil(t, kv.Put(ctx, "/groups/group1", []byte("some more data")))
 
-	b, err := kv.Get("/entities/entity1")
+	b, err := kv.Get(ctx, "/entities/entity1")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("some data"), b, "Data stored but incorrect")
 
-	assert.NotNil(t, kv.Put("", []byte("data-with-no-key")))
+	assert.NotNil(t, kv.Put(ctx, "", []byte("data-with-no-key")))
 }
 
 func TestGet(t *testing.T) {
+	ctx := context.Background()
 	viper.Set("core.home", t.TempDir())
 	kv, err := New(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.SetEventFunc(func(db.Event) {})
 
-	assert.Nil(t, kv.Put("/entities/entity1", []byte("lots of data")))
+	assert.Nil(t, kv.Put(ctx, "/entities/entity1", []byte("lots of data")))
 
-	v, err := kv.Get("/entities/entity1")
+	v, err := kv.Get(ctx, "/entities/entity1")
 	assert.Nil(t, err)
 	assert.Equal(t, v, []byte("lots of data"), "Data read but incorrect")
 
-	v, err = kv.Get("/does/not/exist")
+	v, err = kv.Get(ctx, "/does/not/exist")
 	assert.Nil(t, v, "Data returned for key that does not exist")
 	assert.Equal(t, err, db.ErrNoValue, "KV made up some data")
 }
 
 func TestDel(t *testing.T) {
+	ctx := context.Background()
 	viper.Set("core.home", t.TempDir())
 	kv, err := New(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.SetEventFunc(func(db.Event) {})
 
-	assert.Nil(t, kv.Put("/entities/entity1", []byte("lots of data")))
-	assert.Nil(t, kv.Put("/groups/group1", []byte("lots of data")))
+	assert.Nil(t, kv.Put(ctx, "/entities/entity1", []byte("lots of data")))
+	assert.Nil(t, kv.Put(ctx, "/groups/group1", []byte("lots of data")))
 
-	_, err = kv.Get("/entities/entity1")
+	_, err = kv.Get(ctx, "/entities/entity1")
 	assert.Nil(t, err)
-	_, err = kv.Get("/groups/group1")
+	_, err = kv.Get(ctx, "/groups/group1")
 	assert.Nil(t, err)
 
-	assert.Nil(t, kv.Del("/entities/entity1"))
-	assert.Nil(t, kv.Del("/groups/group1"))
+	assert.Nil(t, kv.Del(ctx, "/entities/entity1"))
+	assert.Nil(t, kv.Del(ctx, "/groups/group1"))
 
-	_, err = kv.Get("/entities/entity1")
+	_, err = kv.Get(ctx, "/entities/entity1")
 	assert.Equal(t, err, db.ErrNoValue)
-	_, err = kv.Get("/groups/group1")
+	_, err = kv.Get(ctx, "/groups/group1")
 	assert.Equal(t, err, db.ErrNoValue)
 }
 
 func TestKeys(t *testing.T) {
+	ctx := context.Background()
 	viper.Set("core.home", t.TempDir())
 	kv, err := New(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.SetEventFunc(func(db.Event) {})
 
-	kv.Put("/entities/entity1", []byte("lots of data"))
-	kv.Put("/entities/entity2", []byte("lots of data"))
-	kv.Put("/entities/purple", []byte("lots of data"))
+	kv.Put(ctx, "/entities/entity1", []byte("lots of data"))
+	kv.Put(ctx, "/entities/entity2", []byte("lots of data"))
+	kv.Put(ctx, "/entities/purple", []byte("lots of data"))
 
-	res, err := kv.Keys("/entities/entity*")
+	res, err := kv.Keys(ctx, "/entities/entity*")
 	assert.Nil(t, err)
 	assert.Equal(t, res, []string{"/entities/entity1", "/entities/entity2"})
 }

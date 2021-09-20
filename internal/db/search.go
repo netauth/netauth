@@ -1,6 +1,8 @@
 package db
 
 import (
+	"context"
+
 	"github.com/blevesearch/bleve"
 	"github.com/hashicorp/go-hclog"
 
@@ -82,7 +84,7 @@ func (s *Index) IndexCallback(e Event) {
 	case EventEntityCreate:
 		fallthrough
 	case EventEntityUpdate:
-		ent, err := s.eLoader(e.PK)
+		ent, err := s.eLoader(context.Background(), e.PK)
 		if err != nil {
 			s.l.Warn("Could not reindex entity", "entity", e.PK, "error", err)
 			return
@@ -93,7 +95,7 @@ func (s *Index) IndexCallback(e Event) {
 	case EventGroupCreate:
 		fallthrough
 	case EventGroupUpdate:
-		grp, err := s.gLoader(e.PK)
+		grp, err := s.gLoader(context.Background(), e.PK)
 		if err != nil {
 			s.l.Warn("Could not reindex group", "group", e.PK, "error", err)
 			return

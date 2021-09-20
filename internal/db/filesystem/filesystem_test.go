@@ -1,6 +1,7 @@
 package filesystem
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -32,6 +33,7 @@ func TestSetEventFunc(t *testing.T) {
 }
 
 func TestPut(t *testing.T) {
+	ctx := context.Background()
 	kv, err := newKV(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.(*Filesystem).basePath = t.TempDir()
@@ -41,61 +43,64 @@ func TestPut(t *testing.T) {
 	assert.Nil(t, err)
 	f.Close()
 
-	assert.Nil(t, kv.Put("/foo/bar", []byte("bytes!")))
-	assert.Equal(t, ErrPathEscape, kv.Put("../out/of/chroot", []byte("evil data")))
-	assert.NotNil(t, kv.Put("no-access-here/key", []byte("some bytes")))
-	assert.NotNil(t, kv.Put("collide-with-this/key", []byte("some bytes")))
+	assert.Nil(t, kv.Put(ctx, "/foo/bar", []byte("bytes!")))
+	assert.Equal(t, ErrPathEscape, kv.Put(ctx, "../out/of/chroot", []byte("evil data")))
+	assert.NotNil(t, kv.Put(ctx, "no-access-here/key", []byte("some bytes")))
+	assert.NotNil(t, kv.Put(ctx, "collide-with-this/key", []byte("some bytes")))
 }
 
 func TestGet(t *testing.T) {
+	ctx := context.Background()
 	kv, err := newKV(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.(*Filesystem).basePath = t.TempDir()
 	os.MkdirAll(filepath.Join(kv.(*Filesystem).basePath, "not-a-file"), 0755)
 
-	_, err = kv.Get("../out/of/chroot")
+	_, err = kv.Get(ctx, "../out/of/chroot")
 	assert.Equal(t, ErrPathEscape, err)
 
-	assert.Nil(t, kv.Put("/data/foo", []byte("some bytes")))
-	res, err := kv.Get("/data/foo")
+	assert.Nil(t, kv.Put(ctx, "/data/foo", []byte("some bytes")))
+	res, err := kv.Get(ctx, "/data/foo")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("some bytes"), res)
 
-	_, err = kv.Get("/not-a-file")
+	_, err = kv.Get(ctx, "/not-a-file")
 	assert.NotNil(t, err)
 
-	_, err = kv.Get("/does-not-exist")
+	_, err = kv.Get(ctx, "/does-not-exist")
 	assert.Equal(t, db.ErrNoValue, err)
 }
 
 func TestDel(t *testing.T) {
+	ctx := context.Background()
 	kv, err := newKV(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.(*Filesystem).basePath = t.TempDir()
 	os.MkdirAll(filepath.Join(kv.(*Filesystem).basePath, "nested", "directory"), 0755)
 
-	assert.Nil(t, kv.Put("/data/foo", []byte("some bytes")))
+	assert.Nil(t, kv.Put(ctx, "/data/foo", []byte("some bytes")))
 
-	assert.Nil(t, kv.Del("/data/foo"))
-	assert.Equal(t, ErrPathEscape, kv.Del("../out/of/chroot"))
-	assert.Equal(t, db.ErrNoValue, kv.Del("/does/not/exist"))
-	assert.NotNil(t, kv.Del("/nested"))
+	assert.Nil(t, kv.Del(ctx, "/data/foo"))
+	assert.Equal(t, ErrPathEscape, kv.Del(ctx, "../out/of/chroot"))
+	assert.Equal(t, db.ErrNoValue, kv.Del(ctx, "/does/not/exist"))
+	assert.NotNil(t, kv.Del(ctx, "/nested"))
 }
 
 func TestKeys(t *testing.T) {
+	ctx := context.Background()
 	kv, err := newKV(hclog.NewNullLogger())
 	assert.Nil(t, err)
 	kv.(*Filesystem).basePath = t.TempDir()
 
-	assert.Nil(t, kv.Put("/foo/foo", []byte("some bytes")))
-	assert.Nil(t, kv.Put("/bar/foo", []byte("some bytes")))
-	assert.Nil(t, kv.Put("/baz/foo", []byte("some bytes")))
+	assert.Nil(t, kv.Put(ctx, "/foo/foo", []byte("some bytes")))
+	assert.Nil(t, kv.Put(ctx, "/bar/foo", []byte("some bytes")))
+	assert.Nil(t, kv.Put(ctx, "/baz/foo", []byte("some bytes")))
 
-	res, err := kv.Keys("/*/*")
+	res, err := kv.Keys(ctx, "/*/*")
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"/bar/foo", "/baz/foo", "/foo/foo"}, res) //lexical
 
-	res, err = kv.Keys("/ba*/*")
+	res, err = kv.Keys(ctx, "/ba*/*")
 	assert.Nil(t, err)
 	assert.Equal(t, []string{"/bar/foo", "/baz/foo"}, res) //lexical
 

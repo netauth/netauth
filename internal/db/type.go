@@ -1,6 +1,8 @@
 package db
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-hclog"
 
 	types "github.com/netauth/protocol"
@@ -14,11 +16,11 @@ type KVFactory func(hclog.Logger) (KVStore, error)
 // to somewhere that won't lose it.  This can be the disk, a remote
 // blob store, the desk of a particularly trusted employee, etc.
 type KVStore interface {
-	Put(string, []byte) error
-	Get(string) ([]byte, error)
-	Del(string) error
+	Put(context.Context, string, []byte) error
+	Get(context.Context, string) ([]byte, error)
+	Del(context.Context, string) error
 
-	Keys(string) ([]string, error)
+	Keys(context.Context, string) ([]string, error)
 	Close() error
 
 	Capabilities() []KVCapability
@@ -92,5 +94,5 @@ type SearchRequest struct {
 // might ask why we can't embed an interface here, and its because the
 // database embeds an index, so this would create an embed cycle which
 // is not allowed.
-type loadEntityFunc func(string) (*types.Entity, error)
-type loadGroupFunc func(string) (*types.Group, error)
+type loadEntityFunc func(context.Context, string) (*types.Entity, error)
+type loadGroupFunc func(context.Context, string) (*types.Group, error)

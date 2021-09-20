@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -9,14 +10,14 @@ import (
 
 type dummyKV struct{}
 
-func newDummyKV(hclog.Logger) (KVStore, error)   { return &dummyKV{}, nil }
-func (d *dummyKV) Put(string, []byte) error      { return nil }
-func (d *dummyKV) Get(string) ([]byte, error)    { return nil, nil }
-func (d *dummyKV) Del(string) error              { return nil }
-func (d *dummyKV) Keys(string) ([]string, error) { return nil, nil }
-func (d *dummyKV) Close() error                  { return nil }
-func (d *dummyKV) Capabilities() []KVCapability  { return nil }
-func (d *dummyKV) SetEventFunc(func(Event))      {}
+func newDummyKV(hclog.Logger) (KVStore, error)                    { return &dummyKV{}, nil }
+func (d *dummyKV) Put(context.Context, string, []byte) error      { return nil }
+func (d *dummyKV) Get(context.Context, string) ([]byte, error)    { return nil, nil }
+func (d *dummyKV) Del(context.Context, string) error              { return nil }
+func (d *dummyKV) Keys(context.Context, string) ([]string, error) { return nil, nil }
+func (d *dummyKV) Close() error                                   { return nil }
+func (d *dummyKV) Capabilities() []KVCapability                   { return nil }
+func (d *dummyKV) SetEventFunc(func(Event))                       {}
 
 func TestRegisterKV(t *testing.T) {
 	kvBackends = make(map[string]KVFactory)

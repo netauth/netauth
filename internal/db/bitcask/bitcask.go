@@ -4,6 +4,7 @@
 package bitcask
 
 import (
+	"context"
 	"path"
 	"path/filepath"
 	"strings"
@@ -63,7 +64,7 @@ func New(l hclog.Logger) (db.KVStore, error) {
 
 // Put stores the bytes of v at a location identitified by the key k.
 // If the operation fails an error will be returned explaining why.
-func (bcs *BCStore) Put(k string, v []byte) error {
+func (bcs *BCStore) Put(_ context.Context, k string, v []byte) error {
 	if err := bcs.s.Put([]byte(k), v); err != nil {
 		return err
 	}
@@ -73,7 +74,7 @@ func (bcs *BCStore) Put(k string, v []byte) error {
 
 // Get returns the key at k or an error explaning why no data was
 // returned.
-func (bcs *BCStore) Get(k string) ([]byte, error) {
+func (bcs *BCStore) Get(_ context.Context, k string) ([]byte, error) {
 	v, err := bcs.s.Get([]byte(k))
 	switch err {
 	case nil:
@@ -85,7 +86,7 @@ func (bcs *BCStore) Get(k string) ([]byte, error) {
 
 // Del removes any existing value at the location specified by the
 // provided key.
-func (bcs *BCStore) Del(k string) error {
+func (bcs *BCStore) Del(_ context.Context, k string) error {
 	// I can come up with nothing that causes this delete call to
 	// fail, up to and including nuking the entire data directory.
 	// If you can write a way to check this error and its
@@ -102,7 +103,7 @@ func (bcs *BCStore) Del(k string) error {
 // possible to do something dumb with an entity or group name that
 // includes a path seperator, but this should be filtered out at a
 // higher level.
-func (bcs *BCStore) Keys(f string) ([]string, error) {
+func (bcs *BCStore) Keys(_ context.Context, f string) ([]string, error) {
 	out := []string{}
 	for bk := range bcs.s.Keys() {
 		k := string(bk)
