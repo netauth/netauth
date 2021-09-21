@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"context"
 	"sort"
 
 	pb "github.com/netauth/protocol"
@@ -17,7 +18,7 @@ type EntityHookConstructor func(RefContext) (EntityHook, error)
 type EntityHook interface {
 	Priority() int
 	Name() string
-	Run(*pb.Entity, *pb.Entity) error
+	Run(context.Context, *pb.Entity, *pb.Entity) error
 }
 
 var (
@@ -107,12 +108,12 @@ func (m *Manager) CheckRequiredEntityChains() error {
 
 // RunEntityChain runs the specified chain with de specifying values
 // to be consumed by the chain.
-func (m *Manager) RunEntityChain(chain string, de *pb.Entity) (*pb.Entity, error) {
+func (m *Manager) RunEntityChain(ctx context.Context, chain string, de *pb.Entity) (*pb.Entity, error) {
 	e := new(pb.Entity)
 	hookChain := m.entityProcesses[chain]
 	for _, h := range hookChain {
 		m.log.Trace("Executing entity hook", "chain", chain, "hook", h.Name())
-		if err := h.Run(e, de); err != nil {
+		if err := h.Run(ctx, e, de); err != nil {
 			m.log.Trace("Error during chain execution", "chain", chain, "hook", h.Name(), "error", err)
 			return nil, err
 		}

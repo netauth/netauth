@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -14,7 +16,7 @@ type SetGroupName struct {
 
 // Run sets the name on g to the name on dg, no checks or validation
 // are run during this hook.
-func (*SetGroupName) Run(g, dg *pb.Group) error {
+func (*SetGroupName) Run(_ context.Context, g, dg *pb.Group) error {
 	g.Name = dg.Name
 	return nil
 }

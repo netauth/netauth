@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
@@ -19,7 +21,7 @@ type ManageEntityUM struct {
 // mode the plugin is configured for.  "UPSERT" will add or update
 // fields as appropriate.  "CLEARFUZZY" will ignore Z-Indexing
 // annotations.  "CLEAREXACT" will require exact key specifications.
-func (mm *ManageEntityUM) Run(e, de *pb.Entity) error {
+func (mm *ManageEntityUM) Run(_ context.Context, e, de *pb.Entity) error {
 	for _, m := range de.Meta.UntypedMeta {
 		key, value := splitKeyValue(m)
 		e.Meta.UntypedMeta = util.PatchKeyValueSlice(e.Meta.UntypedMeta, mm.mode, key, value)

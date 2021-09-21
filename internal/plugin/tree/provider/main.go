@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-plugin"
 
 	"github.com/netauth/netauth/internal/plugin/tree/common"
@@ -34,7 +36,7 @@ type mux struct {
 // HandleEntity is a function that provides the selection behavior to
 // call the right interface method from the plugin implementation
 // based on the action.
-func (m mux) HandleEntity(o common.PluginOpts) (common.PluginResult, error) {
+func (m mux) HandleEntity(ctx context.Context, o common.PluginOpts) (common.PluginResult, error) {
 	var res common.PluginResult
 	var err error
 
@@ -43,23 +45,23 @@ func (m mux) HandleEntity(o common.PluginOpts) (common.PluginResult, error) {
 
 	switch o.Action {
 	case common.EntityCreate:
-		res.Entity, err = m.impl.EntityCreate(e, de)
+		res.Entity, err = m.impl.EntityCreate(ctx, e, de)
 	case common.EntityUpdate:
-		res.Entity, err = m.impl.EntityUpdate(e)
+		res.Entity, err = m.impl.EntityUpdate(ctx, e)
 	case common.EntityLock:
-		res.Entity, err = m.impl.EntityLock(e)
+		res.Entity, err = m.impl.EntityLock(ctx, e)
 	case common.EntityUnlock:
-		res.Entity, err = m.impl.EntityUnlock(e)
+		res.Entity, err = m.impl.EntityUnlock(ctx, e)
 	case common.EntityDestroy:
-		res.Entity, err = m.impl.EntityDestroy(e)
+		res.Entity, err = m.impl.EntityDestroy(ctx, e)
 	case common.PreSecretChange:
-		res.Entity, err = m.impl.PreSecretChange(e, de)
+		res.Entity, err = m.impl.PreSecretChange(ctx, e, de)
 	case common.PostSecretChange:
-		res.Entity, err = m.impl.PostSecretChange(e, de)
+		res.Entity, err = m.impl.PostSecretChange(ctx, e, de)
 	case common.PreAuthCheck:
-		res.Entity, err = m.impl.PreAuthCheck(e, de)
+		res.Entity, err = m.impl.PreAuthCheck(ctx, e, de)
 	case common.PostAuthCheck:
-		res.Entity, err = m.impl.PostAuthCheck(e, de)
+		res.Entity, err = m.impl.PostAuthCheck(ctx, e, de)
 	default:
 		res.Entity = e
 		err = nil
@@ -70,7 +72,7 @@ func (m mux) HandleEntity(o common.PluginOpts) (common.PluginResult, error) {
 // HandleGroup is the same as HandleEntity, but acts on group
 // functions.  These methods are split in order to keep the context of
 // the switch statements to a reasonable size.
-func (m mux) HandleGroup(o common.PluginOpts) (common.PluginResult, error) {
+func (m mux) HandleGroup(ctx context.Context, o common.PluginOpts) (common.PluginResult, error) {
 	var res common.PluginResult
 	var err error
 
@@ -78,11 +80,11 @@ func (m mux) HandleGroup(o common.PluginOpts) (common.PluginResult, error) {
 
 	switch o.Action {
 	case common.GroupCreate:
-		res.Group, err = m.impl.GroupCreate(g)
+		res.Group, err = m.impl.GroupCreate(ctx, g)
 	case common.GroupUpdate:
-		res.Group, err = m.impl.GroupUpdate(g)
+		res.Group, err = m.impl.GroupUpdate(ctx, g)
 	case common.GroupDestroy:
-		res.Group, err = m.impl.GroupDestroy(g)
+		res.Group, err = m.impl.GroupDestroy(ctx, g)
 	default:
 		res.Group = g
 		err = nil

@@ -1,6 +1,8 @@
 package rpc2
 
 import (
+	"context"
+
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
@@ -29,41 +31,41 @@ type Refs struct {
 
 // The Manager handles backend data and is an equivalent interface to rpc.EntityTree
 type Manager interface {
-	CreateEntity(string, int32, string) error
-	FetchEntity(string) (*pb.Entity, error)
-	SearchEntities(db.SearchRequest) ([]*pb.Entity, error)
-	ValidateSecret(string, string) error
-	SetSecret(string, string) error
-	LockEntity(string) error
-	UnlockEntity(string) error
-	UpdateEntityMeta(string, *pb.EntityMeta) error
-	EntityKVGet(string, []*pb.KVData) ([]*pb.KVData, error)
-	EntityKVAdd(string, []*pb.KVData) error
-	EntityKVDel(string, []*pb.KVData) error
-	EntityKVReplace(string, []*pb.KVData) error
-	UpdateEntityKeys(string, string, string, string) ([]string, error)
-	ManageUntypedEntityMeta(string, string, string, string) ([]string, error)
-	DestroyEntity(string) error
+	CreateEntity(context.Context, string, int32, string) error
+	FetchEntity(context.Context, string) (*pb.Entity, error)
+	SearchEntities(context.Context, db.SearchRequest) ([]*pb.Entity, error)
+	ValidateSecret(context.Context, string, string) error
+	SetSecret(context.Context, string, string) error
+	LockEntity(context.Context, string) error
+	UnlockEntity(context.Context, string) error
+	UpdateEntityMeta(context.Context, string, *pb.EntityMeta) error
+	EntityKVGet(context.Context, string, []*pb.KVData) ([]*pb.KVData, error)
+	EntityKVAdd(context.Context, string, []*pb.KVData) error
+	EntityKVDel(context.Context, string, []*pb.KVData) error
+	EntityKVReplace(context.Context, string, []*pb.KVData) error
+	UpdateEntityKeys(context.Context, string, string, string, string) ([]string, error)
+	ManageUntypedEntityMeta(context.Context, string, string, string, string) ([]string, error)
+	DestroyEntity(context.Context, string) error
 
-	CreateGroup(string, string, string, int32) error
-	FetchGroup(string) (*pb.Group, error)
-	SearchGroups(db.SearchRequest) ([]*pb.Group, error)
-	UpdateGroupMeta(string, *pb.Group) error
-	ManageUntypedGroupMeta(string, string, string, string) ([]string, error)
-	GroupKVGet(string, []*pb.KVData) ([]*pb.KVData, error)
-	GroupKVAdd(string, []*pb.KVData) error
-	GroupKVDel(string, []*pb.KVData) error
-	GroupKVReplace(string, []*pb.KVData) error
-	DestroyGroup(string) error
+	CreateGroup(context.Context, string, string, string, int32) error
+	FetchGroup(context.Context, string) (*pb.Group, error)
+	SearchGroups(context.Context, db.SearchRequest) ([]*pb.Group, error)
+	UpdateGroupMeta(context.Context, string, *pb.Group) error
+	ManageUntypedGroupMeta(context.Context, string, string, string, string) ([]string, error)
+	GroupKVGet(context.Context, string, []*pb.KVData) ([]*pb.KVData, error)
+	GroupKVAdd(context.Context, string, []*pb.KVData) error
+	GroupKVDel(context.Context, string, []*pb.KVData) error
+	GroupKVReplace(context.Context, string, []*pb.KVData) error
+	DestroyGroup(context.Context, string) error
 
-	AddEntityToGroup(string, string) error
-	RemoveEntityFromGroup(string, string) error
-	ListMembers(string) ([]*pb.Entity, error)
-	GetMemberships(*pb.Entity) []string
-	ModifyGroupRule(string, string, rpc.RuleAction) error
+	AddEntityToGroup(context.Context, string, string) error
+	RemoveEntityFromGroup(context.Context, string, string) error
+	ListMembers(context.Context, string) ([]*pb.Entity, error)
+	GetMemberships(context.Context, *pb.Entity) []string
+	ModifyGroupRule(context.Context, string, string, rpc.RuleAction) error
 
-	SetEntityCapability2(string, *pb.Capability) error
-	DropEntityCapability2(string, *pb.Capability) error
-	SetGroupCapability2(string, *pb.Capability) error
-	DropGroupCapability2(string, *pb.Capability) error
+	SetEntityCapability2(context.Context, string, *pb.Capability) error
+	DropEntityCapability2(context.Context, string, *pb.Capability) error
+	SetGroupCapability2(context.Context, string, *pb.Capability) error
+	DropGroupCapability2(context.Context, string, *pb.Capability) error
 }

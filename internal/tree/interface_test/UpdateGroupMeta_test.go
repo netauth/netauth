@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestUpdateGroupMeta(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
@@ -17,11 +19,11 @@ func TestUpdateGroupMeta(t *testing.T) {
 		DisplayName: proto.String("SomeGroup"),
 	}
 
-	if err := m.UpdateGroupMeta("group1", update); err != nil {
+	if err := m.UpdateGroupMeta(ctxt, "group1", update); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup("group1")
+	g, err := ctx.DB.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

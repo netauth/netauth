@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -19,7 +20,7 @@ func TestAddGroupUM(t *testing.T) {
 		UntypedMeta: []string{"key:value:with:colons"},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -44,7 +45,7 @@ func TestDelFuzzyGroupUM(t *testing.T) {
 		UntypedMeta: []string{"key:"},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -70,7 +71,7 @@ func TestDelExactGroupUM(t *testing.T) {
 		UntypedMeta: []string{"key{1}:"},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

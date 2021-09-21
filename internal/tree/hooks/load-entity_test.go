@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,6 +16,7 @@ import (
 
 func TestLoadEntity(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	memdb, err := db.New("memory")
 	if err != nil {
@@ -31,7 +33,7 @@ func TestLoadEntity(t *testing.T) {
 		Number: proto.Int32(1),
 		Secret: proto.String(""),
 	}
-	if err := memdb.SaveEntity(&e); err != nil {
+	if err := memdb.SaveEntity(ctx, &e); err != nil {
 		t.Fatal(err)
 	}
 
@@ -44,7 +46,7 @@ func TestLoadEntity(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if err := hook.Run(&pb.Entity{}, &pb.Entity{ID: &c.ID}); err != c.wantErr {
+		if err := hook.Run(ctx, &pb.Entity{}, &pb.Entity{ID: &c.ID}); err != c.wantErr {
 			t.Errorf("Case %d: Got %v Want %v", i, err, c.wantErr)
 		}
 	}

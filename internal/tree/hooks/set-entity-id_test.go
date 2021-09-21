@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -19,7 +20,7 @@ func TestSetEntityID(t *testing.T) {
 	e := &pb.Entity{}
 	de := &pb.Entity{ID: proto.String("entity-id")}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 	if e.GetID() != "entity-id" {

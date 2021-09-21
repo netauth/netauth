@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -32,14 +33,14 @@ func (h EntityHook) Priority() int {
 // Run invokes each registered plugin in a non-deterministic order.
 // The only order that is guaranteed by this interface is that the
 // actions will be called in the same place in the chain each time.
-func (h EntityHook) Run(e, de *pb.Entity) error {
+func (h EntityHook) Run(ctx context.Context, e, de *pb.Entity) error {
 	opts := common.PluginOpts{
 		Action:     h.action,
 		Entity:     e,
 		DataEntity: de,
 	}
 
-	res, err := h.mref.InvokeEntityProcessing(opts)
+	res, err := h.mref.InvokeEntityProcessing(ctx, opts)
 	if err != nil {
 		return err
 	}
@@ -74,14 +75,14 @@ func (h GroupHook) Priority() int {
 // Run invokes each registered plugin in a non-deterministic order.
 // The only order that is guaranteed by this interface is that the
 // actions will be called in the same place in the chain each time.
-func (h GroupHook) Run(g, dg *pb.Group) error {
+func (h GroupHook) Run(ctx context.Context, g, dg *pb.Group) error {
 	opts := common.PluginOpts{
 		Action:    h.action,
 		Group:     g,
 		DataGroup: dg,
 	}
 
-	res, err := h.mref.InvokeGroupProcessing(opts)
+	res, err := h.mref.InvokeGroupProcessing(ctx, opts)
 	if err != nil {
 		return err
 	}

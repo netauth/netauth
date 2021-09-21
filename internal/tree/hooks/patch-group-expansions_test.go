@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -21,7 +22,7 @@ func TestPatchGroupExpansionsInclude(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,7 +49,7 @@ func TestPatchGroupExpansionsDrop(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Fatal(err)
 	}
 

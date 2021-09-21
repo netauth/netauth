@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
@@ -16,7 +18,7 @@ type ManageEntityKeys struct {
 
 // Run iterates on all keys in the request and adds or removes them
 // from the entity's keystore.
-func (mek *ManageEntityKeys) Run(e, de *pb.Entity) error {
+func (mek *ManageEntityKeys) Run(_ context.Context, e, de *pb.Entity) error {
 	for _, k := range de.Meta.Keys {
 		e.Meta.Keys = util.PatchStringSlice(e.Meta.Keys, k, mek.mode, false)
 	}

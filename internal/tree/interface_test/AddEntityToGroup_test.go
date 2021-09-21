@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 )
 
@@ -10,11 +11,11 @@ func TestAddEntityToGroup(t *testing.T) {
 	addEntity(t, ctx)
 	addGroup(t, ctx)
 
-	if err := m.AddEntityToGroup("entity1", "group1"); err != nil {
+	if err := m.AddEntityToGroup(context.Background(), "entity1", "group1"); err != nil {
 		t.Fatal(err)
 	}
 
-	e, err := ctx.DB.LoadEntity("entity1")
+	e, err := ctx.DB.LoadEntity(context.Background(), "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

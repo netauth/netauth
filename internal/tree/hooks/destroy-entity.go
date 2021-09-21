@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -16,13 +18,13 @@ type DestroyEntity struct {
 // Run will request the underlying datastore to remove the entity,
 // returning any status provided.  If the entity ID is not specified
 // in e, it will be obtained from de.
-func (d *DestroyEntity) Run(e, de *pb.Entity) error {
+func (d *DestroyEntity) Run(ctx context.Context, e, de *pb.Entity) error {
 	// This hook is somewhat special since it might be called
 	// after a processing pipeline, or just to remove an entity.
 	if e.GetID() == "" {
 		e.ID = de.ID
 	}
-	return d.DeleteEntity(e.GetID())
+	return d.DeleteEntity(ctx, e.GetID())
 }
 
 func init() {

@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestEntityKVReplace(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
@@ -27,11 +29,11 @@ func TestEntityKVReplace(t *testing.T) {
 		},
 	}}
 
-	if err := m.EntityKVAdd("entity1", kv1); err != nil {
+	if err := m.EntityKVAdd(ctxt, "entity1", kv1); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.EntityKVGet("entity1", kv1)
+	kvtest, err := m.EntityKVGet(ctxt, "entity1", kv1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,14 +42,14 @@ func TestEntityKVReplace(t *testing.T) {
 		t.Error("Set a key and got different data back")
 	}
 
-	if err := m.EntityKVReplace("entity1", kv2); err != nil {
+	if err := m.EntityKVReplace(ctxt, "entity1", kv2); err != nil {
 		t.Fatal(err)
 	}
 
 	// We can do the get on kv1 here because the name should be
 	// the same for both, and so we do a get on kv1 and expect the
 	// results to be kv2.
-	res, err := m.EntityKVGet("entity1", kv1)
+	res, err := m.EntityKVGet(ctxt, "entity1", kv1)
 	if err != nil {
 		t.Fatal(err)
 	}

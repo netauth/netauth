@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -21,9 +23,9 @@ type SetGroupNumber struct {
 // number will be dynamically provisioned by the database.  It is
 // recommended to use automatic provisioning unless strictly necessary
 // to do otherwise.
-func (s *SetGroupNumber) Run(g, dg *pb.Group) error {
+func (s *SetGroupNumber) Run(ctx context.Context, g, dg *pb.Group) error {
 	if dg.GetNumber() == -1 {
-		number, err := s.NextGroupNumber()
+		number, err := s.NextGroupNumber(ctx)
 		if err != nil {
 			return err
 		}

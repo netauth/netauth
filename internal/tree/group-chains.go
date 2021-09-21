@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"context"
 	"sort"
 
 	pb "github.com/netauth/protocol"
@@ -17,7 +18,7 @@ type GroupHookConstructor func(RefContext) (GroupHook, error)
 type GroupHook interface {
 	Priority() int
 	Name() string
-	Run(*pb.Group, *pb.Group) error
+	Run(context.Context, *pb.Group, *pb.Group) error
 }
 
 var (
@@ -107,12 +108,12 @@ func (m *Manager) CheckRequiredGroupChains() error {
 
 // RunGroupChain runs the specified chain with de specifying values
 // to be consumed by the chain.
-func (m *Manager) RunGroupChain(chain string, de *pb.Group) (*pb.Group, error) {
+func (m *Manager) RunGroupChain(ctx context.Context, chain string, de *pb.Group) (*pb.Group, error) {
 	e := new(pb.Group)
 	hookChain := m.groupProcesses[chain]
 	for _, h := range hookChain {
 		m.log.Trace("Executing group hook", "chain", chain, "hook", h.Name())
-		if err := h.Run(e, de); err != nil {
+		if err := h.Run(ctx, e, de); err != nil {
 			m.log.Trace("Error during chain execution", "chain", chain, "hook", h.Name(), "error", err)
 			return nil, err
 		}

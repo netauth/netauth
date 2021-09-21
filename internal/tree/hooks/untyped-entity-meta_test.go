@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -21,7 +22,7 @@ func TestAddEntityUM(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -50,7 +51,7 @@ func TestDelFuzzyEntityUM(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -80,7 +81,7 @@ func TestDelExactEntityUM(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

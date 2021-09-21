@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"testing"
@@ -9,13 +10,14 @@ import (
 )
 
 func TestListMembers(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	buildSampleTree(t, ctx)
 	ctx.DB.(*db.DB).EventUpdateAll()
 
 	// Meta-group ALL, contains all five entities
-	mbrs, err := m.ListMembers("ALL")
+	mbrs, err := m.ListMembers(ctxt, "ALL")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -29,7 +31,7 @@ func TestListMembers(t *testing.T) {
 	}
 
 	// Group 1, should have entity1 and entity2
-	mbrs, err = m.ListMembers("group1")
+	mbrs, err = m.ListMembers(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +43,7 @@ func TestListMembers(t *testing.T) {
 	}
 
 	// Group 2, should have entity1 and entity3
-	mbrs, err = m.ListMembers("group2")
+	mbrs, err = m.ListMembers(ctxt, "group2")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -53,7 +55,7 @@ func TestListMembers(t *testing.T) {
 	}
 
 	// Group 4, should have entity1 and NOT entity2
-	mbrs, err = m.ListMembers("group4")
+	mbrs, err = m.ListMembers(ctxt, "group4")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"strings"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -20,7 +21,7 @@ type CheckImmediateExpansions struct {
 // to each expansion in dg.  Excepting the case of an expansion type
 // of DROP, which is unchecked, any matching expansion will result in
 // an ErrExistingExpansion being returned.
-func (cie *CheckImmediateExpansions) Run(g, dg *pb.Group) error {
+func (cie *CheckImmediateExpansions) Run(_ context.Context, g, dg *pb.Group) error {
 	existing := g.GetExpansions()
 	proposed := dg.GetExpansions()
 	for i := range proposed {

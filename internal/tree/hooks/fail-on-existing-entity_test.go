@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,21 +16,22 @@ import (
 
 func TestFailOnExistingEntity(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx := tree.RefContext{
+	rctx := tree.RefContext{
 		DB: mdb,
 	}
 
-	hook, err := NewFailOnExistingEntity(ctx)
+	hook, err := NewFailOnExistingEntity(rctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = mdb.SaveEntity(&pb.Entity{
+	err = mdb.SaveEntity(ctx, &pb.Entity{
 		ID:     proto.String("foo"),
 		Number: proto.Int32(42),
 	})
@@ -47,7 +49,7 @@ func TestFailOnExistingEntity(t *testing.T) {
 	for i, c := range cases {
 		e := &pb.Entity{}
 		de := &pb.Entity{ID: &c.ID}
-		if err := hook.Run(e, de); err != c.wantErr {
+		if err := hook.Run(ctx, e, de); err != c.wantErr {
 			t.Errorf("Case %d: Got: %v Want: %v", i, err, c.wantErr)
 		}
 	}

@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -16,13 +18,13 @@ type DestroyGroup struct {
 // Run will request the underlying datastore to remove the group,
 // returning any status provided.  If the group Name is not specified
 // in g, it will be obtained from dg.
-func (d *DestroyGroup) Run(g, dg *pb.Group) error {
+func (d *DestroyGroup) Run(ctx context.Context, g, dg *pb.Group) error {
 	// This hook is somewhat special since it might be called
 	// after a processing pipeline, or just to remove a group.
 	if g.GetName() == "" {
 		g.Name = dg.Name
 	}
-	return d.DeleteGroup(g.GetName())
+	return d.DeleteGroup(ctx, g.GetName())
 }
 
 func init() {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -52,6 +53,7 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 	db.SetParentLogger(hclog.L())
 	tree.SetParentLogger(hclog.L())
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	dbImpl, err := db.New(viper.GetString("db.backend"))
 	if err != nil {
@@ -69,12 +71,12 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	_, err = tree.FetchEntity(args[0])
+	_, err = tree.FetchEntity(ctx, args[0])
 	if err != db.ErrUnknownEntity && err != nil {
 		fmt.Fprintf(os.Stderr, "Error checking for entity existence: %s\n", err)
 	}
 	if err == db.ErrUnknownEntity {
-		if err := tree.CreateEntity(args[0], -1, ""); err != nil {
+		if err := tree.CreateEntity(ctx, args[0], -1, ""); err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating entity: %s\n", err)
 			os.Exit(1)
 		}
@@ -86,19 +88,19 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Error prompting secret: %s", err)
 		os.Exit(1)
 	}
-	if err := tree.SetSecret(args[0], secret); err != nil {
+	if err := tree.SetSecret(ctx, args[0], secret); err != nil {
 		fmt.Fprintf(os.Stderr, "Error setting secret: %s\n", err)
 		os.Exit(1)
 	}
 
 	// Ensure the entity is unlocked
-	if err := tree.UnlockEntity(args[0]); err != nil {
+	if err := tree.UnlockEntity(ctx, args[0]); err != nil {
 		fmt.Fprintf(os.Stderr, "Error unlocking entity: %s\n", err)
 		os.Exit(1)
 	}
 
 	// Bestow GLOBAL_ROOT capability
-	if err := tree.SetEntityCapability2(args[0], pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
+	if err := tree.SetEntityCapability2(ctx, args[0], pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error setting GLOBAL_ROOT: %s\n", err)
 	}
 }

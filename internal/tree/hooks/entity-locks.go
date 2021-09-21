@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -18,7 +20,7 @@ type EntityLockManager struct {
 
 // Run will set the entity lock status unconditionally to the
 // configured value for the instantiated hook.
-func (elm *EntityLockManager) Run(e, de *pb.Entity) error {
+func (elm *EntityLockManager) Run(_ context.Context, e, de *pb.Entity) error {
 	e.Meta.Locked = proto.Bool(elm.lockstate)
 	return nil
 }

@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -22,7 +23,7 @@ func TestMergeGroupMeta(t *testing.T) {
 		DisplayName: proto.String("Some Group"),
 	}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Fatal(err)
 	}
 

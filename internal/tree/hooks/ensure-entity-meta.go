@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -15,7 +17,7 @@ type EnsureEntityMeta struct {
 
 // Run will apply an empty metadata struct if one is not already
 // present.
-func (*EnsureEntityMeta) Run(e, de *pb.Entity) error {
+func (*EnsureEntityMeta) Run(_ context.Context, e, de *pb.Entity) error {
 	if e.Meta == nil {
 		e.Meta = &pb.EntityMeta{}
 	}

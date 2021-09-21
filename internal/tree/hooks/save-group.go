@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -16,8 +18,8 @@ type SaveGroup struct {
 
 // Run will pass the group specified by g to the datastore and request
 // it to be saved.
-func (s *SaveGroup) Run(g, dg *pb.Group) error {
-	return s.SaveGroup(g)
+func (s *SaveGroup) Run(ctx context.Context, g, dg *pb.Group) error {
+	return s.SaveGroup(ctx, g)
 }
 
 func init() {

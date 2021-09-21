@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -18,13 +20,13 @@ type LoadEntity struct {
 // Run attempts to load the entity specified by de.ID and if
 // successful performs a deepcopy into the address pointed to by e.
 // Any errors returned will be from the data storage layer.
-func (l *LoadEntity) Run(e, de *pb.Entity) error {
+func (l *LoadEntity) Run(ctx context.Context, e, de *pb.Entity) error {
 	// This is a bit odd because we only get an address for e, not
 	// the ability to point it somewhere else, so anything we want
 	// to do that alters the initial contents needs to be copied
 	// in.
 
-	le, err := l.LoadEntity(de.GetID())
+	le, err := l.LoadEntity(ctx, de.GetID())
 	if err != nil {
 		return err
 	}

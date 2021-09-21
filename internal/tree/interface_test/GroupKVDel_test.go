@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -11,6 +12,7 @@ import (
 )
 
 func TestGroupKVDel(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
@@ -22,11 +24,11 @@ func TestGroupKVDel(t *testing.T) {
 		}},
 	}}
 
-	if err := m.GroupKVAdd("group1", kv1); err != nil {
+	if err := m.GroupKVAdd(ctxt, "group1", kv1); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.GroupKVGet("group1", kv1)
+	kvtest, err := m.GroupKVGet(ctxt, "group1", kv1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,11 +37,11 @@ func TestGroupKVDel(t *testing.T) {
 		t.Error("Set a key and got different data back")
 	}
 
-	if err := m.GroupKVDel("group1", kv1); err != nil {
+	if err := m.GroupKVDel(ctxt, "group1", kv1); err != nil {
 		t.Fatal("err")
 	}
 
-	res, err := m.GroupKVGet("group1", kv1)
+	res, err := m.GroupKVGet(ctxt, "group1", kv1)
 	if err != tree.ErrNoSuchKey {
 		t.Fatal(err)
 	}

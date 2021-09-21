@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -15,7 +16,7 @@ func TestEnsureEntityMeta(t *testing.T) {
 	}
 
 	e := &pb.Entity{}
-	if err := hook.Run(e, &pb.Entity{}); err != nil {
+	if err := hook.Run(context.Background(), e, &pb.Entity{}); err != nil {
 		t.Fatal(err)
 	}
 

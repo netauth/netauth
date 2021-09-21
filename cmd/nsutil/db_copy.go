@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -42,6 +43,7 @@ func init() {
 
 func dbCopyCmdRun(c *cobra.Command, args []string) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	source, err := db.NewKV(args[0], nil)
 	if err != nil {
@@ -49,7 +51,7 @@ func dbCopyCmdRun(c *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	source.SetEventFunc(func(db.Event) {})
-	sourceKeys, err := source.Keys("/*/*")
+	sourceKeys, err := source.Keys(ctx, "/*/*")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error retrieving keys from source: %s\n", err)
 	}
@@ -61,7 +63,7 @@ func dbCopyCmdRun(c *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	target.SetEventFunc(func(db.Event) {})
-	targetKeys, err := target.Keys("/*/*")
+	targetKeys, err := target.Keys(ctx, "/*/*")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error retrieving keys from target: %s\n", err)
 	}
@@ -80,7 +82,7 @@ func dbCopyCmdRun(c *cobra.Command, args []string) {
 	// If we're truncating then go ahead and do that.
 	if dbCopyCmdTruncate {
 		for _, k := range targetKeys {
-			if err := target.Del(k); err != nil {
+			if err := target.Del(ctx, k); err != nil {
 				fmt.Fprintf(os.Stderr, "Error truncating target: %s\n", err)
 			}
 		}
@@ -90,12 +92,12 @@ func dbCopyCmdRun(c *cobra.Command, args []string) {
 	// that if there are errors an operator can see that.
 	count := 0
 	for _, k := range sourceKeys {
-		v, err := source.Get(k)
+		v, err := source.Get(ctx, k)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error copying object (%s): %s\n", k, err)
 			continue
 		}
-		if err := target.Put(k, v); err != nil {
+		if err := target.Put(ctx, k, v); err != nil {
 			fmt.Fprintf(os.Stderr, "Error putting object (%s): %s\n", k, err)
 			continue
 		}

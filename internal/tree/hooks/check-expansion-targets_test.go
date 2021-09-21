@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/db"
@@ -31,7 +32,7 @@ func TestCheckExpansionTargetsDrop(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Error("Spec error - please trace hook")
 	}
 }
@@ -56,7 +57,7 @@ func TestCheckExpansionTargetsBad(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != db.ErrUnknownGroup {
+	if err := hook.Run(context.Background(), g, dg); err != db.ErrUnknownGroup {
 		t.Error("Spec error - please trace hook")
 	}
 }

@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -126,18 +127,18 @@ func TestGCCheckRequiredEmpty(t *testing.T) {
 
 type nullGroupHook struct{}
 
-func (*nullGroupHook) Name() string             { return "null-hook" }
-func (*nullGroupHook) Priority() int            { return 50 }
-func (*nullGroupHook) Run(_, _ *pb.Group) error { return nil }
+func (*nullGroupHook) Name() string                                { return "null-hook" }
+func (*nullGroupHook) Priority() int                               { return 50 }
+func (*nullGroupHook) Run(_ context.Context, _, _ *pb.Group) error { return nil }
 func goodGroupConstructor(_ RefContext) (GroupHook, error) {
 	return &nullGroupHook{}, nil
 }
 
 type nullGroupHook2 struct{}
 
-func (*nullGroupHook2) Name() string             { return "null-hook2" }
-func (*nullGroupHook2) Priority() int            { return 40 }
-func (*nullGroupHook2) Run(_, _ *pb.Group) error { return nil }
+func (*nullGroupHook2) Name() string                                { return "null-hook2" }
+func (*nullGroupHook2) Priority() int                               { return 40 }
+func (*nullGroupHook2) Run(_ context.Context, _, _ *pb.Group) error { return nil }
 
 func goodGroupConstructor2(_ RefContext) (GroupHook, error) {
 	return &nullGroupHook2{}, nil

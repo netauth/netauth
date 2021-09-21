@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
@@ -17,7 +19,7 @@ type SetEntitySecret struct {
 
 // Run takes a plaintext secret from de.Secret and secures it using a
 // crypto engine.  The secured secret will be written to e.Secret.
-func (s *SetEntitySecret) Run(e, de *pb.Entity) error {
+func (s *SetEntitySecret) Run(_ context.Context, e, de *pb.Entity) error {
 	ssecret, err := s.SecureSecret(de.GetSecret())
 	if err != nil {
 		return err

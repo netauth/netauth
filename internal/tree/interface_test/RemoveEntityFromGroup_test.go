@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestRemoveEntityFromGroup(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	e := &pb.Entity{
@@ -21,15 +23,15 @@ func TestRemoveEntityFromGroup(t *testing.T) {
 		},
 	}
 
-	if err := ctx.DB.SaveEntity(e); err != nil {
+	if err := ctx.DB.SaveEntity(ctxt, e); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := m.RemoveEntityFromGroup("entity1", "group1"); err != nil {
+	if err := m.RemoveEntityFromGroup(ctxt, "entity1", "group1"); err != nil {
 		t.Fatal(err)
 	}
 
-	e, err := ctx.DB.LoadEntity("entity1")
+	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

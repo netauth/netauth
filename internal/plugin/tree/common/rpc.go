@@ -1,6 +1,7 @@
 package common
 
 import (
+	"context"
 	"net/rpc"
 
 	"github.com/hashicorp/go-plugin"
@@ -20,16 +21,16 @@ func (GoPluginRPC) Client(b *plugin.MuxBroker, c *rpc.Client) (interface{}, erro
 
 // ProcessEntity on the GoPluginServer type implements a net/rpc
 // server method that handles entities.
-func (p *GoPluginServer) ProcessEntity(opts PluginOpts, res *PluginResult) error {
-	tmp, err := p.Mux.HandleEntity(opts)
+func (p *GoPluginServer) ProcessEntity(ctx context.Context, opts PluginOpts, res *PluginResult) error {
+	tmp, err := p.Mux.HandleEntity(ctx, opts)
 	res.Entity = tmp.Entity
 	return err
 }
 
 // ProcessGroup on the GoPluginServer type implements a net/rpc server
 // that handles groups.
-func (p *GoPluginServer) ProcessGroup(opts PluginOpts, res *PluginResult) error {
-	tmp, err := p.Mux.HandleGroup(opts)
+func (p *GoPluginServer) ProcessGroup(ctx context.Context, opts PluginOpts, res *PluginResult) error {
+	tmp, err := p.Mux.HandleGroup(ctx, opts)
 	res.Group = tmp.Group
 	return err
 }
@@ -37,7 +38,7 @@ func (p *GoPluginServer) ProcessGroup(opts PluginOpts, res *PluginResult) error 
 // ProcessEntity on the GoPluginClient provides a much cleaner
 // interface than a raw net/rpc connection.  ProcessEntity handles
 // modifications that handle entities only.
-func (c *GoPluginClient) ProcessEntity(opts PluginOpts) (PluginResult, error) {
+func (c *GoPluginClient) ProcessEntity(ctx context.Context, opts PluginOpts) (PluginResult, error) {
 	var res PluginResult
 	err := c.client.Call("Plugin.ProcessEntity", opts, &res)
 	return res, err
@@ -46,7 +47,7 @@ func (c *GoPluginClient) ProcessEntity(opts PluginOpts) (PluginResult, error) {
 // ProcessGroup on the GoPluginClient provides a much cleaner
 // interface than a raw net/rpc connection.  ProcessGroup handles
 // modifications that handle entities only.
-func (c *GoPluginClient) ProcessGroup(opts PluginOpts) (PluginResult, error) {
+func (c *GoPluginClient) ProcessGroup(ctx context.Context, opts PluginOpts) (PluginResult, error) {
 	var res PluginResult
 	err := c.client.Call("Plugin.ProcessGroup", opts, &res)
 	return res, err

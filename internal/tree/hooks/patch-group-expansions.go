@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"sort"
 	"strings"
 
@@ -20,7 +21,7 @@ type PatchGroupExpansions struct {
 
 // Run iterates through the expansions in dg and applies them to g.
 // DROP expansions are processed with fuzzy group name matching.
-func (*PatchGroupExpansions) Run(g, dg *pb.Group) error {
+func (*PatchGroupExpansions) Run(_ context.Context, g, dg *pb.Group) error {
 	exps := dg.GetExpansions()
 	for i := range exps {
 		parts := strings.SplitN(exps[i], ":", 2)

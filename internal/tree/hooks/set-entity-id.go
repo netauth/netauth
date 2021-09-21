@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -14,7 +16,7 @@ type SetEntityID struct {
 
 // Run copies the ID from de to e, no checks are enforced during the
 // copy.
-func (*SetEntityID) Run(e, de *pb.Entity) error {
+func (*SetEntityID) Run(_ context.Context, e, de *pb.Entity) error {
 	e.ID = de.ID
 	return nil
 }

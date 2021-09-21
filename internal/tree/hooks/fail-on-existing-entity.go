@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -18,8 +20,8 @@ type FailOnExistingEntity struct {
 // Run contacts the data store, attempts to load an entity and
 // selectively inverts the return status from the load call (errors
 // from the storage backend will be returned to the caller).
-func (l *FailOnExistingEntity) Run(e, de *pb.Entity) error {
-	_, err := l.LoadEntity(de.GetID())
+func (l *FailOnExistingEntity) Run(ctx context.Context, e, de *pb.Entity) error {
+	_, err := l.LoadEntity(ctx, de.GetID())
 	if err == nil {
 		return tree.ErrDuplicateEntityID
 	}

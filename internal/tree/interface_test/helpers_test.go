@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -49,7 +50,7 @@ func addEntity(t *testing.T, ctx tree.RefContext) {
 		Secret: proto.String("entity1"),
 	}
 
-	if err := ctx.DB.SaveEntity(e); err != nil {
+	if err := ctx.DB.SaveEntity(context.Background(), e); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -61,7 +62,7 @@ func addGroup(t *testing.T, ctx tree.RefContext) {
 		DisplayName: proto.String("Group One"),
 	}
 
-	if err := ctx.DB.SaveGroup(g); err != nil {
+	if err := ctx.DB.SaveGroup(context.Background(), g); err != nil {
 		t.Fatal(err)
 	}
 }

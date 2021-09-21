@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -93,7 +94,7 @@ func TestEntityKVAdd(t *testing.T) {
 	h, _ := newEntityKVAdd(tree.RefContext{})
 
 	for i, c := range cases {
-		if err := h.Run(c.e, c.de); err != c.wantErr {
+		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -183,7 +184,7 @@ func TestEntityKVDel(t *testing.T) {
 	h, _ := newEntityKVDel(tree.RefContext{})
 
 	for i, c := range cases {
-		if err := h.Run(c.e, c.de); err != c.wantErr {
+		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}
@@ -257,7 +258,7 @@ func TestEntityKVReplace(t *testing.T) {
 	h, _ := newEntityKVReplace(tree.RefContext{})
 
 	for i, c := range cases {
-		if err := h.Run(c.e, c.de); err != c.wantErr {
+		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)
 		}
 	}

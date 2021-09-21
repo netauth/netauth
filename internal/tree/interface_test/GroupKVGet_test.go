@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,6 +14,7 @@ import (
 )
 
 func TestGroupKVGet(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
@@ -32,14 +34,14 @@ func TestGroupKVGet(t *testing.T) {
 		},
 	}
 
-	if err := m.GroupKVAdd("group1", []*pb.KVData{kv1}); err != nil {
+	if err := m.GroupKVAdd(ctxt, "group1", []*pb.KVData{kv1}); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.GroupKVAdd("group1", []*pb.KVData{kv2}); err != nil {
+	if err := m.GroupKVAdd(ctxt, "group1", []*pb.KVData{kv2}); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.GroupKVGet("group1", []*pb.KVData{kv2})
+	kvtest, err := m.GroupKVGet(ctxt, "group1", []*pb.KVData{kv2})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -48,15 +50,15 @@ func TestGroupKVGet(t *testing.T) {
 		t.Error("Set a key and got different data back")
 	}
 
-	if _, err := m.GroupKVGet("does-not-exist", []*pb.KVData{kv1}); err != db.ErrUnknownGroup {
+	if _, err := m.GroupKVGet(ctxt, "does-not-exist", []*pb.KVData{kv1}); err != db.ErrUnknownGroup {
 		t.Error(err)
 	}
 
-	if _, err := m.GroupKVGet("group1", []*pb.KVData{{Key: proto.String("does-not-exist")}}); err != tree.ErrNoSuchKey {
+	if _, err := m.GroupKVGet(ctxt, "group1", []*pb.KVData{{Key: proto.String("does-not-exist")}}); err != tree.ErrNoSuchKey {
 		t.Error(err)
 	}
 
-	res, err := m.GroupKVGet("group1", []*pb.KVData{{Key: proto.String("*")}})
+	res, err := m.GroupKVGet(ctxt, "group1", []*pb.KVData{{Key: proto.String("*")}})
 	assert.Nil(t, err)
 	expect := []*pb.KVData{kv1, kv2}
 	assert.Nil(t, err)

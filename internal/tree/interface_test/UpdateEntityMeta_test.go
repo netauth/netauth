@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestUpdateEntityMeta(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
@@ -17,11 +19,11 @@ func TestUpdateEntityMeta(t *testing.T) {
 		GECOS: proto.String("A Test Entity"),
 	}
 
-	if err := m.UpdateEntityMeta("entity1", meta); err != nil {
+	if err := m.UpdateEntityMeta(ctxt, "entity1", meta); err != nil {
 		t.Fatal(err)
 	}
 
-	e, err := ctx.DB.LoadEntity("entity1")
+	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

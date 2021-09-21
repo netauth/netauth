@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"strings"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -21,7 +22,7 @@ type CheckExpansionCycles struct {
 // that no cycles exist between the g and the requested include.  If
 // the mode for any expansion is DROP that expansion will be skipped
 // without checking.
-func (cec *CheckExpansionCycles) Run(g, dg *pb.Group) error {
+func (cec *CheckExpansionCycles) Run(ctx context.Context, g, dg *pb.Group) error {
 	exps := dg.GetExpansions()
 	for i := range exps {
 		parts := strings.SplitN(exps[i], ":", 2)
@@ -30,11 +31,11 @@ func (cec *CheckExpansionCycles) Run(g, dg *pb.Group) error {
 		if parts[0] == "DROP" {
 			continue
 		}
-		child, err := cec.LoadGroup(parts[1])
+		child, err := cec.LoadGroup(ctx, parts[1])
 		if err != nil {
 			return err
 		}
-		if cec.checkGroupCycles(child, g.GetName()) {
+		if cec.checkGroupCycles(ctx, child, g.GetName()) {
 			return tree.ErrExistingExpansion
 		}
 	}
@@ -45,13 +46,13 @@ func (cec *CheckExpansionCycles) Run(g, dg *pb.Group) error {
 // candidate group somewhere on the tree below the entry point.  The
 // general usage would be to push in the target of the expansion as
 // the group and then hunt for the parent group as the candidate.
-func (cec *CheckExpansionCycles) checkGroupCycles(g *pb.Group, candidate string) bool {
+func (cec *CheckExpansionCycles) checkGroupCycles(ctx context.Context, g *pb.Group, candidate string) bool {
 	for _, exp := range g.GetExpansions() {
 		parts := strings.SplitN(exp, ":", 2)
 		if parts[1] == candidate {
 			return true
 		}
-		ng, err := cec.LoadGroup(parts[1])
+		ng, err := cec.LoadGroup(ctx, parts[1])
 		if err != nil {
 			// Play it safe, if we can't get the group
 			// something may already be wrong.  Returning
@@ -59,7 +60,7 @@ func (cec *CheckExpansionCycles) checkGroupCycles(g *pb.Group, candidate string)
 			// tree.
 			return true
 		}
-		if r := cec.checkGroupCycles(ng, candidate); r {
+		if r := cec.checkGroupCycles(ctx, ng, candidate); r {
 			return r
 		}
 	}

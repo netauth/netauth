@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -21,9 +23,9 @@ type SetEntityNumber struct {
 // the data storage system will be queried for the next available
 // number.  These numbers are not guaranteed to be in order or have
 // any mathematical progression, only uniqueness.
-func (s *SetEntityNumber) Run(e, de *pb.Entity) error {
+func (s *SetEntityNumber) Run(ctx context.Context, e, de *pb.Entity) error {
 	if de.GetNumber() == -1 {
-		n, err := s.NextEntityNumber()
+		n, err := s.NextEntityNumber(ctx)
 		if err != nil {
 			return err
 		}

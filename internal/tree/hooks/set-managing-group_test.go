@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,13 +16,14 @@ import (
 
 func TestSetManagingGroup(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := mdb.SaveGroup(&pb.Group{Name: proto.String("bar")}); err != nil {
+	if err := mdb.SaveGroup(ctx, &pb.Group{Name: proto.String("bar")}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -48,7 +50,7 @@ func TestSetManagingGroup(t *testing.T) {
 			Name:      proto.String(c.name),
 			ManagedBy: proto.String(c.managedby),
 		}
-		if err := hook.Run(g, dg); err != c.wantErr {
+		if err := hook.Run(ctx, g, dg); err != c.wantErr {
 			t.Errorf("Case %d: Got %v Want %v", i, err, c.wantErr)
 		}
 		if g.GetManagedBy() != c.wantManagedBy {

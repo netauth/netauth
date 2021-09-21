@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -24,7 +25,7 @@ func TestMergeEntityMeta(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

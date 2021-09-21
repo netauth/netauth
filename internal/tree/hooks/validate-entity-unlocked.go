@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -14,7 +16,7 @@ type ValidateEntityUnlocked struct {
 
 // Run queries the locked status of an entity and returns either
 // ErrEntityLocked or nil, depending on if the entity is locked.
-func (*ValidateEntityUnlocked) Run(e, de *pb.Entity) error {
+func (*ValidateEntityUnlocked) Run(_ context.Context, e, de *pb.Entity) error {
 	if e.GetMeta().GetLocked() {
 		return tree.ErrEntityLocked
 	}

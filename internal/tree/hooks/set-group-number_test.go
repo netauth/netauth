@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,6 +16,7 @@ import (
 
 func TestSetGroupNumber(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	db, err := db.New("memory")
 	if err != nil {
@@ -28,7 +30,7 @@ func TestSetGroupNumber(t *testing.T) {
 
 	g := &pb.Group{}
 
-	if err := hook.Run(g, &pb.Group{Number: proto.Int32(27)}); err != nil {
+	if err := hook.Run(ctx, g, &pb.Group{Number: proto.Int32(27)}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -37,7 +39,7 @@ func TestSetGroupNumber(t *testing.T) {
 		t.Error("Spec failure - please trace hook")
 	}
 
-	if err := hook.Run(g, &pb.Group{Number: proto.Int32(-1)}); err != nil {
+	if err := hook.Run(ctx, g, &pb.Group{Number: proto.Int32(-1)}); err != nil {
 		t.Fatal(err)
 	}
 

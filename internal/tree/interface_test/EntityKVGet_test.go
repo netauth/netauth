@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,6 +13,7 @@ import (
 )
 
 func TestEntityKVGet(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
@@ -31,14 +33,14 @@ func TestEntityKVGet(t *testing.T) {
 		},
 	}
 
-	if err := m.EntityKVAdd("entity1", []*pb.KVData{kv1}); err != nil {
+	if err := m.EntityKVAdd(ctxt, "entity1", []*pb.KVData{kv1}); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.EntityKVAdd("entity1", []*pb.KVData{kv2}); err != nil {
+	if err := m.EntityKVAdd(ctxt, "entity1", []*pb.KVData{kv2}); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.EntityKVGet("entity1", []*pb.KVData{kv2})
+	kvtest, err := m.EntityKVGet(ctxt, "entity1", []*pb.KVData{kv2})
 	if err != nil {
 		t.Fatalf("Returned key/value data does not match inserted data: %s", err)
 	}
@@ -47,11 +49,11 @@ func TestEntityKVGet(t *testing.T) {
 		t.Error("Set a key and got different data back")
 	}
 
-	if _, err := m.EntityKVGet("does-not-exist", []*pb.KVData{kv1}); err != db.ErrUnknownEntity {
+	if _, err := m.EntityKVGet(ctxt, "does-not-exist", []*pb.KVData{kv1}); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 
-	res, err := m.EntityKVGet("entity1", []*pb.KVData{{Key: proto.String("*")}})
+	res, err := m.EntityKVGet(ctxt, "entity1", []*pb.KVData{{Key: proto.String("*")}})
 	expect := []*pb.KVData{kv1, kv2}
 	assert.Nil(t, err)
 	// Trying to do deep equals in the protobuf fails, so instead

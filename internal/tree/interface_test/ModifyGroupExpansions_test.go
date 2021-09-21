@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestModifyGroupExpansions(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	g1 := &pb.Group{
@@ -18,18 +20,18 @@ func TestModifyGroupExpansions(t *testing.T) {
 		Name: proto.String("group2"),
 	}
 
-	if err := ctx.DB.SaveGroup(g1); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, g1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(g2); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := m.ModifyGroupExpansions("group1", "group2", pb.ExpansionMode_INCLUDE); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, g2); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup("group1")
+	if err := m.ModifyGroupExpansions(ctxt, "group1", "group2", pb.ExpansionMode_INCLUDE); err != nil {
+		t.Fatal(err)
+	}
+
+	g, err := ctx.DB.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

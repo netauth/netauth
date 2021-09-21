@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -17,7 +18,7 @@ func TestEntityCapabilitiesEmptyList(t *testing.T) {
 	g := &pb.Entity{}
 	dg := &pb.Entity{}
 
-	if err := hook.Run(g, dg); err != tree.ErrUnknownCapability {
+	if err := hook.Run(context.Background(), g, dg); err != tree.ErrUnknownCapability {
 		t.Fatal(err)
 	}
 }
@@ -39,7 +40,7 @@ func TestAddEntityCapabilities(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -72,7 +73,7 @@ func TestRemoveEntityCapabilities(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

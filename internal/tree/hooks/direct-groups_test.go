@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"sort"
 	"testing"
 
@@ -26,7 +27,7 @@ func TestAddDirectGroup(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,7 +60,7 @@ func TestDelDirectGroup(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

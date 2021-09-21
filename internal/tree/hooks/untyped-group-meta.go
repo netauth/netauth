@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
@@ -19,7 +21,7 @@ type ManageGroupUM struct {
 // mode the plugin is configured for.  "UPSERT" will add or update
 // fields as appropriate.  "CLEARFUZZY" will ignore Z-Indexing
 // annotations.  "CLEAREXACT" will require exact key specifications.
-func (mm *ManageGroupUM) Run(g, dg *pb.Group) error {
+func (mm *ManageGroupUM) Run(_ context.Context, g, dg *pb.Group) error {
 	for _, m := range dg.UntypedMeta {
 		key, value := splitKeyValue(m)
 		g.UntypedMeta = util.PatchKeyValueSlice(g.UntypedMeta, mm.mode, key, value)

@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/tree"
@@ -26,7 +27,7 @@ func TestCheckImmediateExpansionsDrop(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Error("Spec error - please trace hook")
 	}
 }
@@ -49,7 +50,7 @@ func TestCheckImmediateExpansionsExisting(t *testing.T) {
 		},
 	}
 
-	if err := hook.Run(g, dg); err != tree.ErrExistingExpansion {
+	if err := hook.Run(context.Background(), g, dg); err != tree.ErrExistingExpansion {
 		t.Error("Spec error - please trace hook")
 	}
 }

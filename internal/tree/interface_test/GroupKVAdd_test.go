@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,6 +10,7 @@ import (
 )
 
 func TestGroupKVAdd(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
@@ -20,11 +22,11 @@ func TestGroupKVAdd(t *testing.T) {
 		}},
 	}}
 
-	if err := m.GroupKVAdd("group1", kv1); err != nil {
+	if err := m.GroupKVAdd(ctxt, "group1", kv1); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.GroupKVGet("group1", kv1)
+	kvtest, err := m.GroupKVGet(ctxt, "group1", kv1)
 	if err != nil {
 		t.Fatal(err)
 	}

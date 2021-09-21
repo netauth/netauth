@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -9,16 +10,17 @@ import (
 )
 
 func TestFetchEntity(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
 
-	e, err := m.FetchEntity("entity1")
+	e, err := m.FetchEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	le, err := ctx.DB.LoadEntity("entity1")
+	le, err := ctx.DB.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -34,7 +36,7 @@ func TestFetchEntity(t *testing.T) {
 
 func TestFetchEntityNonExistant(t *testing.T) {
 	m, _ := newTreeManager(t)
-	if _, err := m.FetchEntity("non-existent"); err != db.ErrUnknownEntity {
+	if _, err := m.FetchEntity(context.Background(), "non-existent"); err != db.ErrUnknownEntity {
 		t.Error(err)
 	}
 }

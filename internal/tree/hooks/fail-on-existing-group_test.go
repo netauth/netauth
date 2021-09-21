@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,21 +16,22 @@ import (
 
 func TestFailOnExistingGroup(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx := tree.RefContext{
+	rctx := tree.RefContext{
 		DB: mdb,
 	}
 
-	hook, err := NewFailOnExistingGroup(ctx)
+	hook, err := NewFailOnExistingGroup(rctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = mdb.SaveGroup(&pb.Group{
+	err = mdb.SaveGroup(ctx, &pb.Group{
 		Name: proto.String("foo"),
 	})
 	if err != nil {
@@ -46,7 +48,7 @@ func TestFailOnExistingGroup(t *testing.T) {
 	for i, c := range cases {
 		g := &pb.Group{}
 		dg := &pb.Group{Name: &c.name}
-		if err := hook.Run(g, dg); err != c.wantErr {
+		if err := hook.Run(ctx, g, dg); err != c.wantErr {
 			t.Errorf("Case %d: Got: %v Want: %v", i, err, c.wantErr)
 		}
 	}

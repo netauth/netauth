@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"sort"
 	"testing"
 
@@ -12,17 +13,18 @@ import (
 )
 
 func TestGetMemberships(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	buildSampleTree(t, ctx)
 	ctx.DB.(*db.DB).EventUpdateAll()
 
 	// entity1, indirects off
-	e, err := ctx.DB.LoadEntity("entity1")
+	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	result := m.GetMemberships(e)
+	result := m.GetMemberships(ctxt, e)
 	sort.Strings(result)
 	if len(result) != 3 || result[0] != "group1" || result[1] != "group2" || result[2] != "group4" {
 		t.Log(result)
@@ -37,7 +39,7 @@ func TestGetMembershipsBadEntity(t *testing.T) {
 		ID: proto.String("unknown"),
 	}
 
-	if result := m.GetMemberships(e); len(result) != 0 {
+	if result := m.GetMemberships(context.Background(), e); len(result) != 0 {
 		t.Fatal("Memberships found for an unknown group")
 	}
 }

@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"github.com/hashicorp/go-hclog"
@@ -26,7 +27,7 @@ func TestSetEntitySecret(t *testing.T) {
 	e := &pb.Entity{}
 	de := &pb.Entity{Secret: proto.String("security")}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

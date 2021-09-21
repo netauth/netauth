@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -20,7 +22,7 @@ type GroupKV struct {
 
 // Run proxies to the do function which is set based on what the hook
 // is supposed to do.
-func (ekv *GroupKV) Run(g, dg *pb.Group) error {
+func (ekv *GroupKV) Run(_ context.Context, g, dg *pb.Group) error {
 	return ekv.do(g, dg)
 }
 

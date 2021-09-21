@@ -1,6 +1,7 @@
 package manager
 
 import (
+	"context"
 	"path/filepath"
 	"strings"
 
@@ -101,7 +102,7 @@ func (m *Manager) ConfigureEntityChains(h hookInserter) {
 }
 
 // InvokeEntityProcessing calls ProcessEntity in every plugin.
-func (m *Manager) InvokeEntityProcessing(opts common.PluginOpts) (common.PluginResult, error) {
+func (m *Manager) InvokeEntityProcessing(ctx context.Context, opts common.PluginOpts) (common.PluginResult, error) {
 	var res = common.PluginResult{}
 	var err error
 
@@ -110,7 +111,7 @@ func (m *Manager) InvokeEntityProcessing(opts common.PluginOpts) (common.PluginR
 
 	for p, r := range m.plugins {
 		m.logger.Trace("Calling plugin", "plugin", p, "action", opts.Action)
-		res, err = r.ProcessEntity(opts)
+		res, err = r.ProcessEntity(ctx, opts)
 		if err != nil {
 			return common.PluginResult{}, err
 		}
@@ -145,7 +146,7 @@ func (m *Manager) ConfigureGroupChains(h hookInserter) {
 }
 
 // InvokeGroupProcessing calls ProcessGroup in every plugin.
-func (m *Manager) InvokeGroupProcessing(opts common.PluginOpts) (common.PluginResult, error) {
+func (m *Manager) InvokeGroupProcessing(ctx context.Context, opts common.PluginOpts) (common.PluginResult, error) {
 	var res = common.PluginResult{}
 	var err error
 
@@ -154,7 +155,7 @@ func (m *Manager) InvokeGroupProcessing(opts common.PluginOpts) (common.PluginRe
 
 	for p, r := range m.plugins {
 		m.logger.Trace("Calling plugin", "plugin", p, "action", opts.Action)
-		res, err = r.ProcessGroup(opts)
+		res, err = r.ProcessGroup(ctx, opts)
 		if err != nil {
 			return common.PluginResult{}, err
 		}

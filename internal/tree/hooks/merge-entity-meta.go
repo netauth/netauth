@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -18,7 +20,7 @@ type MergeEntityMeta struct {
 // Run attempts to copy the metadata from one entity to another.
 // Select fields are nil-ed out beforehand since they either require a
 // specialized mechanism to edit, or a specialized capability.
-func (*MergeEntityMeta) Run(e, de *pb.Entity) error {
+func (*MergeEntityMeta) Run(_ context.Context, e, de *pb.Entity) error {
 	// There's a few fields that can't be set by merging the
 	// metadata this way, so we null those out here.
 	de.Meta.Capabilities = nil

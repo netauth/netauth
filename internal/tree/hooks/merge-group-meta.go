@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"google.golang.org/protobuf/proto"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -18,7 +20,7 @@ type MergeGroupMeta struct {
 // Run attempts to copy the metadata from one group to another.
 // Select fields are nil-ed out beforehand since they either require a
 // specialized mechanism to edit, or a specialized capability.
-func (*MergeGroupMeta) Run(g, dg *pb.Group) error {
+func (*MergeGroupMeta) Run(_ context.Context, g, dg *pb.Group) error {
 	// There's a few fields that can't be set by merging the
 	// metadata this way, so we null those out here.
 	dg.Name = nil

@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -13,7 +14,7 @@ import (
 // CreateGroup adds a group to the datastore if it does not currently
 // exist.  If the group exists then it cannot be added and an error is
 // returned.
-func (m *Manager) CreateGroup(name, displayName, managedBy string, number int32) error {
+func (m *Manager) CreateGroup(ctx context.Context, name, displayName, managedBy string, number int32) error {
 	rg := &pb.Group{
 		Name:        &name,
 		DisplayName: &displayName,
@@ -21,7 +22,7 @@ func (m *Manager) CreateGroup(name, displayName, managedBy string, number int32)
 		Number:      &number,
 	}
 
-	_, err := m.RunGroupChain("CREATE", rg)
+	_, err := m.RunGroupChain(ctx, "CREATE", rg)
 	return err
 }
 
@@ -29,38 +30,38 @@ func (m *Manager) CreateGroup(name, displayName, managedBy string, number int32)
 // group and a nil error.  If the group cannot be loaded the error
 // will explain why.  This is very thin since it just obtains a value
 // from the storage layer.
-func (m *Manager) FetchGroup(name string) (*pb.Group, error) {
+func (m *Manager) FetchGroup(ctx context.Context, name string) (*pb.Group, error) {
 	rg := &pb.Group{
 		Name: &name,
 	}
 
-	return m.RunGroupChain("FETCH", rg)
+	return m.RunGroupChain(ctx, "FETCH", rg)
 }
 
 // DestroyGroup unsurprisingly deletes a group.  There's no real logic
 // here, it just passes the delete call through to the storage layer.
-func (m *Manager) DestroyGroup(name string) error {
+func (m *Manager) DestroyGroup(ctx context.Context, name string) error {
 	rg := &pb.Group{
 		Name: &name,
 	}
 
-	_, err := m.RunGroupChain("DESTROY", rg)
+	_, err := m.RunGroupChain(ctx, "DESTROY", rg)
 	return err
 }
 
 // UpdateGroupMeta updates metadata within the group.  Certain
 // information is not mutable and so that information is not merged
 // in.
-func (m *Manager) UpdateGroupMeta(name string, update *pb.Group) error {
+func (m *Manager) UpdateGroupMeta(ctx context.Context, name string, update *pb.Group) error {
 	update.Name = &name
-	_, err := m.RunGroupChain("MERGE-METADATA", update)
+	_, err := m.RunGroupChain(ctx, "MERGE-METADATA", update)
 	return err
 }
 
 // ManageUntypedGroupMeta handles the things that may be annotated
 // onto a group.  These annotations should be used sparingly as they
 // incur a non-trivial lookup cost on the server.
-func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]string, error) {
+func (m *Manager) ManageUntypedGroupMeta(ctx context.Context, name, mode, key, value string) ([]string, error) {
 	rg := &pb.Group{
 		Name:        &name,
 		UntypedMeta: []string{fmt.Sprintf("%s:%s", key, value)},
@@ -79,7 +80,7 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 		mode = "READ"
 	}
 
-	g, err := m.RunGroupChain(chain, rg)
+	g, err := m.RunGroupChain(ctx, chain, rg)
 	if err != nil {
 		return nil, err
 	}
@@ -93,8 +94,8 @@ func (m *Manager) ManageUntypedGroupMeta(name, mode, key, value string) ([]strin
 
 // GroupKVGet returns an existing key from a group.  If the key does
 // not exist an error is returned.
-func (m *Manager) GroupKVGet(name string, keys []*pb.KVData) ([]*pb.KVData, error) {
-	g, err := m.FetchGroup(name)
+func (m *Manager) GroupKVGet(ctx context.Context, name string, keys []*pb.KVData) ([]*pb.KVData, error) {
+	g, err := m.FetchGroup(ctx, name)
 	if err != nil {
 		return nil, err
 	}
@@ -120,58 +121,45 @@ func (m *Manager) GroupKVGet(name string, keys []*pb.KVData) ([]*pb.KVData, erro
 
 // GroupKVAdd adds a new key to a group.  If the key already exists
 // an error is returned.
-func (m *Manager) GroupKVAdd(name string, d []*pb.KVData) error {
+func (m *Manager) GroupKVAdd(ctx context.Context, name string, d []*pb.KVData) error {
 	dg := &pb.Group{
 		Name: &name,
 		KV:   d,
 	}
 
-	_, err := m.RunGroupChain("KV-ADD", dg)
+	_, err := m.RunGroupChain(ctx, "KV-ADD", dg)
 	return err
 }
 
 // GroupKVDel removes an existing key from a group.  If the key does
 // not exist an error is returned.
-func (m *Manager) GroupKVDel(name string, d []*pb.KVData) error {
+func (m *Manager) GroupKVDel(ctx context.Context, name string, d []*pb.KVData) error {
 	dg := &pb.Group{
 		Name: &name,
 		KV:   d,
 	}
 
-	_, err := m.RunGroupChain("KV-DEL", dg)
+	_, err := m.RunGroupChain(ctx, "KV-DEL", dg)
 	return err
 }
 
 // GroupKVReplace replaces an existing key on a group.  If the key
 // does not exist an error is returned.
-func (m *Manager) GroupKVReplace(name string, d []*pb.KVData) error {
+func (m *Manager) GroupKVReplace(ctx context.Context, name string, d []*pb.KVData) error {
 	dg := &pb.Group{
 		Name: &name,
 		KV:   d,
 	}
 
-	_, err := m.RunGroupChain("KV-REPLACE", dg)
+	_, err := m.RunGroupChain(ctx, "KV-REPLACE", dg)
 	return err
-}
-
-// SetGroupCapability adds a capability to an existing group.  It
-// should be preferred to add capabilities to groups rather than to
-// entities directly.
-func (m *Manager) SetGroupCapability(name string, c string) error {
-	capIndex, ok := pb.Capability_value[c]
-	if !ok {
-		return ErrUnknownCapability
-	}
-
-	cap := pb.Capability(capIndex)
-	return m.SetGroupCapability2(name, &cap)
 }
 
 // SetGroupCapability2 adds a capability to an existing group, and
 // does so with a strongly typed capability pointer.  It should be
 // preferred to add capabilities to groups rather than to entities
 // directly.
-func (m *Manager) SetGroupCapability2(name string, c *pb.Capability) error {
+func (m *Manager) SetGroupCapability2(ctx context.Context, name string, c *pb.Capability) error {
 	if c == nil {
 		return ErrUnknownCapability
 	}
@@ -181,24 +169,13 @@ func (m *Manager) SetGroupCapability2(name string, c *pb.Capability) error {
 		Capabilities: []pb.Capability{*c},
 	}
 
-	_, err := m.RunGroupChain("SET-CAPABILITY", rg)
+	_, err := m.RunGroupChain(ctx, "SET-CAPABILITY", rg)
 	return err
-}
-
-// DropGroupCapability drops a capability from an existing group.
-func (m *Manager) DropGroupCapability(name string, c string) error {
-	capIndex, ok := pb.Capability_value[c]
-	if !ok {
-		return ErrUnknownCapability
-	}
-
-	cap := pb.Capability(capIndex)
-	return m.DropGroupCapability2(name, &cap)
 }
 
 // DropGroupCapability2 drops a capability from an existing group, and
 // does so with a strongly typed capability pointer.
-func (m *Manager) DropGroupCapability2(name string, c *pb.Capability) error {
+func (m *Manager) DropGroupCapability2(ctx context.Context, name string, c *pb.Capability) error {
 	if c == nil {
 		return ErrUnknownCapability
 	}
@@ -208,7 +185,7 @@ func (m *Manager) DropGroupCapability2(name string, c *pb.Capability) error {
 		Capabilities: []pb.Capability{*c},
 	}
 
-	_, err := m.RunGroupChain("DROP-CAPABILITY", rg)
+	_, err := m.RunGroupChain(ctx, "DROP-CAPABILITY", rg)
 	return err
 }
 
@@ -217,7 +194,7 @@ func (m *Manager) groupResolverCallback(e db.Event) {
 	case db.EventGroupCreate:
 		fallthrough
 	case db.EventGroupUpdate:
-		grp, err := m.db.LoadGroup(e.PK)
+		grp, err := m.db.LoadGroup(context.Background(), e.PK)
 		if err != nil {
 			m.log.Warn("Unchecked load error in groupResolverCallback", "error", err)
 			return

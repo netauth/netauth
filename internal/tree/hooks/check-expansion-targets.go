@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"strings"
 
 	"github.com/netauth/netauth/internal/startup"
@@ -21,14 +22,14 @@ type CheckExpansionTargets struct {
 // allows groups that have been deleted to effectively skip this
 // check, since the only expansion that makes sense targeting a
 // deleted group is to drop it.
-func (cet *CheckExpansionTargets) Run(g, dg *pb.Group) error {
+func (cet *CheckExpansionTargets) Run(ctx context.Context, g, dg *pb.Group) error {
 	targets := dg.GetExpansions()
 	for i := range targets {
 		parts := strings.SplitN(targets[i], ":", 2)
 		if parts[0] == "DROP" {
 			continue
 		}
-		if _, err := cet.LoadGroup(parts[1]); err != nil {
+		if _, err := cet.LoadGroup(ctx, parts[1]); err != nil {
 			return err
 		}
 	}

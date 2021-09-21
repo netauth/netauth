@@ -3,6 +3,7 @@ package common
 //go:generate stringer -type=PluginAction
 
 import (
+	"context"
 	"net/rpc"
 
 	pb "github.com/netauth/protocol"
@@ -12,20 +13,20 @@ import (
 // built in tree management system.  The most common type of plugin is
 // one that will propagate changes to a system external to NetAuth.
 type Plugin interface {
-	EntityCreate(pb.Entity, pb.Entity) (pb.Entity, error)
-	EntityUpdate(pb.Entity) (pb.Entity, error)
-	EntityLock(pb.Entity) (pb.Entity, error)
-	EntityUnlock(pb.Entity) (pb.Entity, error)
-	EntityDestroy(pb.Entity) (pb.Entity, error)
+	EntityCreate(context.Context, pb.Entity, pb.Entity) (pb.Entity, error)
+	EntityUpdate(context.Context, pb.Entity) (pb.Entity, error)
+	EntityLock(context.Context, pb.Entity) (pb.Entity, error)
+	EntityUnlock(context.Context, pb.Entity) (pb.Entity, error)
+	EntityDestroy(context.Context, pb.Entity) (pb.Entity, error)
 
-	GroupCreate(pb.Group) (pb.Group, error)
-	GroupUpdate(pb.Group) (pb.Group, error)
-	GroupDestroy(pb.Group) (pb.Group, error)
+	GroupCreate(context.Context, pb.Group) (pb.Group, error)
+	GroupUpdate(context.Context, pb.Group) (pb.Group, error)
+	GroupDestroy(context.Context, pb.Group) (pb.Group, error)
 
-	PreSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
-	PostSecretChange(pb.Entity, pb.Entity) (pb.Entity, error)
-	PreAuthCheck(pb.Entity, pb.Entity) (pb.Entity, error)
-	PostAuthCheck(pb.Entity, pb.Entity) (pb.Entity, error)
+	PreSecretChange(context.Context, pb.Entity, pb.Entity) (pb.Entity, error)
+	PostSecretChange(context.Context, pb.Entity, pb.Entity) (pb.Entity, error)
+	PreAuthCheck(context.Context, pb.Entity, pb.Entity) (pb.Entity, error)
+	PostAuthCheck(context.Context, pb.Entity, pb.Entity) (pb.Entity, error)
 }
 
 // PluginAction is used to swich handlers inside a ProcessEntity or
@@ -99,8 +100,8 @@ var (
 
 // GoPlugin is the actual interface that's exposed across the link.
 type GoPlugin interface {
-	ProcessEntity(PluginOpts, *PluginResult) error
-	ProcessGroup(PluginOpts, *PluginResult) error
+	ProcessEntity(context.Context, PluginOpts, *PluginResult) error
+	ProcessGroup(context.Context, PluginOpts, *PluginResult) error
 }
 
 // GoPluginClient is an RPC Servable type that can be used with Hashicorp's
@@ -137,8 +138,8 @@ type PluginResult struct {
 }
 
 type pluginMux interface {
-	HandleEntity(PluginOpts) (PluginResult, error)
-	HandleGroup(PluginOpts) (PluginResult, error)
+	HandleEntity(context.Context, PluginOpts) (PluginResult, error)
+	HandleGroup(context.Context, PluginOpts) (PluginResult, error)
 }
 
 // GoPluginServer implements the net/rpc server that GoPluginRPC

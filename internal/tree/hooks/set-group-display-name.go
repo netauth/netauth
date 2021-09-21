@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -13,7 +15,7 @@ type SetGroupDisplayName struct {
 }
 
 // Run copies the DisplayName from dg to g, no checking is performed.
-func (*SetGroupDisplayName) Run(g, dg *pb.Group) error {
+func (*SetGroupDisplayName) Run(_ context.Context, g, dg *pb.Group) error {
 	g.DisplayName = dg.DisplayName
 	return nil
 }

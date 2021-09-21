@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -19,7 +21,7 @@ type SetManagingGroup struct {
 // i.e. unmanaged, the hook will return immediately, otherwise the
 // group is checked for either existence, or identity to the group
 // being created.
-func (c *SetManagingGroup) Run(g, dg *pb.Group) error {
+func (c *SetManagingGroup) Run(ctx context.Context, g, dg *pb.Group) error {
 	// If the managedby field is blank, this group is unmanaged
 	// and requires token authority to alter later.
 	if dg.GetManagedBy() == "" {
@@ -36,7 +38,7 @@ func (c *SetManagingGroup) Run(g, dg *pb.Group) error {
 
 	// If the group is not self managed but does have a manage by,
 	// then the managedby group must exist already.
-	if _, err := c.LoadGroup(dg.GetManagedBy()); err != nil {
+	if _, err := c.LoadGroup(ctx, dg.GetManagedBy()); err != nil {
 		return err
 	}
 

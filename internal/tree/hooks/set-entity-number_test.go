@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,6 +16,7 @@ import (
 
 func TestSetEntityNumber(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	memdb, err := db.New("memory")
 	if err != nil {
@@ -29,13 +31,13 @@ func TestSetEntityNumber(t *testing.T) {
 	e := &pb.Entity{}
 	de := &pb.Entity{Number: proto.Int32(-1)}
 
-	if err := hook.Run(e, de); err != nil || e.GetNumber() != 1 {
+	if err := hook.Run(ctx, e, de); err != nil || e.GetNumber() != 1 {
 		t.Log(e)
 		t.Fatal(err)
 	}
 
 	de.Number = proto.Int32(27)
-	if err := hook.Run(e, de); err != nil || e.GetNumber() != 27 {
+	if err := hook.Run(ctx, e, de); err != nil || e.GetNumber() != 27 {
 		t.Log(e)
 		t.Fatal(err)
 	}

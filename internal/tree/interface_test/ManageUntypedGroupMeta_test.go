@@ -1,22 +1,24 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/netauth/netauth/internal/db"
 )
 
 func TestManageUntypedGroupMeta(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addGroup(t, ctx)
 
 	// Add Single Key
-	_, err := m.ManageUntypedGroupMeta("group1", "UPSERT", "key1{0}", "value1")
+	_, err := m.ManageUntypedGroupMeta(ctxt, "group1", "UPSERT", "key1{0}", "value1")
 	if err != nil {
 		t.Fatal(err)
 	}
-	uem, err := m.ManageUntypedGroupMeta("group1", "READ", "key1", "")
+	uem, err := m.ManageUntypedGroupMeta(ctxt, "group1", "READ", "key1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -25,11 +27,11 @@ func TestManageUntypedGroupMeta(t *testing.T) {
 	}
 
 	// Add a second key
-	_, err = m.ManageUntypedGroupMeta("group1", "UPSERT", "key1{1}", "value2")
+	_, err = m.ManageUntypedGroupMeta(ctxt, "group1", "UPSERT", "key1{1}", "value2")
 	if err != nil {
 		t.Fatal(err)
 	}
-	uem, err = m.ManageUntypedGroupMeta("group1", "READ", "key1", "")
+	uem, err = m.ManageUntypedGroupMeta(ctxt, "group1", "READ", "key1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,11 +40,11 @@ func TestManageUntypedGroupMeta(t *testing.T) {
 	}
 
 	// Clear the first key
-	_, err = m.ManageUntypedGroupMeta("group1", "CLEAREXACT", "key1{0}", "")
+	_, err = m.ManageUntypedGroupMeta(ctxt, "group1", "CLEAREXACT", "key1{0}", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	uem, err = m.ManageUntypedGroupMeta("group1", "READ", "key1", "")
+	uem, err = m.ManageUntypedGroupMeta(ctxt, "group1", "READ", "key1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,11 +53,11 @@ func TestManageUntypedGroupMeta(t *testing.T) {
 	}
 
 	// Clear remaining keys
-	_, err = m.ManageUntypedGroupMeta("group1", "CLEARFUZZY", "key1", "")
+	_, err = m.ManageUntypedGroupMeta(ctxt, "group1", "CLEARFUZZY", "key1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	uem, err = m.ManageUntypedGroupMeta("group1", "READ", "key1", "")
+	uem, err = m.ManageUntypedGroupMeta(ctxt, "group1", "READ", "key1", "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +69,7 @@ func TestManageUntypedGroupMeta(t *testing.T) {
 func TestUntypedGroupMetaBadGroup(t *testing.T) {
 	m, _ := newTreeManager(t)
 
-	_, err := m.ManageUntypedGroupMeta("group1", "UPSERT", "key1{0}", "value1")
+	_, err := m.ManageUntypedGroupMeta(context.Background(), "group1", "UPSERT", "key1{0}", "value1")
 	if err != db.ErrUnknownGroup {
 		t.Fatal(err)
 	}

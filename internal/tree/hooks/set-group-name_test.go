@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -19,7 +20,7 @@ func TestSetGroupName(t *testing.T) {
 	g := &pb.Group{}
 	dg := &pb.Group{Name: proto.String("fooGroup")}
 
-	if err := hook.Run(g, dg); err != nil {
+	if err := hook.Run(context.Background(), g, dg); err != nil {
 		t.Fatal(err)
 	}
 

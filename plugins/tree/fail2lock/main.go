@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"strings"
 	"time"
@@ -65,7 +66,7 @@ type fail2lock struct {
 // for auth.  Assuming it finds more than the configured amount, it
 // will lock the entity and return which will cause an authentication
 // failure.
-func (f fail2lock) PreAuthCheck(e, de pb.Entity) (pb.Entity, error) {
+func (f fail2lock) PreAuthCheck(_ context.Context, e, de pb.Entity) (pb.Entity, error) {
 	flags := util.PatchKeyValueSlice(e.Meta.UntypedMeta, "READ", "fail2lock", "")
 
 	if len(flags) == 1 && strings.Split(flags[0], ":")[1] == "RESET" {
@@ -99,7 +100,7 @@ func (f fail2lock) PreAuthCheck(e, de pb.Entity) (pb.Entity, error) {
 // PostAuthCheck is only run if the authentication has succeeded.  In
 // this case we will remove the fail2lock key from the entity's
 // metadata since they have successfully authenticated.
-func (f fail2lock) PostAuthCheck(e, de pb.Entity) (pb.Entity, error) {
+func (f fail2lock) PostAuthCheck(_ context.Context, e, de pb.Entity) (pb.Entity, error) {
 	delete(f.failDB, e.GetID())
 	return e, nil
 }

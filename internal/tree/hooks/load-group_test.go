@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,6 +16,7 @@ import (
 
 func TestLoadGroup(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	memdb, err := db.New("memory")
 	if err != nil {
@@ -30,7 +32,7 @@ func TestLoadGroup(t *testing.T) {
 		Name:   proto.String("group"),
 		Number: proto.Int32(1),
 	}
-	if err := memdb.SaveGroup(g); err != nil {
+	if err := memdb.SaveGroup(ctx, g); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,7 +45,7 @@ func TestLoadGroup(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if err := hook.Run(&pb.Group{}, &pb.Group{Name: &c.Name}); err != c.wantErr {
+		if err := hook.Run(ctx, &pb.Group{}, &pb.Group{Name: &c.Name}); err != c.wantErr {
 			t.Errorf("Case %d: Got %v Want %v", i, err, c.wantErr)
 		}
 	}

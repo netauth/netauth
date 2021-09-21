@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -19,7 +21,7 @@ type ManageGroupCapabilities struct {
 // value of the mode variable.  When the mode is set to true, any
 // capabilities stored in de will be copied to e if they are not
 // already present.  In false capabilities will be subtracted.
-func (mec *ManageGroupCapabilities) Run(g, dg *pb.Group) error {
+func (mec *ManageGroupCapabilities) Run(_ context.Context, g, dg *pb.Group) error {
 	if len(dg.Capabilities) == 0 {
 		return tree.ErrUnknownCapability
 	}

@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
@@ -16,7 +18,7 @@ type ValidateEntitySecret struct {
 }
 
 // Run calls VerifySecret to compare de.Secret with the secured copy from e.Secret.
-func (v *ValidateEntitySecret) Run(e, de *pb.Entity) error {
+func (v *ValidateEntitySecret) Run(_ context.Context, e, de *pb.Entity) error {
 	return v.VerifySecret(de.GetSecret(), e.GetSecret())
 }
 

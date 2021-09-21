@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -16,8 +18,8 @@ type SaveEntity struct {
 
 // Run will pass e to the data storage mechanism's "SaveEntity"
 // method.
-func (s *SaveEntity) Run(e, de *pb.Entity) error {
-	return s.SaveEntity(e)
+func (s *SaveEntity) Run(ctx context.Context, e, de *pb.Entity) error {
+	return s.SaveEntity(ctx, e)
 }
 
 func init() {

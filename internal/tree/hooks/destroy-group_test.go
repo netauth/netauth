@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,34 +16,35 @@ import (
 
 func TestDestroyGroup(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
-	ctx := tree.RefContext{
+	rctx := tree.RefContext{
 		DB: mdb,
 	}
 
-	hook, err := NewDestroyGroup(ctx)
+	hook, err := NewDestroyGroup(rctx)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err = mdb.SaveGroup(&pb.Group{Name: proto.String("foo")}); err != nil {
+	if err = mdb.SaveGroup(ctx, &pb.Group{Name: proto.String("foo")}); err != nil {
 		t.Fatal(err)
 	}
-	if err = mdb.SaveGroup(&pb.Group{Name: proto.String("bar")}); err != nil {
+	if err = mdb.SaveGroup(ctx, &pb.Group{Name: proto.String("bar")}); err != nil {
 		t.Fatal(err)
 	}
 
 	// Act as though a delete was requested normally
-	if err := hook.Run(&pb.Group{}, &pb.Group{Name: proto.String("foo")}); err != nil {
+	if err := hook.Run(ctx, &pb.Group{}, &pb.Group{Name: proto.String("foo")}); err != nil {
 		t.Fatal(err)
 	}
 
 	// Act as though deleting an entity at the end of a pipeline
-	if err := hook.Run(&pb.Group{Name: proto.String("bar")}, &pb.Group{}); err != nil {
+	if err := hook.Run(ctx, &pb.Group{Name: proto.String("bar")}, &pb.Group{}); err != nil {
 		t.Fatal(err)
 	}
 }

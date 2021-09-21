@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -15,6 +16,7 @@ import (
 
 func TestSaveEntity(t *testing.T) {
 	startup.DoCallbacks()
+	ctx := context.Background()
 
 	mdb, err := db.New("memory")
 	if err != nil {
@@ -28,11 +30,11 @@ func TestSaveEntity(t *testing.T) {
 
 	e := &pb.Entity{ID: proto.String("foobar")}
 
-	if err := hook.Run(e, &pb.Entity{}); err != nil {
+	if err := hook.Run(ctx, e, &pb.Entity{}); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := mdb.LoadEntity("foobar"); err != nil {
+	if _, err := mdb.LoadEntity(ctx, "foobar"); err != nil {
 		t.Fatal("Entity wasn't saved", err)
 	}
 }

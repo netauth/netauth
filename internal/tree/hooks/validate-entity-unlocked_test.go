@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -25,7 +26,7 @@ func TestValidateEntityUnlocked(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if err := hook.Run(c.e, &pb.Entity{}); err != c.wantErr {
+		if err := hook.Run(context.Background(), c.e, &pb.Entity{}); err != c.wantErr {
 			t.Errorf("Case %d - Got: %v Want: %v", i, err, c.wantErr)
 		}
 	}

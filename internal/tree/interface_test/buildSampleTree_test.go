@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -32,6 +33,7 @@ import (
 //
 // * group5 has no rules and a direct member of entity2
 func buildSampleTree(t *testing.T, ctx tree.RefContext) {
+	ctxt := context.Background()
 	group1 := &pb.Group{
 		Name: proto.String("group1"),
 	}
@@ -55,19 +57,19 @@ func buildSampleTree(t *testing.T, ctx tree.RefContext) {
 		Name: proto.String("group5"),
 	}
 
-	if err := ctx.DB.SaveGroup(group1); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, group1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(group2); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, group2); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(group3); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, group3); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(group4); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, group4); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(group5); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, group5); err != nil {
 		t.Fatal(err)
 	}
 
@@ -97,13 +99,13 @@ func buildSampleTree(t *testing.T, ctx tree.RefContext) {
 			},
 		},
 	}
-	if err := ctx.DB.SaveEntity(entity1); err != nil {
+	if err := ctx.DB.SaveEntity(ctxt, entity1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveEntity(entity2); err != nil {
+	if err := ctx.DB.SaveEntity(ctxt, entity2); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveEntity(entity3); err != nil {
+	if err := ctx.DB.SaveEntity(ctxt, entity3); err != nil {
 		t.Fatal(err)
 	}
 }

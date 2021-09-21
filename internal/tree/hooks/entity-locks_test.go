@@ -1,6 +1,7 @@
 package hooks
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -19,7 +20,7 @@ func TestEntityLock(t *testing.T) {
 	e := &pb.Entity{Meta: &pb.EntityMeta{}}
 	de := &pb.Entity{}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 
@@ -37,7 +38,7 @@ func TestEntityUnLock(t *testing.T) {
 	e := &pb.Entity{Meta: &pb.EntityMeta{Locked: proto.Bool(true)}}
 	de := &pb.Entity{}
 
-	if err := hook.Run(e, de); err != nil {
+	if err := hook.Run(context.Background(), e, de); err != nil {
 		t.Fatal(err)
 	}
 

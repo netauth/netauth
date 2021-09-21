@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"context"
 	"errors"
 	"testing"
 
@@ -126,18 +127,18 @@ func TestECCheckRequiredEmpty(t *testing.T) {
 
 type nullEntityHook struct{}
 
-func (*nullEntityHook) Name() string              { return "null-hook" }
-func (*nullEntityHook) Priority() int             { return 50 }
-func (*nullEntityHook) Run(_, _ *pb.Entity) error { return nil }
+func (*nullEntityHook) Name() string                                 { return "null-hook" }
+func (*nullEntityHook) Priority() int                                { return 50 }
+func (*nullEntityHook) Run(_ context.Context, _, _ *pb.Entity) error { return nil }
 func goodEntityConstructor(_ RefContext) (EntityHook, error) {
 	return &nullEntityHook{}, nil
 }
 
 type nullEntityHook2 struct{}
 
-func (*nullEntityHook2) Name() string              { return "null-hook2" }
-func (*nullEntityHook2) Priority() int             { return 40 }
-func (*nullEntityHook2) Run(_, _ *pb.Entity) error { return nil }
+func (*nullEntityHook2) Name() string                                 { return "null-hook2" }
+func (*nullEntityHook2) Priority() int                                { return 40 }
+func (*nullEntityHook2) Run(_ context.Context, _, _ *pb.Entity) error { return nil }
 
 func goodEntityConstructor2(_ RefContext) (EntityHook, error) {
 	return &nullEntityHook2{}, nil

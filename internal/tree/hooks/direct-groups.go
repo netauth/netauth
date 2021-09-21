@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/tree"
 	"github.com/netauth/netauth/internal/tree/util"
 
@@ -17,7 +19,7 @@ type DirectGroupManager struct {
 // Run iterates through all groups in de.Meta.Groups and adds or
 // removes them from e.Meta.Groups based on the value of dgm.mode.
 // True will add groups, false will remove them.
-func (dgm *DirectGroupManager) Run(e, de *pb.Entity) error {
+func (dgm *DirectGroupManager) Run(_ context.Context, e, de *pb.Entity) error {
 	groups := de.GetMeta().GetGroups()
 	for i := range groups {
 		// Patch the group list and match groups exactly.

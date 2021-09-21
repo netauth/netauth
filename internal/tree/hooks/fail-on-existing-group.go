@@ -1,6 +1,8 @@
 package hooks
 
 import (
+	"context"
+
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -17,8 +19,8 @@ type FailOnExistingGroup struct {
 // Run contacts the datastore and attempts to load the group specified
 // by dg.  If the group loads successfully then an error is returned,
 // in other cases nil is returned.
-func (f *FailOnExistingGroup) Run(g, dg *pb.Group) error {
-	if _, err := f.LoadGroup(dg.GetName()); err == nil {
+func (f *FailOnExistingGroup) Run(ctx context.Context, g, dg *pb.Group) error {
+	if _, err := f.LoadGroup(ctx, dg.GetName()); err == nil {
 		return tree.ErrDuplicateGroupName
 	}
 	return nil

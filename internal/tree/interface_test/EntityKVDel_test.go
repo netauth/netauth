@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -11,6 +12,7 @@ import (
 )
 
 func TestEntityKVDel(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	addEntity(t, ctx)
@@ -22,11 +24,11 @@ func TestEntityKVDel(t *testing.T) {
 		}},
 	}}
 
-	if err := m.EntityKVAdd("entity1", kv1); err != nil {
+	if err := m.EntityKVAdd(ctxt, "entity1", kv1); err != nil {
 		t.Fatal(err)
 	}
 
-	kvtest, err := m.EntityKVGet("entity1", kv1)
+	kvtest, err := m.EntityKVGet(ctxt, "entity1", kv1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,11 +37,11 @@ func TestEntityKVDel(t *testing.T) {
 		t.Error("Set a key and got different data back")
 	}
 
-	if err := m.EntityKVDel("entity1", kv1); err != nil {
+	if err := m.EntityKVDel(ctxt, "entity1", kv1); err != nil {
 		t.Fatal("err")
 	}
 
-	res, err := m.EntityKVGet("entity1", kv1)
+	res, err := m.EntityKVGet(ctxt, "entity1", kv1)
 	if err != tree.ErrNoSuchKey {
 		t.Fatal(err)
 	}

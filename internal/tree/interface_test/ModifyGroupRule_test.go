@@ -1,6 +1,7 @@
 package interface_test
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/proto"
@@ -10,6 +11,7 @@ import (
 )
 
 func TestModifyGroupRule(t *testing.T) {
+	ctxt := context.Background()
 	m, ctx := newTreeManager(t)
 
 	g1 := &pb.Group{
@@ -19,18 +21,18 @@ func TestModifyGroupRule(t *testing.T) {
 		Name: proto.String("group2"),
 	}
 
-	if err := ctx.DB.SaveGroup(g1); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, g1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(g2); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := m.ModifyGroupRule("group1", "group2", rpc.RuleAction_INCLUDE); err != nil {
+	if err := ctx.DB.SaveGroup(ctxt, g2); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup("group1")
+	if err := m.ModifyGroupRule(ctxt, "group1", "group2", rpc.RuleAction_INCLUDE); err != nil {
+		t.Fatal(err)
+	}
+
+	g, err := ctx.DB.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,11 +42,11 @@ func TestModifyGroupRule(t *testing.T) {
 		t.Error("Expansions are not correctly set on group1")
 	}
 
-	if err := m.ModifyGroupRule("group1", "group2", rpc.RuleAction_REMOVE_RULE); err != nil {
+	if err := m.ModifyGroupRule(ctxt, "group1", "group2", rpc.RuleAction_REMOVE_RULE); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err = ctx.DB.LoadGroup("group1")
+	g, err = ctx.DB.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -54,11 +56,11 @@ func TestModifyGroupRule(t *testing.T) {
 		t.Error("Expansions are not correctly set on group1")
 	}
 
-	if err := m.ModifyGroupRule("group1", "group2", rpc.RuleAction_EXCLUDE); err != nil {
+	if err := m.ModifyGroupRule(ctxt, "group1", "group2", rpc.RuleAction_EXCLUDE); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err = ctx.DB.LoadGroup("group1")
+	g, err = ctx.DB.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}
