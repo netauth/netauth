@@ -398,7 +398,7 @@ func TestEntityUM(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.CreateEntity("load-error", -1, "")
+		s.CreateEntity(context.Background(), "load-error", -1, "")
 		s.readonly = c.readonly
 		_, err := s.EntityUM(c.ctx, &c.req)
 		if err != c.wantErr {
@@ -595,7 +595,7 @@ func TestEntityKVDel(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.Manager.EntityKVAdd("entity1", []*types.KVData{
+		s.Manager.EntityKVAdd(context.Background(), "entity1", []*types.KVData{
 			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
@@ -674,7 +674,7 @@ func TestEntityKVReplace(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.Manager.EntityKVAdd("entity1", []*types.KVData{
+		s.Manager.EntityKVAdd(context.Background(), "entity1", []*types.KVData{
 			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
@@ -818,8 +818,8 @@ func TestEntityKeys(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.CreateEntity("valid", -1, "")
-		s.CreateEntity("load-error", -1, "")
+		s.CreateEntity(c.ctx, "valid", -1, "")
+		s.CreateEntity(c.ctx, "load-error", -1, "")
 		s.readonly = c.readonly
 		_, err := s.EntityKeys(c.ctx, &c.req)
 		if err != c.wantErr {

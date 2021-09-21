@@ -352,7 +352,7 @@ func TestGroupUM(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.CreateGroup("load-error", "", "", -1)
+		s.CreateGroup(c.ctx, "load-error", "", "", -1)
 		s.readonly = c.readonly
 		_, err := s.GroupUM(c.ctx, &c.req)
 		if err != c.wantErr {
@@ -527,7 +527,7 @@ func TestGroupKVDel(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.Manager.GroupKVAdd("group1", []*types.KVData{
+		s.Manager.GroupKVAdd(c.ctx, "group1", []*types.KVData{
 			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{
@@ -595,7 +595,7 @@ func TestGroupKVReplace(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.Manager.GroupKVAdd("group1", []*types.KVData{
+		s.Manager.GroupKVAdd(c.ctx, "group1", []*types.KVData{
 			{
 				Key: proto.String("key1"),
 				Values: []*types.KVValue{

@@ -39,13 +39,13 @@ func (s *Server) SystemCapabilities(ctx context.Context, r *pb.CapabilityRequest
 
 	switch {
 	case r.GetDirect() && r.GetAction() == pb.Action_ADD && r.GetTarget() != "":
-		err = s.SetEntityCapability2(r.GetTarget(), r.Capability)
+		err = s.SetEntityCapability2(ctx, r.GetTarget(), r.Capability)
 	case r.GetDirect() && r.GetAction() == pb.Action_DROP && r.GetTarget() != "":
-		err = s.DropEntityCapability2(r.GetTarget(), r.Capability)
+		err = s.DropEntityCapability2(ctx, r.GetTarget(), r.Capability)
 	case !r.GetDirect() && r.GetAction() == pb.Action_ADD && r.GetTarget() != "":
-		err = s.SetGroupCapability2(r.GetTarget(), r.Capability)
+		err = s.SetGroupCapability2(ctx, r.GetTarget(), r.Capability)
 	case !r.GetDirect() && r.GetAction() == pb.Action_DROP && r.GetTarget() != "":
-		err = s.DropGroupCapability2(r.GetTarget(), r.Capability)
+		err = s.DropGroupCapability2(ctx, r.GetTarget(), r.Capability)
 	default:
 		s.log.Warn("Malformed request",
 			"method", "SystemCapabilities",

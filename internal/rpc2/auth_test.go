@@ -88,7 +88,7 @@ func TestAuthGetToken(t *testing.T) {
 
 	s := newServer(t)
 	initTree(t, s.Manager)
-	s.CreateEntity("token-issue-error", -1, "secret")
+	s.CreateEntity(context.Background(), "token-issue-error", -1, "secret")
 
 	for i, c := range cases {
 		res, err := s.AuthGetToken(context.Background(), &c.req)
@@ -216,7 +216,7 @@ func TestAuthChangeSecret(t *testing.T) {
 	for i, c := range cases {
 		s := newServer(t)
 		initTree(t, s.Manager)
-		s.CreateEntity("valid", -1, "secret")
+		s.CreateEntity(c.ctx, "valid", -1, "secret")
 		s.readonly = c.readonly
 		if _, err := s.AuthChangeSecret(c.ctx, &c.req); err != c.wantErr {
 			t.Errorf("%d: Got %v; Want %v", i, err, c.wantErr)

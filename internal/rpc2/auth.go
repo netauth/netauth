@@ -14,7 +14,7 @@ import (
 func (s *Server) AuthEntity(ctx context.Context, r *pb.AuthRequest) (*pb.Empty, error) {
 	e := r.GetEntity()
 
-	if err := s.ValidateSecret(e.GetID(), r.GetSecret()); err != nil {
+	if err := s.ValidateSecret(ctx, e.GetID(), r.GetSecret()); err != nil {
 		s.log.Info("Authentication Failed",
 			"entity", e.GetID(),
 			"service", getServiceName(ctx),
@@ -37,7 +37,7 @@ func (s *Server) AuthGetToken(ctx context.Context, r *pb.AuthRequest) (*pb.AuthR
 		return &pb.AuthResult{}, err
 	}
 
-	caps := s.getCapabilitiesForEntity(*r.Entity.ID)
+	caps := s.getCapabilitiesForEntity(ctx, *r.Entity.ID)
 
 	// Generate Token
 	tkn, err := s.Generate(
@@ -114,7 +114,7 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.AuthRequest) (*pb.E
 
 	// Changing for self, must have the original secret
 	if getTokenClaims(ctx).EntityID == e.GetID() {
-		if err := s.ValidateSecret(e.GetID(), e.GetSecret()); err != nil {
+		if err := s.ValidateSecret(ctx, e.GetID(), e.GetSecret()); err != nil {
 			s.log.Info("Permission Denied for AuthChangeSecret",
 				"modself", true,
 				"entity", e.GetID(),
@@ -138,7 +138,7 @@ func (s *Server) AuthChangeSecret(ctx context.Context, r *pb.AuthRequest) (*pb.E
 	}
 
 	// Set the secret
-	if err := s.SetSecret(e.GetID(), r.GetSecret()); err != nil {
+	if err := s.SetSecret(ctx, e.GetID(), r.GetSecret()); err != nil {
 		s.log.Warn("Secret Manipulation Error",
 			"entity", e.GetID(),
 			"service", getServiceName(ctx),

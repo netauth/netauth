@@ -19,7 +19,7 @@ func (s *Server) EntityCreate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	}
 
 	e := r.GetEntity()
-	switch err := s.CreateEntity(e.GetID(), e.GetNumber(), e.GetSecret()); err {
+	switch err := s.CreateEntity(ctx, e.GetID(), e.GetNumber(), e.GetSecret()); err {
 	case tree.ErrDuplicateEntityID, tree.ErrDuplicateNumber:
 		s.log.Warn("Attempt to create duplicate entity",
 			"entity", e.GetID(),
@@ -61,7 +61,7 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	}
 
 	de := r.GetData()
-	switch err := s.UpdateEntityMeta(de.GetID(), de.GetMeta()); err {
+	switch err := s.UpdateEntityMeta(ctx, de.GetID(), de.GetMeta()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUpdate",
@@ -97,7 +97,7 @@ func (s *Server) EntityUpdate(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfEntities, error) {
 	e := r.GetEntity()
 
-	switch ent, err := s.FetchEntity(e.GetID()); err {
+	switch ent, err := s.FetchEntity(ctx, e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUpdate",
@@ -129,7 +129,7 @@ func (s *Server) EntityInfo(ctx context.Context, r *pb.EntityRequest) (*pb.ListO
 func (s *Server) EntitySearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfEntities, error) {
 	expr := r.GetExpression()
 
-	res, err := s.SearchEntities(db.SearchRequest{Expression: expr})
+	res, err := s.SearchEntities(ctx, db.SearchRequest{Expression: expr})
 	if err != nil {
 		s.log.Warn("Search Error",
 			"expr", expr,
@@ -176,7 +176,7 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 
 	// At this point, we're either in a read-only query, or in a
 	// write one that has been authorized.
-	meta, err := s.ManageUntypedEntityMeta(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	meta, err := s.ManageUntypedEntityMeta(ctx, r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -208,7 +208,7 @@ func (s *Server) EntityUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStrin
 
 // EntityKVGet returns key/value data from a single entity.
 func (s *Server) EntityKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKVData, error) {
-	res, err := s.Manager.EntityKVGet(r.GetTarget(), []*types.KVData{r.GetData()})
+	res, err := s.Manager.EntityKVGet(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	out := &pb.ListOfKVData{KVData: res}
 	switch err {
 	case db.ErrUnknownEntity:
@@ -252,7 +252,7 @@ func (s *Server) EntityKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, 
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.EntityKVAdd(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.EntityKVAdd(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -298,7 +298,7 @@ func (s *Server) EntityKVDel(ctx context.Context, r *pb.KV2Request) (*pb.Empty, 
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.EntityKVDel(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.EntityKVDel(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -344,7 +344,7 @@ func (s *Server) EntityKVReplace(ctx context.Context, r *pb.KV2Request) (*pb.Emp
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.EntityKVReplace(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.EntityKVReplace(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -414,7 +414,7 @@ func (s *Server) EntityKeys(ctx context.Context, r *pb.KVRequest) (*pb.ListOfStr
 
 	// At this point, we're either in a read-only query, or in a
 	// write one that has been authorized.
-	keys, err := s.UpdateEntityKeys(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	keys, err := s.UpdateEntityKeys(ctx, r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -453,7 +453,7 @@ func (s *Server) EntityDestroy(ctx context.Context, r *pb.EntityRequest) (*pb.Em
 	}
 
 	e := r.GetEntity()
-	switch err := s.DestroyEntity(e.GetID()); err {
+	switch err := s.DestroyEntity(ctx, e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityDestroy",
@@ -490,7 +490,7 @@ func (s *Server) EntityLock(ctx context.Context, r *pb.EntityRequest) (*pb.Empty
 	}
 
 	e := r.GetEntity()
-	switch err := s.LockEntity(e.GetID()); err {
+	switch err := s.LockEntity(ctx, e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityLock",
@@ -527,7 +527,7 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 	}
 
 	e := r.GetEntity()
-	switch err := s.UnlockEntity(e.GetID()); err {
+	switch err := s.UnlockEntity(ctx, e.GetID()); err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
 			"method", "EntityUnlock",
@@ -561,7 +561,7 @@ func (s *Server) EntityUnlock(ctx context.Context, r *pb.EntityRequest) (*pb.Emp
 func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.ListOfGroups, error) {
 	e := r.GetEntity()
 
-	ent, err := s.FetchEntity(e.GetID())
+	ent, err := s.FetchEntity(ctx, e.GetID())
 	switch err {
 	case db.ErrUnknownEntity:
 		s.log.Warn("Entity does not exist!",
@@ -583,14 +583,14 @@ func (s *Server) EntityGroups(ctx context.Context, r *pb.EntityRequest) (*pb.Lis
 		return &pb.ListOfGroups{}, ErrInternal
 	}
 
-	groups := s.GetMemberships(ent)
+	groups := s.GetMemberships(ctx, ent)
 
 	out := make([]*types.Group, len(groups))
 	for i := range groups {
 		// We throw this error out here, as its logged at a
 		// lower level, and the side effect here is that only
 		// a partial result gets returned.
-		tmp, _ := s.FetchGroup(groups[i])
+		tmp, _ := s.FetchGroup(ctx, groups[i])
 		out[i] = tmp
 	}
 

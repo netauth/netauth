@@ -13,7 +13,7 @@ import (
 
 type claimsContextKey struct{}
 
-func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
+func (s *Server) getCapabilitiesForEntity(ctx context.Context, id string) []types.Capability {
 	// Get the full fledged entity; we can assert no error here
 	// since the entity was just loaded to perform an
 	// authentication check prior to calling this function.
@@ -21,7 +21,7 @@ func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 	// that's the case then this will return empty since the
 	// FetchEntity function will return an empty entity, thus no
 	// authorization attack can be performed via this vector.
-	e, _ := s.FetchEntity(id)
+	e, _ := s.FetchEntity(ctx, id)
 
 	// First get the capabilities that are provided by the entity
 	// itself.
@@ -38,9 +38,9 @@ func (s *Server) getCapabilitiesForEntity(id string) []types.Capability {
 	// case is a group is returned that is completely empty.  In
 	// this case there will simply be no additional capabilities
 	// granted, and this function can continue without incident.
-	groupNames := s.GetMemberships(e)
+	groupNames := s.GetMemberships(ctx, e)
 	for _, name := range groupNames {
-		g, _ := s.FetchGroup(name)
+		g, _ := s.FetchGroup(ctx, name)
 		for _, c := range g.GetCapabilities() {
 			caps[c]++
 		}
@@ -163,8 +163,8 @@ func getTokenClaims(ctx context.Context) token.Claims {
 // member of any group that group g has delegated management authority
 // to.  In this way, an entity can be allowed to alter certain groups
 // without needing to grant broad server level authority.
-func (s *Server) manageByMembership(entityID string, g *types.Group) bool {
-	g, err := s.FetchGroup(g.GetName())
+func (s *Server) manageByMembership(ctx context.Context, entityID string, g *types.Group) bool {
+	g, err := s.FetchGroup(ctx, g.GetName())
 	if err != nil {
 		return false
 	}
@@ -176,12 +176,12 @@ func (s *Server) manageByMembership(entityID string, g *types.Group) bool {
 		return false
 	}
 
-	e, err := s.FetchEntity(entityID)
+	e, err := s.FetchEntity(ctx, entityID)
 	if err != nil {
 		return false
 	}
 
-	for _, name := range s.GetMemberships(e) {
+	for _, name := range s.GetMemberships(ctx, e) {
 		if name == g.GetManagedBy() {
 			return true
 		}

@@ -69,7 +69,7 @@ func TestSystemCapabilitiesEntity(t *testing.T) {
 		t.Fatal("Request with validated token was rejected")
 	}
 
-	e, _ := s.FetchEntity("entity1")
+	e, _ := s.FetchEntity(context.Background(), "entity1")
 	if e.GetMeta() == nil {
 		t.Fatal("Failed to set capability on entity (no meta)")
 	}
@@ -84,7 +84,7 @@ func TestSystemCapabilitiesEntity(t *testing.T) {
 		t.Error("Request with validated token was rejected")
 	}
 
-	e, _ = s.FetchEntity("entity1")
+	e, _ = s.FetchEntity(context.Background(), "entity1")
 	if len(e.Meta.Capabilities) != 0 {
 		t.Error("Failed to remove capability from entity")
 	}
@@ -107,7 +107,7 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 		t.Error("Request with validated token was rejected")
 	}
 
-	g, _ := s.FetchGroup("group1")
+	g, _ := s.FetchGroup(context.Background(), "group1")
 	if len(g.Capabilities) != 1 || g.Capabilities[0] != types.Capability_GLOBAL_ROOT {
 		t.Error("Failed to set capability on group")
 	}
@@ -119,7 +119,7 @@ func TestSystemCapabilitiesGroup(t *testing.T) {
 		t.Error("Request with validated token was rejected")
 	}
 
-	g, _ = s.FetchGroup("group1")
+	g, _ = s.FetchGroup(context.Background(), "group1")
 	if len(g.Capabilities) != 0 {
 		t.Error("Failed to remove capability from group")
 	}

@@ -17,11 +17,11 @@ func TestGetCapabilitiesForEntity(t *testing.T) {
 	s := newServer(t)
 	initTree(t, s.Manager)
 
-	s.CreateGroup("lockout", "", "", -1)
-	s.AddEntityToGroup("admin", "lockout")
-	s.SetGroupCapability2("lockout", types.Capability_LOCK_ENTITY.Enum())
+	s.CreateGroup(context.Background(), "lockout", "", "", -1)
+	s.AddEntityToGroup(context.Background(), "admin", "lockout")
+	s.SetGroupCapability2(context.Background(), "lockout", types.Capability_LOCK_ENTITY.Enum())
 
-	caps := s.getCapabilitiesForEntity("admin")
+	caps := s.getCapabilitiesForEntity(context.Background(), "admin")
 	if len(caps) != 2 {
 		t.Error("Not all caps were found", caps)
 	}
@@ -159,7 +159,7 @@ func TestManageByMembership(t *testing.T) {
 		s := newServer(t)
 		initTree(t, s.Manager)
 
-		if got := s.manageByMembership(c.id, &c.g); got != c.wantRes {
+		if got := s.manageByMembership(context.Background(), c.id, &c.g); got != c.wantRes {
 			t.Errorf("%d: Got %v; Want %v", i, got, c.wantRes)
 		}
 	}

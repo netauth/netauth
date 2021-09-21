@@ -20,7 +20,7 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 		return &pb.Empty{}, err
 	}
 
-	switch err := s.CreateGroup(g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err {
+	switch err := s.CreateGroup(ctx, g.GetName(), g.GetDisplayName(), g.GetManagedBy(), g.GetNumber()); err {
 	case tree.ErrDuplicateGroupName, tree.ErrDuplicateNumber:
 		s.log.Warn("Attempt to create duplicate group",
 			"group", g.GetName(),
@@ -56,11 +56,11 @@ func (s *Server) GroupCreate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty, error) {
 	g := r.GetGroup()
 	err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
-	if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
+	if err != nil && !s.manageByMembership(ctx, getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
-	switch err := s.UpdateGroupMeta(g.GetName(), g); err {
+	switch err := s.UpdateGroupMeta(ctx, g.GetName(), g); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Unable to load group",
 			"group", g.GetName(),
@@ -96,7 +96,7 @@ func (s *Server) GroupUpdate(ctx context.Context, r *pb.GroupRequest) (*pb.Empty
 func (s *Server) GroupInfo(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfGroups, error) {
 	g := r.GetGroup()
 
-	switch grp, err := s.FetchGroup(g.GetName()); err {
+	switch grp, err := s.FetchGroup(ctx, g.GetName()); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Unknown Group",
 			"group", g.GetName(),
@@ -136,14 +136,14 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 	if r.GetAction() != pb.Action_READ {
 		err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
 		g := types.Group{Name: proto.String(r.GetTarget())}
-		if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &g) {
+		if err != nil && !s.manageByMembership(ctx, getTokenClaims(ctx).EntityID, &g) {
 			return &pb.ListOfStrings{}, err
 		}
 	}
 
 	// At this point, we're either in a read-only query, or in a
 	// write one that has been authorized.
-	meta, err := s.ManageUntypedGroupMeta(r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
+	meta, err := s.ManageUntypedGroupMeta(ctx, r.GetTarget(), r.GetAction().String(), r.GetKey(), r.GetValue())
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
@@ -175,7 +175,7 @@ func (s *Server) GroupUM(ctx context.Context, r *pb.KVRequest) (*pb.ListOfString
 
 // GroupKVGet returns key/value data from a single group.
 func (s *Server) GroupKVGet(ctx context.Context, r *pb.KV2Request) (*pb.ListOfKVData, error) {
-	res, err := s.Manager.GroupKVGet(r.GetTarget(), []*types.KVData{r.GetData()})
+	res, err := s.Manager.GroupKVGet(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	out := &pb.ListOfKVData{KVData: res}
 	switch err {
 	case db.ErrUnknownGroup:
@@ -221,7 +221,7 @@ func (s *Server) GroupKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, e
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.GroupKVAdd(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.GroupKVAdd(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
@@ -258,7 +258,7 @@ func (s *Server) GroupKVDel(ctx context.Context, r *pb.KV2Request) (*pb.Empty, e
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.GroupKVDel(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.GroupKVDel(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
@@ -296,7 +296,7 @@ func (s *Server) GroupKVReplace(ctx context.Context, r *pb.KV2Request) (*pb.Empt
 		return &pb.Empty{}, err
 	}
 
-	err := s.Manager.GroupKVReplace(r.GetTarget(), []*types.KVData{r.GetData()})
+	err := s.Manager.GroupKVReplace(ctx, r.GetTarget(), []*types.KVData{r.GetData()})
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
@@ -331,11 +331,11 @@ func (s *Server) GroupUpdateRules(ctx context.Context, r *pb.GroupRulesRequest) 
 	g := r.GetGroup()
 
 	err := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_META)
-	if err != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, g) {
+	if err != nil && !s.manageByMembership(ctx, getTokenClaims(ctx).EntityID, g) {
 		return &pb.Empty{}, err
 	}
 
-	switch err := s.ModifyGroupRule(r.GetGroup().GetName(), r.GetTarget().GetName(), r.GetRuleAction()); err {
+	switch err := s.ModifyGroupRule(ctx, r.GetGroup().GetName(), r.GetTarget().GetName(), r.GetRuleAction()); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
 			"method", "GroupUpdateRules",
@@ -372,7 +372,7 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 	preErr := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_MEMBERS)
 	for _, g := range e.GetMeta().GetGroups() {
 		grp := types.Group{Name: proto.String(g)}
-		if preErr != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+		if preErr != nil && !s.manageByMembership(ctx, getTokenClaims(ctx).EntityID, &grp) {
 			s.log.Warn("Insufficient authority to add entity to group",
 				"entity", e.GetID(),
 				"group", g,
@@ -380,7 +380,7 @@ func (s *Server) GroupAddMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 			)
 			return &pb.Empty{}, preErr
 		}
-		if err := s.AddEntityToGroup(e.GetID(), g); err != nil {
+		if err := s.AddEntityToGroup(ctx, e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),
 				"group", g,
@@ -402,7 +402,7 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 	preErr := s.mutablePrequisitesMet(ctx, types.Capability_MODIFY_GROUP_MEMBERS)
 	for _, g := range e.GetMeta().GetGroups() {
 		grp := types.Group{Name: proto.String(g)}
-		if preErr != nil && !s.manageByMembership(getTokenClaims(ctx).EntityID, &grp) {
+		if preErr != nil && !s.manageByMembership(ctx, getTokenClaims(ctx).EntityID, &grp) {
 			s.log.Warn("Insufficient authority to add entity to group",
 				"entity", e.GetID(),
 				"group", g,
@@ -410,7 +410,7 @@ func (s *Server) GroupDelMember(ctx context.Context, r *pb.EntityRequest) (*pb.E
 			)
 			return &pb.Empty{}, preErr
 		}
-		if err := s.RemoveEntityFromGroup(e.GetID(), g); err != nil {
+		if err := s.RemoveEntityFromGroup(ctx, e.GetID(), g); err != nil {
 			s.log.Warn("Error adding entity to group",
 				"entity", e.GetID(),
 				"group", g,
@@ -435,7 +435,7 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 		return &pb.Empty{}, err
 	}
 
-	switch err := s.DestroyGroup(g.GetName()); err {
+	switch err := s.DestroyGroup(ctx, g.GetName()); err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
 			"method", "GroupDestroy",
@@ -470,7 +470,7 @@ func (s *Server) GroupDestroy(ctx context.Context, r *pb.GroupRequest) (*pb.Empt
 func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.ListOfEntities, error) {
 	g := r.GetGroup()
 
-	members, err := s.ListMembers(g.GetName())
+	members, err := s.ListMembers(ctx, g.GetName())
 	switch err {
 	case db.ErrUnknownGroup:
 		s.log.Warn("Group does not exist!",
@@ -498,7 +498,7 @@ func (s *Server) GroupMembers(ctx context.Context, r *pb.GroupRequest) (*pb.List
 func (s *Server) GroupSearch(ctx context.Context, r *pb.SearchRequest) (*pb.ListOfGroups, error) {
 	expr := r.GetExpression()
 
-	res, err := s.SearchGroups(db.SearchRequest{Expression: expr})
+	res, err := s.SearchGroups(ctx, db.SearchRequest{Expression: expr})
 	if err != nil {
 		s.log.Warn("Search Error",
 			"expr", expr,
