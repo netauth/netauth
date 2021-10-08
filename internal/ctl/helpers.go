@@ -53,8 +53,7 @@ func token() string {
 // it checks if the CLI can validate it, but in this case we can treat
 // a validation error as cause to renew it.
 func tokenIsExpired(t string) bool {
-	_, err := rpc.Validate(t)
-	return err != nil
+	return rpc.AuthValidateToken(ctx, t) == nil
 }
 
 // refreshToken is a convenience function to acquire a token or die
