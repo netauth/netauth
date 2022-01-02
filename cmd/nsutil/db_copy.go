@@ -103,5 +103,5 @@ func dbCopyCmdRun(c *cobra.Command, args []string) {
 		}
 		count++
 	}
-	fmt.Println("Copy complete; %d objects were copied.  If this number does not match the number of source objects you have encountered copy errors and should review them above!", count)
+	fmt.Printf("Copy complete; %d objects were copied.  If this number does not match the number of source objects you have encountered copy errors and should review them above!\n", count)
 }
