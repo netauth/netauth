@@ -15,8 +15,8 @@ import (
 	_ "github.com/netauth/netauth/internal/db/bitcask"
 	_ "github.com/netauth/netauth/internal/db/filesystem"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
-	"github.com/netauth/netauth/internal/token"
-	_ "github.com/netauth/netauth/internal/token/jwt"
+	"github.com/netauth/netauth/pkg/token"
+	_ "github.com/netauth/netauth/pkg/token/jwt"
 
 	"github.com/netauth/netauth/internal/rpc2"
 	"github.com/netauth/netauth/internal/tree"

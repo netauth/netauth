@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/internal/db"
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 
 	pb "github.com/netauth/protocol"
 	rpc "github.com/netauth/protocol/v2"

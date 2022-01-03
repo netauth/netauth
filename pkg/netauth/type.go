@@ -3,7 +3,7 @@ package netauth
 import (
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 	"github.com/netauth/netauth/pkg/netauth/cache"
 
 	rpc "github.com/netauth/protocol/v2"

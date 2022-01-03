@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/internal/health"
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 
 	"github.com/golang-jwt/jwt/v4"
 )

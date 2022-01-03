@@ -6,7 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 
 	types "github.com/netauth/protocol"
 )

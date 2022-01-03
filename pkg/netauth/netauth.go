@@ -12,13 +12,13 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/netauth/netauth/internal/startup"
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 	"github.com/netauth/netauth/pkg/netauth/cache"
 
 	// The default token service is the jwt implementation, and
 	// since its internal, the client needs to import it on behalf
 	// of consumers.
-	_ "github.com/netauth/netauth/internal/token/jwt"
+	_ "github.com/netauth/netauth/pkg/token/jwt"
 
 	// Since most applicatios don't need persistent token caching
 	// the default is to use an in-memory store.  This is imported

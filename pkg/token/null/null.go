@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/netauth/netauth/internal/token"
+	"github.com/netauth/netauth/pkg/token"
 )
 
 var (

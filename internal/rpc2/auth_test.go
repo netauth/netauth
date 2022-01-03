@@ -6,7 +6,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/token/null"
+	"github.com/netauth/netauth/pkg/token/null"
 
 	types "github.com/netauth/protocol"
 	pb "github.com/netauth/protocol/v2"
