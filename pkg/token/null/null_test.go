@@ -9,7 +9,7 @@ import (
 )
 
 func TestGenerate(t *testing.T) {
-	tkn := New(hclog.NewNullLogger())
+	tkn := New(hclog.NewNullLogger(), nil)
 
 	cases := []struct {
 		claims    token.Claims
@@ -30,7 +30,7 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestValidate(t *testing.T) {
-	tkn := New(hclog.NewNullLogger())
+	tkn := New(hclog.NewNullLogger(), nil)
 
 	if _, err := tkn.Validate("{\"EntityID\":\"valid\",\"Capabilities\":null}"); err != nil {
 		t.Errorf("Couldn't validate real token: %v", err)

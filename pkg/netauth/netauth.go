@@ -12,8 +12,11 @@ import (
 	"google.golang.org/grpc/credentials"
 
 	"github.com/netauth/netauth/internal/startup"
-	"github.com/netauth/netauth/pkg/token"
 	"github.com/netauth/netauth/pkg/netauth/cache"
+	"github.com/netauth/netauth/pkg/token"
+
+	"github.com/netauth/netauth/pkg/token/keyprovider"
+	_ "github.com/netauth/netauth/pkg/token/keyprovider/fs"
 
 	// The default token service is the jwt implementation, and
 	// since its internal, the client needs to import it on behalf
@@ -33,6 +36,7 @@ func init() {
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("token.cache", "memory")
 	viper.SetDefault("token.backend", "jwt-rsa")
+	viper.SetDefault("token.keyprovider", "fs")
 }
 
 // NewWithLog uses the specified logger to contruct a NetAuth client.
@@ -61,7 +65,13 @@ func NewWithLog(l hclog.Logger) (*Client, error) {
 	// hooks.
 	startup.DoCallbacks()
 
-	ts, err := token.New(viper.GetString("token.backend"))
+	kp, err := keyprovider.New(viper.GetString("token.keyprovider"))
+	if err != nil {
+		l.Warn("KeyProvider initialization error", "error", err)
+		return nil, err
+	}
+
+	ts, err := token.New(viper.GetString("token.backend"), kp)
 	if err != nil {
 		l.Warn("Token service initialization error", "error", err)
 	}

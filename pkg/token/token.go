@@ -4,10 +4,12 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
+
+	"github.com/netauth/netauth/pkg/token/keyprovider"
 )
 
 // A Factory returns a token service when called.
-type Factory func(hclog.Logger) (Service, error)
+type Factory func(hclog.Logger, keyprovider.KeyProvider) (Service, error)
 
 // The Service type defines the required interface for the Token
 // Service.  The service must generate tokens, and be able to validate
@@ -39,12 +41,12 @@ func init() {
 
 // New returns an initialized token service based on the value of the
 // --token_impl flag.
-func New(backend string) (Service, error) {
+func New(backend string, kp keyprovider.KeyProvider) (Service, error) {
 	t, ok := services[backend]
 	if !ok {
 		return nil, ErrUnknownTokenService
 	}
-	return t(log())
+	return t(log(), kp)
 }
 
 // Register is called by implementations to register ServiceFactory

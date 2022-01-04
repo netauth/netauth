@@ -12,9 +12,9 @@ import (
 	"github.com/netauth/netauth/internal/db"
 	"github.com/netauth/netauth/internal/db/memory"
 	"github.com/netauth/netauth/internal/startup"
-	"github.com/netauth/netauth/pkg/token/null"
 	"github.com/netauth/netauth/internal/tree"
 	_ "github.com/netauth/netauth/internal/tree/hooks"
+	"github.com/netauth/netauth/pkg/token/null"
 
 	types "github.com/netauth/protocol"
 )

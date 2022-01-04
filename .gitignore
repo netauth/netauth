@@ -36,3 +36,6 @@ config.toml
 # GoReleaser
 dist/
 NOTICE
+
+# Keygen
+rsa.*

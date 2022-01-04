@@ -1,162 +1,55 @@
 package jwt
 
 import (
-	"crypto/ecdsa"
-	"crypto/elliptic"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
-	"io/ioutil"
-	"math/rand"
-	"os"
-	"path/filepath"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
-	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/pkg/token"
+	"github.com/netauth/netauth/pkg/token/keyprovider"
+	"github.com/netauth/netauth/pkg/token/keyprovider/mock"
 )
 
-var (
-	config = token.Config{
-		Lifetime: time.Minute * 5,
-		Issuer:   "NetAuth Test",
-	}
+const (
+	pubkey1 = `-----BEGIN RSA PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDLDB82io6KJO2eDdagHnwMxt6m
+eA7Fuc2TxeZM6pzb/2W4+wpkmBwwmwfQpH9BK1MWHD2NNS5e7XkDU+c4ja70a6MV
+xuztu4YD3kJrHDs1j7BUtlHOM2y1OXBIBG7Cg/BetiTE2Yb5/xS2VgA1wiHrr0M6
+3Dt8Rb0D3+5o9ak2yQIDAQAB
+-----END RSA PUBLIC KEY-----`
+
+	privkey1 = `-----BEGIN RSA PRIVATE KEY-----
+MIICXAIBAAKBgQDLDB82io6KJO2eDdagHnwMxt6meA7Fuc2TxeZM6pzb/2W4+wpk
+mBwwmwfQpH9BK1MWHD2NNS5e7XkDU+c4ja70a6MVxuztu4YD3kJrHDs1j7BUtlHO
+M2y1OXBIBG7Cg/BetiTE2Yb5/xS2VgA1wiHrr0M63Dt8Rb0D3+5o9ak2yQIDAQAB
+AoGAQqk8Jh/fJCNzj4xjhjX77AXuWyDXWLrjbzxtm5r63I9AyjZA9z2pI5wCONGI
+pdCfeobS/mUTUD8Ol7UYGE0LvsUEoPh81x4QqLb734VKtWRbzEi1PDGX4z/DdD1q
+EU1HjrLMw5TgOGne/AMp8pmULC8mhoEI0BszIEqrfjKHxcECQQDzIRAHGWkI//k/
+/oVwMcaiF//CidgHQuGAgGCgmz5CESjPslD510jgzFiOhCdNaSkbZ3zv95d6fTy9
+EcBwfmhVAkEA1cvcwkeNtJKe01LoFdskOBApforv86uN3FyCh/gVO1dt76OKLNYJ
+PBUuluq8USMbufKdO2tt9JGMPi6+uMgYpQJAR0inWV2C5UefvbqTRxzg/z+IFnKx
+6xcZ5MI/EnfR3i8HxzWh9k6/qGFhiY+HsnOlwMor4HO4bwpvF4Qv5wu47QJBAK5F
+b9yZkOPpRDfD89Sk/eAJJJm2zSNV6tv+OJR232+ws7dMGnyzt3FXXtO74edNc/Nd
+1VazGjzqS2QAnIxo5tUCQAw+4zLMuGn6pTQ+eNx93w6xOxjPO/JPZpjrCytZu3Du
+oAFH9o0Tnfyf+4C0fpetqJ6PBP4a8tDhW7/88HF03to=
+-----END RSA PRIVATE KEY-----`
+
+	pubkey2 = `-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEpKBU2N2kK2VAaW3Uo/qs69S0A6IT
+CbzoF2ZT2ttI6BCiZoLTX2Au9cWFtUUyCEWM+amY9SK3RCkIxCXnBnopYA==
+-----END PUBLIC KEY-----`
+
+	pubkey3 = `-----BEGIN RSA PUBLIC KEY-----
+aGVsbG8sIHdoeSBhcmUgeW91IGhlcmU/
+-----END RSA PUBLIC KEY-----
+`
 )
 
-func init() {
-	// We're throwing the error away here since this is parsing
-	// the reference format, if that doesn't work its very
-	// unlikely anything else does.
-	t, _ := time.Parse(time.ANSIC, time.ANSIC)
-
-	config.IssuedAt = t
-	config.NotBefore = t
-
-	viper.Set("token.jwt.bits", 1024)
-}
-
-func mkTmpTestDir(t *testing.T) string {
-	dir, err := ioutil.TempDir("/tmp", "tkntest")
-	if err != nil {
-		t.Error(err)
-	}
-	viper.Set("core.conf", dir)
-	return dir
-}
-
-func cleanTmpTestDir(dir string, t *testing.T) {
-	// Remove the tmpdir, don't want to clutter the filesystem
-	if err := os.RemoveAll(dir); err != nil {
-		t.Log(err)
-	}
-}
-
-func genFixedKey(dir string, t *testing.T) {
-	// Chosen by fair dice roll.
-	r := rand.New(rand.NewSource(4))
-
-	if err := os.MkdirAll(filepath.Join(dir, "keys"), 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	// No keys, we need to create them
-	privateKey, err := rsa.GenerateKey(r, viper.GetInt("token.jwt.bits"))
-	if err != nil {
-		t.Fatal("Keys unavailable")
-	}
-	publicKey := &privateKey.PublicKey
-
-	// Marshal the private key
-	pridata := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PRIVATE KEY",
-			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
-		},
-	)
-	if err := ioutil.WriteFile(filepath.Join(dir, "keys", "token.key"), pridata, 0400); err != nil {
-		t.Fatal("Keys unavailable")
-	}
-
-	// Marshal the public key
-	pubASN1, err := x509.MarshalPKIXPublicKey(publicKey)
-	if err != nil {
-		t.Fatal("Keys unavailable")
-	}
-	pubdata := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "RSA PUBLIC KEY",
-			Bytes: pubASN1,
-		},
-	)
-	if err := ioutil.WriteFile(filepath.Join(dir, "keys", "token.pem"), pubdata, 0644); err != nil {
-		t.Fatal("Keys unavailable")
-	}
-}
-
-func TestNewMissingKeys(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyGenerationDisabled {
-		t.Fatal(err)
-	}
-}
-
-func TestNewExistingKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// This one should generate keys
-	viper.Set("token.jwt.generate", true)
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// This one should be loading the existing key
-	viper.Set("token.jwt.generate", false)
-	_, err = NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestGenerateNoKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Bad type assertion")
-	}
-	rx.privateKey = nil
-
-	if _, err := rx.Generate(token.Claims{}, config); err != token.ErrKeyUnavailable {
-		t.Error(err)
-	}
-}
-
-func TestValidateToken(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// generate a fixed value key
-	genFixedKey(testDir, t)
-
-	// Create the token service which will use the key generated
-	// earlier
-	x, err := NewRSA(hclog.NewNullLogger())
+func TestGenerateBadKey(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,17 +65,42 @@ func TestValidateToken(t *testing.T) {
 		Issuer:    "NetAuth Test",
 	}
 
+	m.(*mock.Provider).On("Provide", "rsa", "private").Return([]byte(nil), keyprovider.ErrNoSuchKey)
+	if _, err := x.Generate(c, cfg); err != token.ErrKeyUnavailable {
+		t.Fatal(err)
+	}
+}
+
+func TestValidateToken(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := token.Claims{
+		EntityID: "foo",
+	}
+
+	cfg := token.Config{
+		Lifetime:  time.Minute * 5,
+		IssuedAt:  time.Now(),
+		NotBefore: time.Now(),
+		Issuer:    "NetAuth Test",
+	}
+
+	m.(*mock.Provider).On("Provide", "rsa", "private").Return([]byte(privkey1), nil)
 	tkn, err := x.Generate(c, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	os.Remove(filepath.Join(testDir, "keys", "token.key"))
-	x, err = NewRSA(hclog.NewNullLogger())
+	x, err = NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey1), nil)
 	claims, err := x.Validate(tkn)
 	if err != nil {
 		t.Fatal(err)
@@ -196,66 +114,40 @@ func TestValidateToken(t *testing.T) {
 }
 
 func TestValidateNoKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// generate a fixed value key
-	genFixedKey(testDir, t)
-
-	// Create the token service which will use the key generated
-	// earlier
-	x, err := NewRSA(hclog.NewNullLogger())
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	rx.publicKey = nil
-
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(nil), token.ErrKeyUnavailable)
 	if _, err := x.Validate(""); err != token.ErrKeyUnavailable {
 		t.Error(err)
 	}
 }
 
 func TestValidateCorruptToken(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// generate a fixed value key
-	genFixedKey(testDir, t)
-
-	// Create the token service which will use the key generated
-	// earlier
-	x, err := NewRSA(hclog.NewNullLogger())
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey1), nil)
 	if _, err := x.Validate(""); err != token.ErrInternalError {
 		t.Error(err)
 	}
 }
 
 func TestValidateWrongSigningMethod(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// generate a fixed value key
-	genFixedKey(testDir, t)
-
-	// Create the token service which will use the key generated
-	// earlier
-	x, err := NewRSA(hclog.NewNullLogger())
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	badToken := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
 
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey1), nil)
 	if _, err := x.Validate(badToken); err != token.ErrTokenInvalid {
 		t.Logf("%T", err)
 		t.Error(err)
@@ -263,15 +155,8 @@ func TestValidateWrongSigningMethod(t *testing.T) {
 }
 
 func TestValidateExpiredToken(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	// generate a fixed value key
-	genFixedKey(testDir, t)
-
-	// Create the token service which will use the key generated
-	// earlier
-	x, err := NewRSA(hclog.NewNullLogger())
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,441 +172,98 @@ func TestValidateExpiredToken(t *testing.T) {
 		Issuer:    "NetAuth Test",
 	}
 
+	m.(*mock.Provider).On("Provide", "rsa", "private").Return([]byte(privkey1), nil)
 	tkn, err := x.Generate(c, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey1), nil)
 	if _, err := x.Validate(tkn); err != token.ErrTokenInvalid {
-		t.Logf("%T", err)
-		t.Log(err)
+		t.Fatalf("Incorrect error returned, expected '%v', got '%v'", token.ErrTokenInvalid, err)
 	}
 }
 
-func TestGetKeysNoGenerate(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	if err := os.MkdirAll(filepath.Join(testDir, "keys", "token.key"), 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrInternalError {
-		t.Error(err)
-	}
-}
-
-func TestGetKeysBadPublicKeyFile(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	if err := os.MkdirAll(filepath.Join(testDir, "keys", "token.pem"), 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyUnavailable {
-		t.Error(err)
-	}
-
-}
-
-func TestGetKeysBadPublicKeyMode(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-
-	genFixedKey(testDir, t)
-
-	if err := os.Chmod(filepath.Join(testDir, "keys", "token.pem"), 0400); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyUnavailable {
-		t.Error(err)
-	}
-}
-
-func TestGetKeysBadBlockDecode(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	if err := os.MkdirAll(filepath.Join(testDir, "keys"), 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := os.OpenFile(filepath.Join(testDir, "keys", "token.pem"), os.O_RDONLY|os.O_CREATE, 0666); err != nil {
-		t.Fatal(err)
-	}
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyUnavailable {
-		t.Error(err)
-	}
-}
-
-func TestGetKeysPublicKeyWrongType(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	// Chosen by fair dice roll.
-	r := rand.New(rand.NewSource(4))
-	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), r)
+func TestPubKeyNoSuchKey(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Marshal the public key
-	pubASN1, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Couldn't marshal key")
-	}
-	pubdata := pem.EncodeToMemory(
-		&pem.Block{
-			Type:  "PUBLIC KEY",
-			Bytes: pubASN1,
-		},
-	)
-
-	if err := os.MkdirAll(filepath.Join(testDir, "keys"), 0755); err != nil {
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(nil), keyprovider.ErrNoSuchKey)
+	k, err := x.(*RSATokenService).pubkey()
+	if k != nil || err != token.ErrKeyUnavailable {
 		t.Fatal(err)
-	}
-
-	if err := ioutil.WriteFile(filepath.Join(testDir, "keys", "token.pem"), pubdata, 0644); err != nil {
-		t.Fatal("Keys unavailable")
-	}
-
-	_, err = NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyUnavailable {
-		t.Error(err)
 	}
 }
 
-func TestGetKeysPublicKeyIsPrivate(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	// Generate the keys flipped, so that the private key winds up
-	// in the wrong file, then flip the keys back.
-	genFixedKey(testDir, t)
-
-	b := filepath.Join(testDir, "keys")
-	if err := os.Remove(filepath.Join(b, "token.pem")); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Link(filepath.Join(b, "token.key"), filepath.Join(b, "token.pem")); err != nil {
+func TestPubKeyBadDecode(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.Chmod(filepath.Join(b, "token.key"), 0644); err != nil {
-		t.Fatal("Couldn't set mode on key")
-	}
-
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != token.ErrKeyUnavailable {
-		t.Error(err)
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte("for sure not a PEM block"), nil)
+	k, err := x.(*RSATokenService).pubkey()
+	if k != nil || err != token.ErrKeyUnavailable {
+		t.Fatal(err)
 	}
 }
 
-func TestGetKeysNoPrivateKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	genFixedKey(testDir, t)
-	if err := os.Remove(filepath.Join(testDir, "keys", "token.key")); err != nil {
+func TestPubKeyBadParse(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey3), nil)
+	k, err := x.(*RSATokenService).pubkey()
+	if k != nil || err != token.ErrKeyUnavailable {
+		t.Fatal(err)
 	}
 }
 
-func TestGetKeysUnreadablePrivateKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	genFixedKey(testDir, t)
-
-	if err := os.Chmod(filepath.Join(testDir, "keys", "token.key"), 0000); err != nil {
+func TestPubKeyBadKeyType(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
+	m.(*mock.Provider).On("Provide", "rsa", "public").Return([]byte(pubkey2), nil)
+	k, err := x.(*RSATokenService).pubkey()
+	if k != nil || err != token.ErrKeyUnavailable {
+		t.Fatal(err)
 	}
 }
 
-func TestGetKeysPrivateKeyIsPublic(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", false)
-
-	// Write out a public key, then change where the private key
-	// points to cause a load error.  This must not cause an
-	// error.
-	genFixedKey(testDir, t)
-
-	b := filepath.Join(testDir, "keys")
-	if err := os.Remove(filepath.Join(b, "token.key")); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.Link(filepath.Join(b, "token.pem"), filepath.Join(b, "token.key")); err != nil {
+func TestPrivKeyUnknownError(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
+	m.(*mock.Provider).On("Provide", "rsa", "private").Return([]byte(nil), errors.New("wat"))
+	k, err := x.(*RSATokenService).privkey()
+	if k != nil || err.Error() != "wat" {
+		t.Fatal(err)
 	}
 }
 
-func TestGenerateKeysSuccess(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.L())
+func TestPrivKeyBadDecode(t *testing.T) {
+	m, _ := mock.New(hclog.NewNullLogger())
+	x, err := NewRSA(hclog.NewNullLogger(), m)
 	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if err := os.RemoveAll(filepath.Join(testDir, "keys")); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := rx.generateKeys(256); err != nil {
-		t.Error(err)
-	}
-}
-
-func TestGenerateKeysWrongBitNumber(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if err := rx.generateKeys(0); err != token.ErrInternalError {
-		t.Error(err)
-	}
-}
-
-func TestGenerateKeysBadPrivateKeyFile(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	pkf := filepath.Join(testDir, "keys", "token.key")
-
-	if err := os.Remove(pkf); err != nil {
+	m.(*mock.Provider).On("Provide", "rsa", "private").Return([]byte("for sure not a PEM block"), nil)
+	k, err := x.(*RSATokenService).privkey()
+	if k != nil || err != token.ErrKeyUnavailable {
 		t.Fatal(err)
-	}
-
-	if err := os.Mkdir(pkf, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := rx.generateKeys(256); err != token.ErrInternalError {
-		t.Error(err)
-	}
-}
-
-func TestGenerateKeysBadPublicKeyFile(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	// Remove the private key file since the system tries to write
-	// it first.
-	if err := os.Remove(filepath.Join(testDir, "keys", "token.key")); err != nil {
-		t.Fatal(err)
-	}
-
-	pkf := filepath.Join(testDir, "keys", "badPublicKey")
-	if err := os.Mkdir(pkf, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	rx.publicKeyFile = pkf
-
-	if err := rx.generateKeys(256); err != token.ErrInternalError {
-		t.Error(err)
-	}
-}
-
-func TestHealthCheck(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if status := rx.healthCheck(); !status.OK {
-		t.Error(status)
-	}
-}
-
-func TestHealthCheckNoPublicKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	rx.publicKey = nil
-
-	if status := rx.healthCheck(); status.OK {
-		t.Error(status)
-	}
-}
-
-func TestHealthCheckNoPrivateKey(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	rx.privateKey = nil
-
-	if status := rx.healthCheck(); status.OK {
-		t.Error(status)
-	}
-}
-
-func TestHealthCheckBadPrivateKeyPermissions(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	if err := os.Chmod(filepath.Join(testDir, "keys", "token.key"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if status := rx.healthCheck(); status.OK {
-		t.Error(status)
-	}
-}
-
-func TestHealthCheckBadPublicKeyPermissions(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	if err := os.Chmod(filepath.Join(testDir, "keys", "token.pem"), 0600); err != nil {
-		t.Fatal(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if status := rx.healthCheck(); status.OK {
-		t.Error(status)
-	}
-}
-
-func TestCheckKeyModeOKBadStat(t *testing.T) {
-	testDir := mkTmpTestDir(t)
-	defer cleanTmpTestDir(testDir, t)
-	viper.Set("token.jwt.generate", true)
-
-	x, err := NewRSA(hclog.NewNullLogger())
-	if err != nil {
-		t.Error(err)
-	}
-
-	rx, ok := x.(*RSATokenService)
-	if !ok {
-		t.Fatal("Type Error")
-	}
-
-	if rx.checkKeyModeOK("", filepath.Join(testDir, "does-not-exist")) {
-		t.Error("Stat succeeded on a non-existent path")
 	}
 }

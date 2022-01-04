@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/netauth/netauth/pkg/token"
+	"github.com/netauth/netauth/pkg/token/keyprovider"
 )
 
 var (
@@ -30,7 +31,7 @@ var (
 type Service struct{}
 
 // New returns a new token service
-func New(_ hclog.Logger) *Service {
+func New(_ hclog.Logger, _ keyprovider.KeyProvider) *Service {
 	return &Service{}
 }
 

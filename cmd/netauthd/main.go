@@ -15,8 +15,12 @@ import (
 	_ "github.com/netauth/netauth/internal/db/bitcask"
 	_ "github.com/netauth/netauth/internal/db/filesystem"
 	plugin "github.com/netauth/netauth/internal/plugin/tree/manager"
+
 	"github.com/netauth/netauth/pkg/token"
 	_ "github.com/netauth/netauth/pkg/token/jwt"
+
+	"github.com/netauth/netauth/pkg/token/keyprovider"
+	_ "github.com/netauth/netauth/pkg/token/keyprovider/fs"
 
 	"github.com/netauth/netauth/internal/rpc2"
 	"github.com/netauth/netauth/internal/tree"
@@ -71,12 +75,9 @@ func init() {
 
 	pflag.String("crypto.backend", "bcrypt", "Cryptography system to use")
 
-	pflag.String("token.backend", "jwt-rsa", "Token implementation to use")
-	pflag.Duration("token.lifetime", time.Minute*10, "Token lifetime")
-
-	pflag.Int("token.jwt.bits", 2048, "Bit length of generated keys")
-	pflag.Bool("token.jwt.generate", false, "Generate keys if not available")
-
+	viper.SetDefault("token.keyprovider", "fs")
+	viper.SetDefault("token.backend", "jwt-rsa")
+	viper.SetDefault("token.lifetime", time.Minute*10)
 	viper.SetDefault("server.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("tls.key", "keys/tls.key")
@@ -235,6 +236,7 @@ func main() {
 	db.SetParentLogger(appLogger)
 	health.SetParentLogger(appLogger)
 	token.SetParentLogger(appLogger)
+	keyprovider.SetParentLogger(appLogger)
 	tree.SetParentLogger(appLogger)
 
 	// This spits out all the bootup information, debugging
@@ -299,9 +301,17 @@ func main() {
 	// NetAuth's internal security model is token based.  The
 	// token service is distinct from the tree, and can wait to
 	// come online until the tree has been initiailized (and by
-	// extension the plugin system).
+	// extension the plugin system).  The keys are retrieved using
+	// a KeyProvider to enable them to be fetched from non-local
+	// sources.
+	kp, err := keyprovider.New(viper.GetString("token.keyprovider"))
+	if err != nil {
+		appLogger.Error("Fatal token error", "error", err)
+		os.Exit(1)
+	}
+
 	token.SetLifetime(viper.GetDuration("token.lifetime"))
-	tokenService, err := token.New(viper.GetString("token.backend"))
+	tokenService, err := token.New(viper.GetString("token.backend"), kp)
 	if err != nil {
 		appLogger.Error("Fatal token error", "error", err)
 		os.Exit(1)
