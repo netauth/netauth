@@ -36,6 +36,8 @@ func (fs FS) Provide(mech, usecase string) ([]byte, error) {
 
 	if os.IsNotExist(err) {
 		return nil, keyprovider.ErrNoSuchKey
+	} else if err != nil {
+		return nil, keyprovider.ErrInternal
 	}
 
 	return b, nil

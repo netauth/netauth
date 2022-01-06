@@ -12,4 +12,8 @@ var (
 	// ErrNoSuchKey is returned when the key requested can't be
 	// retrieved.
 	ErrNoSuchKey = errors.New("no key exists with that identifier")
+
+	// ErrInternal is returned when something screwy is happening
+	// and a key can't be provided for some non-recoverable error.
+	ErrInternal = errors.New("an internal error has occured")
 )
