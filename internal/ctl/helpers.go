@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/netauth/netauth/pkg/netauth/cache"
+	"github.com/netauth/netauth/pkg/token/cache"
 
 	pb "github.com/netauth/protocol"
 )
@@ -36,13 +36,13 @@ func getSecret(prompt string) string {
 // token.  Since this is for the CLI, it always uses the value of the
 // entity that the call is being made as.
 func token() string {
-	t, err := rpc.GetToken(viper.GetString("entity"))
+	t, err := tcache.GetToken(viper.GetString("entity"))
 	switch {
 	case err == cache.ErrNoCachedToken:
 		return refreshToken()
 	case tokenIsExpired(t):
 		return refreshToken()
-	case !tokenIsExpired(t) && err == nil:
+	case !tokenIsExpired(t):
 		return t
 	default:
 		return ""
@@ -53,7 +53,7 @@ func token() string {
 // it checks if the CLI can validate it, but in this case we can treat
 // a validation error as cause to renew it.
 func tokenIsExpired(t string) bool {
-	return rpc.AuthValidateToken(ctx, t) == nil
+	return rpc.AuthValidateToken(ctx, t) != nil
 }
 
 // refreshToken is a convenience function to acquire a token or die
@@ -66,9 +66,8 @@ func refreshToken() string {
 		os.Exit(1)
 	}
 
-	if err := rpc.PutToken(viper.GetString("entity"), t); err != nil {
+	if err := tcache.PutToken(viper.GetString("entity"), t); err != nil {
 		fmt.Fprintf(os.Stderr, "Error caching token: %v\n", err)
-		os.Exit(2)
 	}
 	return t
 }

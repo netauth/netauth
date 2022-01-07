@@ -9,7 +9,7 @@ package memory
 import (
 	"sync"
 
-	"github.com/netauth/netauth/pkg/netauth/cache"
+	"github.com/netauth/netauth/pkg/token/cache"
 )
 
 type inMemoryCache struct {

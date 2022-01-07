@@ -11,32 +11,12 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 
-	"github.com/netauth/netauth/internal/startup"
-	"github.com/netauth/netauth/pkg/netauth/cache"
-	"github.com/netauth/netauth/pkg/token"
-
-	"github.com/netauth/netauth/pkg/token/keyprovider"
-	_ "github.com/netauth/netauth/pkg/token/keyprovider/fs"
-
-	// The default token service is the jwt implementation, and
-	// since its internal, the client needs to import it on behalf
-	// of consumers.
-	_ "github.com/netauth/netauth/pkg/token/jwt"
-
-	// Since most applicatios don't need persistent token caching
-	// the default is to use an in-memory store.  This is imported
-	// here to make thee interface cleaner in the general case.
-	_ "github.com/netauth/netauth/pkg/netauth/cache/memory"
-
 	rpc "github.com/netauth/protocol/v2"
 )
 
 func init() {
 	viper.SetDefault("core.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
-	viper.SetDefault("token.cache", "memory")
-	viper.SetDefault("token.backend", "jwt-rsa")
-	viper.SetDefault("token.keyprovider", "fs")
 }
 
 // NewWithLog uses the specified logger to contruct a NetAuth client.
@@ -54,28 +34,6 @@ func NewWithLog(l hclog.Logger) (*Client, error) {
 		return nil, err
 	}
 
-	cache, err := cache.NewTokenCache(viper.GetString("token.cache"))
-	if err != nil {
-		return nil, err
-	}
-
-	token.SetParentLogger(l)
-
-	// Logging and config are available, run deferred startup
-	// hooks.
-	startup.DoCallbacks()
-
-	kp, err := keyprovider.New(viper.GetString("token.keyprovider"))
-	if err != nil {
-		l.Warn("KeyProvider initialization error", "error", err)
-		return nil, err
-	}
-
-	ts, err := token.New(viper.GetString("token.backend"), kp)
-	if err != nil {
-		l.Warn("Token service initialization error", "error", err)
-	}
-
 	hn, err := os.Hostname()
 	if err != nil {
 		viper.SetDefault("client.ID", "BOGUS_CLIENT")
@@ -84,8 +42,6 @@ func NewWithLog(l hclog.Logger) (*Client, error) {
 	}
 
 	return &Client{
-		TokenCache: cache,
-		Service:    ts,
 		rpc:        rpc.NewNetAuth2Client(conn),
 		log:        l,
 		clientName: viper.GetString("client.ID"),

@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/netauth/netauth/pkg/netauth/cache"
+	"github.com/netauth/netauth/pkg/token/cache"
 )
 
 const (

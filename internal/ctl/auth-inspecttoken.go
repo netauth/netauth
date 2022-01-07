@@ -35,7 +35,7 @@ func init() {
 }
 
 func authInspectTokenRun(cmd *cobra.Command, args []string) {
-	claims, err := rpc.Validate(token())
+	claims, err := tsvc.Validate(token())
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)

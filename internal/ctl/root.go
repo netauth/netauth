@@ -11,10 +11,16 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/netauth/netauth/pkg/netauth"
+	tkn "github.com/netauth/netauth/pkg/token"
+	"github.com/netauth/netauth/pkg/token/cache"
+	"github.com/netauth/netauth/pkg/token/keyprovider"
 )
 
 var (
 	rpc *netauth.Client
+
+	tcache cache.TokenCache
+	tsvc   tkn.Service
 
 	cfg        string
 	rootEntity string
@@ -83,6 +89,24 @@ func Execute() {
 
 func initialize(*cobra.Command, []string) {
 	var err error
+	tcache, err = cache.NewTokenCache(viper.GetString("token.cache"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing token cache: %v", err)
+		os.Exit(1)
+	}
+
+	kp, err := keyprovider.New(viper.GetString("token.keyprovider"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing token service: %v", err)
+		os.Exit(1)
+	}
+
+	tsvc, err = tkn.New(viper.GetString("token.backend"), kp)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error initializing token service: %v", err)
+		os.Exit(1)
+	}
+
 	rpc, err = netauth.New()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error during client initialization: %v", err)

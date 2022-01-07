@@ -3,7 +3,7 @@ package memory
 import (
 	"testing"
 
-	"github.com/netauth/netauth/pkg/netauth/cache"
+	"github.com/netauth/netauth/pkg/token/cache"
 )
 
 func TestInMemoryCache(t *testing.T) {

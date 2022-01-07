@@ -33,7 +33,7 @@ func init() {
 
 func authDestroyTokenRun(cmd *cobra.Command, args []string) {
 	// Destroy the token
-	if err := rpc.DelToken(viper.GetString("entity")); err != nil {
+	if err := tcache.DelToken(viper.GetString("entity")); err != nil {
 		fmt.Printf("Error during token destruction: %s\n", err)
 		os.Exit(1)
 	}

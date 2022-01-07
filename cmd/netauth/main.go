@@ -8,7 +8,9 @@ import (
 
 	"github.com/netauth/netauth/internal/ctl"
 
-	_ "github.com/netauth/netauth/pkg/netauth/cache/fs"
+	_ "github.com/netauth/netauth/pkg/token/cache/fs"
+	_ "github.com/netauth/netauth/pkg/token/jwt"
+	_ "github.com/netauth/netauth/pkg/token/keyprovider/fs"
 )
 
 var (
@@ -23,6 +25,8 @@ func main() {
 	// This runs here so we can reset the defaults that are set
 	// during various init() methods.
 	viper.SetDefault("token.cache", "fs")
+	viper.SetDefault("token.keyprovider", "fs")
+	viper.SetDefault("token.backend", "jwt-rsa")
 
 	level, set := os.LookupEnv("NETAUTH_LOGLEVEL")
 	if !set {
