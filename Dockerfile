@@ -5,7 +5,7 @@
 # introsepctable without external tools (no shell!) this isn't
 # noticed, but its still something to be aware of if you're here.
 
-FROM golang:1.15-alpine as build
+FROM golang:1.17-alpine as build
 WORKDIR /netauth
 COPY . .
 ARG TARGET=netauthd
