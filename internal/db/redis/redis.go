@@ -39,9 +39,14 @@ func New(l hclog.Logger) (db.KVStore, error) {
 	x := &RedisStore{l: l.Named("redis")}
 	url := viper.GetViper().GetString("redis.url")
 	opt, err := redis.ParseURL(url)
+
+  if err != nil {
+    return nil, err
+  }
+
 	x.redis = redis.NewClient(opt)
 
-	return x, err
+	return x, nil
 }
 
 func (r *RedisStore) Put(_ context.Context, k string, v []byte) error {
