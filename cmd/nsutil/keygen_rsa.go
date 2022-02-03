@@ -52,7 +52,7 @@ func keygenRSACmdRun(cmd *cobra.Command, args []string) {
 			Bytes: x509.MarshalPKCS1PrivateKey(privateKey),
 		},
 	)
-	if err := os.WriteFile("rsa.privkey", pridata, 0400); err != nil {
+	if err := os.WriteFile("rsa-private.tokenkey", pridata, 0400); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing private key: %v", err)
 		os.Exit(1)
 	}
@@ -65,7 +65,7 @@ func keygenRSACmdRun(cmd *cobra.Command, args []string) {
 			Bytes: pubASN1,
 		},
 	)
-	if err := os.WriteFile("rsa.pubkey", pubdata, 0644); err != nil {
+	if err := os.WriteFile("rsa-public.tokenkey", pubdata, 0644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing public key: %v", err)
 		os.Exit(1)
 	}
