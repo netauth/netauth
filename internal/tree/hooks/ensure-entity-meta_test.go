@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestEnsureEntityMeta(t *testing.T) {
-	hook, err := NewEnsureEntityMeta(tree.RefContext{})
+	hook, err := NewEnsureEntityMeta()
 	if err != nil {
 		t.Fatal(err)
 	}

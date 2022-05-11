@@ -11,9 +11,9 @@ import (
 
 func TestUpdateEntityMeta(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addEntity(t, ctx)
+	addEntity(t, mdb)
 
 	meta := &pb.EntityMeta{
 		GECOS: proto.String("A Test Entity"),
@@ -23,7 +23,7 @@ func TestUpdateEntityMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
+	e, err := mdb.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

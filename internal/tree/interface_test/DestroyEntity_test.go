@@ -8,15 +8,15 @@ import (
 )
 
 func TestDeleteEntity(t *testing.T) {
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addEntity(t, ctx)
+	addEntity(t, mdb)
 
 	if err := m.DestroyEntity(context.Background(), "entity1"); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := ctx.DB.LoadEntity(context.Background(), "entity1"); err != db.ErrUnknownEntity {
+	if _, err := mdb.LoadEntity(context.Background(), "entity1"); err != db.ErrUnknownEntity {
 		t.Error("Entity not deleted")
 	}
 }

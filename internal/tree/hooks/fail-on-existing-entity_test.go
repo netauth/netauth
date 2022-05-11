@@ -22,11 +22,8 @@ func TestFailOnExistingEntity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rctx := tree.RefContext{
-		DB: mdb,
-	}
 
-	hook, err := NewFailOnExistingEntity(rctx)
+	hook, err := NewFailOnExistingEntity(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -76,23 +76,35 @@ func (ekv *EntityKV) replace(e, de *pb.Entity) error {
 	return ekv.add(e, de)
 }
 
-func newEntityKVAdd(c tree.RefContext) (tree.EntityHook, error) {
+func newEntityKVAdd(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-add"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("kv-add", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.add
 	return x, nil
 }
 
-func newEntityKVDel(c tree.RefContext) (tree.EntityHook, error) {
+func newEntityKVDel(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-del"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("kv-del", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.del
 	return x, nil
 }
 
-func newEntityKVReplace(c tree.RefContext) (tree.EntityHook, error) {
+func newEntityKVReplace(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-replace"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &EntityKV{}
-	x.BaseHook = tree.NewBaseHook("kv-replace", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.replace
 	return x, nil
 }

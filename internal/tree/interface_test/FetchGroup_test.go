@@ -9,16 +9,16 @@ import (
 
 func TestFetchGroup(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addGroup(t, ctx)
+	addGroup(t, mdb)
 
 	g, err := m.FetchGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	lg, err := ctx.DB.LoadGroup(ctxt, "group1")
+	lg, err := mdb.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

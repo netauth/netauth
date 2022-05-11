@@ -14,13 +14,13 @@ import (
 
 func TestGetMemberships(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	buildSampleTree(t, ctx)
-	ctx.DB.(*db.DB).EventUpdateAll()
+	buildSampleTree(t, mdb)
+	mdb.(*db.DB).EventUpdateAll()
 
 	// entity1, indirects off
-	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
+	e, err := mdb.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

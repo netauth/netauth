@@ -40,16 +40,31 @@ func manageEntityUMCB() {
 }
 
 // NewAddEntityUM returns a configured hook in UPSERT mode.
-func NewAddEntityUM(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityUM{tree.NewBaseHook("add-untyped-metadata", 50), "UPSERT"}, nil
+func NewAddEntityUM(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("add-untyped-metadata"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityUM{tree.NewBaseHook(opts...), "UPSERT"}, nil
 }
 
 // NewDelFuzzyEntityUM returns a configured hook in CLEARFUZZY mode.
-func NewDelFuzzyEntityUM(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
+func NewDelFuzzyEntityUM(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("del-untyped-metadata-fuzzy"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityUM{tree.NewBaseHook(opts...), "CLEARFUZZY"}, nil
 }
 
 // NewDelExactEntityUM returns a configured hook in CLEAREXACT mode.
-func NewDelExactEntityUM(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
+func NewDelExactEntityUM(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("del-untyped-metadata-exact"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityUM{tree.NewBaseHook(opts...), "CLEAREXACT"}, nil
 }

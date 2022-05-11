@@ -31,6 +31,11 @@ func setEntityIDCB() {
 
 // NewSetEntityID returns a SetEntityID hook initialized and ready for
 // use.
-func NewSetEntityID(c tree.RefContext) (tree.EntityHook, error) {
-	return &SetEntityID{tree.NewBaseHook("set-entity-id", 50)}, nil
+func NewSetEntityID(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-entity-id"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetEntityID{tree.NewBaseHook(opts...)}, nil
 }

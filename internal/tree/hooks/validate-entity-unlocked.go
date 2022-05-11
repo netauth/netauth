@@ -32,6 +32,11 @@ func validateEntityUnlockedCB() {
 }
 
 // NewValidateEntityUnlocked returns an initialized hook.
-func NewValidateEntityUnlocked(c tree.RefContext) (tree.EntityHook, error) {
-	return &ValidateEntityUnlocked{tree.NewBaseHook("validate-entity-unlocked", 20)}, nil
+func NewValidateEntityUnlocked(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("validate-entity-unlocked"),
+		tree.WithHookPriority(20),
+	}, opts...)
+
+	return &ValidateEntityUnlocked{tree.NewBaseHook(opts...)}, nil
 }

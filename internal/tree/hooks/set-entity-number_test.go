@@ -18,12 +18,12 @@ func TestSetEntityNumber(t *testing.T) {
 	startup.DoCallbacks()
 	ctx := context.Background()
 
-	memdb, err := db.New("memory")
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSetEntityNumber(tree.RefContext{DB: memdb})
+	hook, err := NewSetEntityNumber(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

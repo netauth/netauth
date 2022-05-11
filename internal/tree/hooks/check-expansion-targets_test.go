@@ -20,7 +20,7 @@ func TestCheckExpansionTargetsDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionTargets(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestCheckExpansionTargetsBad(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionTargets(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionTargets(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

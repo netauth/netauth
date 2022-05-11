@@ -32,7 +32,7 @@ import (
 // which is a member of group5
 //
 // * group5 has no rules and a direct member of entity2
-func buildSampleTree(t *testing.T, ctx tree.RefContext) {
+func buildSampleTree(t *testing.T, db tree.DB) {
 	ctxt := context.Background()
 	group1 := &pb.Group{
 		Name: proto.String("group1"),
@@ -57,19 +57,19 @@ func buildSampleTree(t *testing.T, ctx tree.RefContext) {
 		Name: proto.String("group5"),
 	}
 
-	if err := ctx.DB.SaveGroup(ctxt, group1); err != nil {
+	if err := db.SaveGroup(ctxt, group1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(ctxt, group2); err != nil {
+	if err := db.SaveGroup(ctxt, group2); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(ctxt, group3); err != nil {
+	if err := db.SaveGroup(ctxt, group3); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(ctxt, group4); err != nil {
+	if err := db.SaveGroup(ctxt, group4); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(ctxt, group5); err != nil {
+	if err := db.SaveGroup(ctxt, group5); err != nil {
 		t.Fatal(err)
 	}
 
@@ -99,13 +99,13 @@ func buildSampleTree(t *testing.T, ctx tree.RefContext) {
 			},
 		},
 	}
-	if err := ctx.DB.SaveEntity(ctxt, entity1); err != nil {
+	if err := db.SaveEntity(ctxt, entity1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveEntity(ctxt, entity2); err != nil {
+	if err := db.SaveEntity(ctxt, entity2); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveEntity(ctxt, entity3); err != nil {
+	if err := db.SaveEntity(ctxt, entity3); err != nil {
 		t.Fatal(err)
 	}
 }

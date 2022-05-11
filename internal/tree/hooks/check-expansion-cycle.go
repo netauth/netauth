@@ -15,7 +15,6 @@ import (
 // cycle in the inclusion graph.
 type CheckExpansionCycles struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will iterate through all expansions requested in dg and ensure
@@ -31,7 +30,7 @@ func (cec *CheckExpansionCycles) Run(ctx context.Context, g, dg *pb.Group) error
 		if parts[0] == "DROP" {
 			continue
 		}
-		child, err := cec.LoadGroup(ctx, parts[1])
+		child, err := cec.Storage().LoadGroup(ctx, parts[1])
 		if err != nil {
 			return err
 		}
@@ -52,7 +51,7 @@ func (cec *CheckExpansionCycles) checkGroupCycles(ctx context.Context, g *pb.Gro
 		if parts[1] == candidate {
 			return true
 		}
-		ng, err := cec.LoadGroup(ctx, parts[1])
+		ng, err := cec.Storage().LoadGroup(ctx, parts[1])
 		if err != nil {
 			// Play it safe, if we can't get the group
 			// something may already be wrong.  Returning
@@ -74,6 +73,11 @@ func checkExpansionCyclesCB() {
 }
 
 // NewCheckExpansionCycles returns a configured hook ready for use.
-func NewCheckExpansionCycles(c tree.RefContext) (tree.GroupHook, error) {
-	return &CheckExpansionCycles{tree.NewBaseHook("check-expansion-cycles", 40), c.DB}, nil
+func NewCheckExpansionCycles(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("check-expansion-cycles"),
+		tree.WithHookPriority(40),
+	}, opts...)
+
+	return &CheckExpansionCycles{tree.NewBaseHook(opts...)}, nil
 }

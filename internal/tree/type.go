@@ -24,10 +24,6 @@ type Manager struct {
 	// engines
 	crypto crypto.EMCrypto
 
-	// A refContext maintains pointers to all referenced
-	// subsystems required by a tree manager.
-	refContext RefContext
-
 	// Maintain maps of hooks that have been initialized.
 	entityHooks map[string]EntityHook
 	groupHooks  map[string]GroupHook
@@ -63,15 +59,17 @@ type DB interface {
 	RegisterCallback(string, db.Callback)
 }
 
-// A RefContext is a container of references that are needed to
-// bootstrap the tree manager and associated plugins.
-type RefContext struct {
-	DB     DB
-	Crypto crypto.EMCrypto
-}
-
 // The ChainConfig type maps from chain name to a list of hooks that
 // should be in this chain.  The same type is used for entities and
 // groups, but as these each have separate chains, different configs
 // must be created and loaded for each.
 type ChainConfig map[string][]string
+
+// Option is a type used to feed in various configurables when
+// initializing a new Manager construct.  This follows the variadic
+// types pattern for option passing.
+type Option func(m *Manager)
+
+// A HookOption is exactly like a manager option, but instead of
+// acting on a manager it acts on the base hook implementation.
+type HookOption func(b *BaseHook)

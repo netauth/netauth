@@ -13,13 +13,12 @@ import (
 // saving a modified group to the database.
 type SaveGroup struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will pass the group specified by g to the datastore and request
 // it to be saved.
 func (s *SaveGroup) Run(ctx context.Context, g, dg *pb.Group) error {
-	return s.SaveGroup(ctx, g)
+	return s.Storage().SaveGroup(ctx, g)
 }
 
 func init() {
@@ -31,6 +30,11 @@ func saveGroupCB() {
 }
 
 // NewSaveGroup returns a configured hook for use.
-func NewSaveGroup(c tree.RefContext) (tree.GroupHook, error) {
-	return &SaveGroup{tree.NewBaseHook("save-group", 99), c.DB}, nil
+func NewSaveGroup(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("save-group"),
+		tree.WithHookPriority(99),
+	}, opts...)
+
+	return &SaveGroup{tree.NewBaseHook(opts...)}, nil
 }

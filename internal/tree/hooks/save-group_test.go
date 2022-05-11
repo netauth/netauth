@@ -23,7 +23,7 @@ func TestSaveGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSaveGroup(tree.RefContext{DB: mdb})
+	hook, err := NewSaveGroup(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

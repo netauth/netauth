@@ -6,13 +6,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestMergeGroupMeta(t *testing.T) {
-	hook, err := NewMergeGroupMeta(tree.RefContext{})
+	hook, err := NewMergeGroupMeta()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -40,6 +40,11 @@ func mergeGroupMetaCB() {
 
 // NewMergeGroupMeta returns a MergeGroupMeta hook configured and
 // ready for use.
-func NewMergeGroupMeta(c tree.RefContext) (tree.GroupHook, error) {
-	return &MergeGroupMeta{tree.NewBaseHook("merge-group-meta", 50)}, nil
+func NewMergeGroupMeta(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("merge-group-meta"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &MergeGroupMeta{tree.NewBaseHook(opts...)}, nil
 }

@@ -14,7 +14,6 @@ import (
 // groups that exist, unless the expansion type is DROP.
 type CheckExpansionTargets struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run iterates through all expansions on dg and ensures that if the
@@ -29,7 +28,7 @@ func (cet *CheckExpansionTargets) Run(ctx context.Context, g, dg *pb.Group) erro
 		if parts[0] == "DROP" {
 			continue
 		}
-		if _, err := cet.LoadGroup(ctx, parts[1]); err != nil {
+		if _, err := cet.Storage().LoadGroup(ctx, parts[1]); err != nil {
 			return err
 		}
 	}
@@ -45,6 +44,12 @@ func checkExpansionTargetsCB() {
 }
 
 // NewCheckExpansionTargets returns a configured hook, ready for use.
-func NewCheckExpansionTargets(c tree.RefContext) (tree.GroupHook, error) {
-	return &CheckExpansionTargets{tree.NewBaseHook("check-expansion-targets", 40), c.DB}, nil
+func NewCheckExpansionTargets(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append(
+		[]tree.HookOption{
+			tree.WithHookName("check-expansion-targets"),
+			tree.WithHookPriority(40),
+		}, opts...,
+	)
+	return &CheckExpansionTargets{tree.NewBaseHook(opts...)}, nil
 }

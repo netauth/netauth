@@ -35,11 +35,21 @@ func entityKeysCB() {
 }
 
 // NewAddEntityKey returns a hook initialized for adding keys.
-func NewAddEntityKey(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityKeys{tree.NewBaseHook("add-entity-key", 50), true}, nil
+func NewAddEntityKey(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("add-entity-key"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityKeys{tree.NewBaseHook(opts...), true}, nil
 }
 
 // NewDelEntityKey returns a hook initialized for removing keys.
-func NewDelEntityKey(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityKeys{tree.NewBaseHook("del-entity-key", 50), false}, nil
+func NewDelEntityKey(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("del-entity-key"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityKeys{tree.NewBaseHook(opts...), false}, nil
 }

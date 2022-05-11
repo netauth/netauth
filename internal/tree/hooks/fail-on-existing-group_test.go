@@ -22,11 +22,8 @@ func TestFailOnExistingGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rctx := tree.RefContext{
-		DB: mdb,
-	}
 
-	hook, err := NewFailOnExistingGroup(rctx)
+	hook, err := NewFailOnExistingGroup(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

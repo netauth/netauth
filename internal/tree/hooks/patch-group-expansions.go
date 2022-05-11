@@ -49,6 +49,10 @@ func patchGroupExpansionsCB() {
 }
 
 // NewPatchGroupExpansions returns an initialized hook for use.
-func NewPatchGroupExpansions(tree.RefContext) (tree.GroupHook, error) {
-	return &PatchGroupExpansions{tree.NewBaseHook("patch-group-expansions", 50)}, nil
+func NewPatchGroupExpansions(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("patch-group-expansions"),
+		tree.WithHookPriority(50),
+	}, opts...)
+	return &PatchGroupExpansions{tree.NewBaseHook(opts...)}, nil
 }

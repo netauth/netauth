@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestPatchGroupExpansionsInclude(t *testing.T) {
-	hook, err := NewPatchGroupExpansions(tree.RefContext{})
+	hook, err := NewPatchGroupExpansions()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +30,7 @@ func TestPatchGroupExpansionsInclude(t *testing.T) {
 }
 
 func TestPatchGroupExpansionsDrop(t *testing.T) {
-	hook, err := NewPatchGroupExpansions(tree.RefContext{})
+	hook, err := NewPatchGroupExpansions()
 	if err != nil {
 		t.Fatal(err)
 	}

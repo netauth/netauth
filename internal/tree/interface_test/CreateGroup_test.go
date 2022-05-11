@@ -6,13 +6,13 @@ import (
 )
 
 func TestNewGroup(t *testing.T) {
-	m, ctx := newTreeManager(t)
+	m, db := newTreeManager(t)
 
 	if err := m.CreateGroup(context.Background(), "group1", "Group 1", "", -1); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup(context.Background(), "group1")
+	g, err := db.LoadGroup(context.Background(), "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

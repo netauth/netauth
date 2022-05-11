@@ -23,7 +23,7 @@ func TestSaveEntity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSaveEntity(tree.RefContext{DB: mdb})
+	hook, err := NewSaveEntity(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

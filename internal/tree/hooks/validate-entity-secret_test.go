@@ -19,7 +19,7 @@ func TestValidateEntitySecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewValidateEntitySecret(tree.RefContext{Crypto: crypt})
+	hook, err := NewValidateEntitySecret(tree.WithHookCrypto(crypt))
 	if err != nil {
 		t.Fatal(err)
 	}

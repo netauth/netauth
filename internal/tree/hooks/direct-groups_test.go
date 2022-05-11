@@ -5,13 +5,11 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestAddDirectGroup(t *testing.T) {
-	hook, err := NewAddDirectGroup(tree.RefContext{})
+	hook, err := NewAddDirectGroup()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +37,7 @@ func TestAddDirectGroup(t *testing.T) {
 }
 
 func TestDelDirectGroup(t *testing.T) {
-	hook, err := NewDelDirectGroup(tree.RefContext{})
+	hook, err := NewDelDirectGroup()
 	if err != nil {
 		t.Fatal(err)
 	}

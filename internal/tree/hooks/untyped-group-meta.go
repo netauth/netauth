@@ -40,16 +40,31 @@ func manageGroupUMCB() {
 }
 
 // NewAddGroupUM returns a configured hook in UPSERT mode.
-func NewAddGroupUM(c tree.RefContext) (tree.GroupHook, error) {
-	return &ManageGroupUM{tree.NewBaseHook("add-untyped-metadata", 50), "UPSERT"}, nil
+func NewAddGroupUM(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("add-untyped-metadata"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageGroupUM{tree.NewBaseHook(opts...), "UPSERT"}, nil
 }
 
 // NewDelFuzzyGroupUM returns a configured hook in CLEARFUZZY mode.
-func NewDelFuzzyGroupUM(c tree.RefContext) (tree.GroupHook, error) {
-	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-fuzzy", 50), "CLEARFUZZY"}, nil
+func NewDelFuzzyGroupUM(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("del-untyped-metadata-fuzzy"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageGroupUM{tree.NewBaseHook(opts...), "CLEARFUZZY"}, nil
 }
 
 // NewDelExactGroupUM returns a configured hook in CLEAREXACT mode.
-func NewDelExactGroupUM(c tree.RefContext) (tree.GroupHook, error) {
-	return &ManageGroupUM{tree.NewBaseHook("del-untyped-metadata-exact", 50), "CLEAREXACT"}, nil
+func NewDelExactGroupUM(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("del-untyped-metadata-exact"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageGroupUM{tree.NewBaseHook(opts...), "CLEAREXACT"}, nil
 }

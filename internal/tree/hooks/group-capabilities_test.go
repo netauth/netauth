@@ -10,7 +10,7 @@ import (
 )
 
 func TestGroupCapabilitiesEmptyList(t *testing.T) {
-	hook, err := NewSetGroupCapability(tree.RefContext{})
+	hook, err := NewSetGroupCapability()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestGroupCapabilitiesEmptyList(t *testing.T) {
 }
 
 func TestAddGroupCapabilities(t *testing.T) {
-	hook, err := NewSetGroupCapability(tree.RefContext{})
+	hook, err := NewSetGroupCapability()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestAddGroupCapabilities(t *testing.T) {
 }
 
 func TestRemoveGroupCapabilities(t *testing.T) {
-	hook, err := NewRemoveGroupCapability(tree.RefContext{})
+	hook, err := NewRemoveGroupCapability()
 	if err != nil {
 		t.Fatal(err)
 	}

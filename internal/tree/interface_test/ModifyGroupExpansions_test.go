@@ -11,7 +11,7 @@ import (
 
 func TestModifyGroupExpansions(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
 	g1 := &pb.Group{
 		Name: proto.String("group1"),
@@ -20,10 +20,10 @@ func TestModifyGroupExpansions(t *testing.T) {
 		Name: proto.String("group2"),
 	}
 
-	if err := ctx.DB.SaveGroup(ctxt, g1); err != nil {
+	if err := mdb.SaveGroup(ctxt, g1); err != nil {
 		t.Fatal(err)
 	}
-	if err := ctx.DB.SaveGroup(ctxt, g2); err != nil {
+	if err := mdb.SaveGroup(ctxt, g2); err != nil {
 		t.Fatal(err)
 	}
 
@@ -31,7 +31,7 @@ func TestModifyGroupExpansions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup(ctxt, "group1")
+	g, err := mdb.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

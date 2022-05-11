@@ -14,7 +14,6 @@ import (
 // LoadEntity loads an entity from the database.
 type LoadEntity struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run attempts to load the entity specified by de.ID and if
@@ -26,7 +25,7 @@ func (l *LoadEntity) Run(ctx context.Context, e, de *pb.Entity) error {
 	// to do that alters the initial contents needs to be copied
 	// in.
 
-	le, err := l.LoadEntity(ctx, de.GetID())
+	le, err := l.Storage().LoadEntity(ctx, de.GetID())
 	if err != nil {
 		return err
 	}
@@ -44,6 +43,11 @@ func loadEntityCB() {
 }
 
 // NewLoadEntity returns an initialized hook ready for use.
-func NewLoadEntity(c tree.RefContext) (tree.EntityHook, error) {
-	return &LoadEntity{tree.NewBaseHook("load-entity", 0), c.DB}, nil
+func NewLoadEntity(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("load-entity"),
+		tree.WithHookPriority(0),
+	}, opts...)
+
+	return &LoadEntity{tree.NewBaseHook(opts...)}, nil
 }

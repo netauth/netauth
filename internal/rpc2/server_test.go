@@ -55,7 +55,7 @@ func newServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 
-	m, err := tree.New(db, crypto, hclog.NewNullLogger())
+	m, err := tree.New(tree.WithStorage(db), tree.WithCrypto(crypto))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -83,7 +83,7 @@ func newServerWithRefs(t *testing.T) (*Server, tree.DB, Manager) {
 		t.Fatal(err)
 	}
 
-	m, err := tree.New(db, crypto, hclog.NewNullLogger())
+	m, err := tree.New(tree.WithStorage(db), tree.WithCrypto(crypto))
 	if err != nil {
 		t.Fatal(err)
 	}

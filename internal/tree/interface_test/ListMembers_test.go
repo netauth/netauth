@@ -11,10 +11,10 @@ import (
 
 func TestListMembers(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	buildSampleTree(t, ctx)
-	ctx.DB.(*db.DB).EventUpdateAll()
+	buildSampleTree(t, mdb)
+	mdb.(*db.DB).EventUpdateAll()
 
 	// Meta-group ALL, contains all five entities
 	mbrs, err := m.ListMembers(ctxt, "ALL")

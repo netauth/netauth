@@ -13,7 +13,6 @@ import (
 // and then sets it.
 type SetManagingGroup struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will attempt to set the managing group of g to the specified
@@ -38,7 +37,7 @@ func (c *SetManagingGroup) Run(ctx context.Context, g, dg *pb.Group) error {
 
 	// If the group is not self managed but does have a manage by,
 	// then the managedby group must exist already.
-	if _, err := c.LoadGroup(ctx, dg.GetManagedBy()); err != nil {
+	if _, err := c.Storage().LoadGroup(ctx, dg.GetManagedBy()); err != nil {
 		return err
 	}
 
@@ -56,6 +55,11 @@ func setManagingGroupCB() {
 }
 
 // NewSetManagingGroup returns a hook initialized for use.
-func NewSetManagingGroup(c tree.RefContext) (tree.GroupHook, error) {
-	return &SetManagingGroup{tree.NewBaseHook("set-managing-group", 10), c.DB}, nil
+func NewSetManagingGroup(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-managing-group"),
+		tree.WithHookPriority(10),
+	}, opts...)
+
+	return &SetManagingGroup{tree.NewBaseHook(opts...)}, nil
 }

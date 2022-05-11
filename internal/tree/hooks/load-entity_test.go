@@ -18,12 +18,12 @@ func TestLoadEntity(t *testing.T) {
 	startup.DoCallbacks()
 	ctx := context.Background()
 
-	memdb, err := db.New("memory")
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewLoadEntity(tree.RefContext{DB: memdb})
+	hook, err := NewLoadEntity(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestLoadEntity(t *testing.T) {
 		Number: proto.Int32(1),
 		Secret: proto.String(""),
 	}
-	if err := memdb.SaveEntity(ctx, &e); err != nil {
+	if err := mdb.SaveEntity(ctx, &e); err != nil {
 		t.Fatal(err)
 	}
 

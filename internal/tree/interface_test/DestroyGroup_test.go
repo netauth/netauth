@@ -8,15 +8,15 @@ import (
 )
 
 func TestDeleteGroup(t *testing.T) {
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addGroup(t, ctx)
+	addGroup(t, mdb)
 
 	if err := m.DestroyGroup(context.Background(), "group1"); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := ctx.DB.LoadGroup(context.Background(), "group1"); err != db.ErrUnknownGroup {
+	if _, err := mdb.LoadGroup(context.Background(), "group1"); err != db.ErrUnknownGroup {
 		t.Error("Group wasn't deleted")
 	}
 }

@@ -11,15 +11,15 @@ import (
 
 func TestSetEntityCapability2(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addEntity(t, ctx)
+	addEntity(t, mdb)
 
 	if err := m.SetEntityCapability2(ctxt, "entity1", pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
 		t.Error(err)
 	}
 
-	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
+	e, err := mdb.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

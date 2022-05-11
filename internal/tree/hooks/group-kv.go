@@ -76,23 +76,35 @@ func (ekv *GroupKV) replace(g, dg *pb.Group) error {
 	return ekv.add(g, dg)
 }
 
-func newGroupKVAdd(c tree.RefContext) (tree.GroupHook, error) {
+func newGroupKVAdd(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-add"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &GroupKV{}
-	x.BaseHook = tree.NewBaseHook("kv-add", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.add
 	return x, nil
 }
 
-func newGroupKVDel(c tree.RefContext) (tree.GroupHook, error) {
+func newGroupKVDel(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-del"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &GroupKV{}
-	x.BaseHook = tree.NewBaseHook("kv-del", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.del
 	return x, nil
 }
 
-func newGroupKVReplace(c tree.RefContext) (tree.GroupHook, error) {
+func newGroupKVReplace(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("kv-replace"),
+		tree.WithHookPriority(50),
+	}, opts...)
 	x := &GroupKV{}
-	x.BaseHook = tree.NewBaseHook("kv-replace", 50)
+	x.BaseHook = tree.NewBaseHook(opts...)
 	x.do = x.replace
 	return x, nil
 }

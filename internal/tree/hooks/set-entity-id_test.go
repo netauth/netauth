@@ -6,13 +6,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestSetEntityID(t *testing.T) {
-	hook, err := NewSetEntityID(tree.RefContext{})
+	hook, err := NewSetEntityID()
 	if err != nil {
 		t.Fatal(err)
 	}

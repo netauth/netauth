@@ -11,7 +11,7 @@ import (
 // return the hooks for registration into the map of hooks.  This
 // allows the hooks to notify the module of their presence and defer
 // construction until a RefContext can be prepared.
-type GroupHookConstructor func(RefContext) (GroupHook, error)
+type GroupHookConstructor func(opts ...HookOption) (GroupHook, error)
 
 // An GroupHook is a function that transforms an group as
 // part of an GroupProcessor pipeline.
@@ -46,8 +46,13 @@ func RegisterGroupHookConstructor(name string, c GroupHookConstructor) {
 // registers the resulting hooks by name into m.groupProcessorHooks
 func (m *Manager) InitializeGroupHooks() {
 	m.log.Debug("Executing GroupHookConstructor callbacks")
+	hOpts := []HookOption{
+		WithHookStorage(m.db),
+		WithHookCrypto(m.crypto),
+	}
+
 	for _, v := range gHookConstructors {
-		hook, err := v(m.refContext)
+		hook, err := v(hOpts...)
 		if err != nil {
 			m.log.Warn("Error initializing hook", "hook", hook, "error", err)
 			continue

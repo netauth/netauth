@@ -14,7 +14,6 @@ import (
 // database.
 type SetGroupNumber struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will set the group number on g.  If dg.Number is provided as a
@@ -25,7 +24,7 @@ type SetGroupNumber struct {
 // to do otherwise.
 func (s *SetGroupNumber) Run(ctx context.Context, g, dg *pb.Group) error {
 	if dg.GetNumber() == -1 {
-		number, err := s.NextGroupNumber(ctx)
+		number, err := s.Storage().NextGroupNumber(ctx)
 		if err != nil {
 			return err
 		}
@@ -45,6 +44,11 @@ func setGroupNumberCB() {
 }
 
 // NewSetGroupNumber returns a hook initialized and ready for use.
-func NewSetGroupNumber(c tree.RefContext) (tree.GroupHook, error) {
-	return &SetGroupNumber{tree.NewBaseHook("set-group-number", 50), c.DB}, nil
+func NewSetGroupNumber(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-group-number"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetGroupNumber{tree.NewBaseHook(opts...)}, nil
 }

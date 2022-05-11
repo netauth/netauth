@@ -11,15 +11,15 @@ import (
 
 func TestSetGroupCapability2(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addGroup(t, ctx)
+	addGroup(t, mdb)
 
 	if err := m.SetGroupCapability2(ctxt, "group1", pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup(ctxt, "group1")
+	g, err := mdb.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

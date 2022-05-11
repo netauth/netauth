@@ -14,14 +14,13 @@ import (
 // duplicate ID already exists.
 type FailOnExistingEntity struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run contacts the data store, attempts to load an entity and
 // selectively inverts the return status from the load call (errors
 // from the storage backend will be returned to the caller).
 func (l *FailOnExistingEntity) Run(ctx context.Context, e, de *pb.Entity) error {
-	_, err := l.LoadEntity(ctx, de.GetID())
+	_, err := l.Storage().LoadEntity(ctx, de.GetID())
 	if err == nil {
 		return tree.ErrDuplicateEntityID
 	}
@@ -38,6 +37,11 @@ func failOnExistingEntityCB() {
 
 // NewFailOnExistingEntity will return an initialized hook ready for
 // use.
-func NewFailOnExistingEntity(c tree.RefContext) (tree.EntityHook, error) {
-	return &FailOnExistingEntity{tree.NewBaseHook("fail-on-existing-entity", 0), c.DB}, nil
+func NewFailOnExistingEntity(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("fail-on-existing-entity"),
+		tree.WithHookPriority(0),
+	}, opts...)
+
+	return &FailOnExistingEntity{tree.NewBaseHook(opts...)}, nil
 }

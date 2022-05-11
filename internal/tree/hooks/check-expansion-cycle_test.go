@@ -22,7 +22,7 @@ func TestCheckExpansionCyclesDrop(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionCycles(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestCheckExpansionCycleUnknownChild(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionCycles(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func TestCheckExpansionCycleCycleFound(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionCycles(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestCheckGroupCyclesRecurser(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewCheckExpansionCycles(tree.RefContext{DB: mdb})
+	hook, err := NewCheckExpansionCycles(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

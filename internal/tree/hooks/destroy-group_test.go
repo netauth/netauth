@@ -22,11 +22,8 @@ func TestDestroyGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rctx := tree.RefContext{
-		DB: mdb,
-	}
 
-	hook, err := NewDestroyGroup(rctx)
+	hook, err := NewDestroyGroup(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

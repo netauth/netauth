@@ -91,7 +91,7 @@ func TestEntityKVAdd(t *testing.T) {
 		},
 	}
 
-	h, _ := newEntityKVAdd(tree.RefContext{})
+	h, _ := newEntityKVAdd()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
@@ -181,7 +181,7 @@ func TestEntityKVDel(t *testing.T) {
 		},
 	}
 
-	h, _ := newEntityKVDel(tree.RefContext{})
+	h, _ := newEntityKVDel()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
@@ -255,7 +255,7 @@ func TestEntityKVReplace(t *testing.T) {
 		},
 	}
 
-	h, _ := newEntityKVReplace(tree.RefContext{})
+	h, _ := newEntityKVReplace()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {

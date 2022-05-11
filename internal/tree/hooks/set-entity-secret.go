@@ -3,7 +3,6 @@ package hooks
 import (
 	"context"
 
-	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/startup"
 	"github.com/netauth/netauth/internal/tree"
 
@@ -14,13 +13,12 @@ import (
 // secured secret for storage.
 type SetEntitySecret struct {
 	tree.BaseHook
-	crypto.EMCrypto
 }
 
 // Run takes a plaintext secret from de.Secret and secures it using a
 // crypto engine.  The secured secret will be written to e.Secret.
 func (s *SetEntitySecret) Run(_ context.Context, e, de *pb.Entity) error {
-	ssecret, err := s.SecureSecret(de.GetSecret())
+	ssecret, err := s.Crypto().SecureSecret(de.GetSecret())
 	if err != nil {
 		return err
 	}
@@ -37,6 +35,11 @@ func setEntitySecretCB() {
 }
 
 // NewSetEntitySecret returns an initialized hook for use.
-func NewSetEntitySecret(c tree.RefContext) (tree.EntityHook, error) {
-	return &SetEntitySecret{tree.NewBaseHook("set-entity-secret", 50), c.Crypto}, nil
+func NewSetEntitySecret(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-entity-secret"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetEntitySecret{tree.NewBaseHook(opts...)}, nil
 }

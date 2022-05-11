@@ -48,12 +48,22 @@ func entityCapabilitiesCB() {
 
 // NewSetEntityCapability returns a ManageEntityCapability hook
 // pre-configured into the additive mode.
-func NewSetEntityCapability(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityCapabilities{tree.NewBaseHook("set-entity-capability", 50), true}, nil
+func NewSetEntityCapability(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-entity-capability"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityCapabilities{tree.NewBaseHook(opts...), true}, nil
 }
 
 // NewRemoveEntityCapability returns a ManageEntityCapability hook
 // pre-configured into the subtractive mode.s
-func NewRemoveEntityCapability(c tree.RefContext) (tree.EntityHook, error) {
-	return &ManageEntityCapabilities{tree.NewBaseHook("remove-entity-capability", 50), false}, nil
+func NewRemoveEntityCapability(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("remove-entity-capability"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageEntityCapabilities{tree.NewBaseHook(opts...), false}, nil
 }

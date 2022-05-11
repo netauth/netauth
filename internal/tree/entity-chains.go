@@ -11,7 +11,7 @@ import (
 // return the hooks for registration into the map of hooks.  This
 // allows the hooks to notify the module of their presence and defer
 // construction until a RefContext can be prepared.
-type EntityHookConstructor func(RefContext) (EntityHook, error)
+type EntityHookConstructor func(opts ...HookOption) (EntityHook, error)
 
 // An EntityHook is a function that transforms an entity as
 // part of an EntityProcessor pipeline.
@@ -46,8 +46,13 @@ func RegisterEntityHookConstructor(name string, c EntityHookConstructor) {
 // registers the resulting hooks by name into m.entityProcessorHooks
 func (m *Manager) InitializeEntityHooks() {
 	m.log.Debug("Executing EntityHookConstructor callbacks")
+	hOpts := []HookOption{
+		WithHookStorage(m.db),
+		WithHookCrypto(m.crypto),
+	}
+
 	for _, v := range eHookConstructors {
-		hook, err := v(m.refContext)
+		hook, err := v(hOpts...)
 		if err != nil {
 			m.log.Warn("Error initializing hook", "hook", hook, "error", err)
 			continue

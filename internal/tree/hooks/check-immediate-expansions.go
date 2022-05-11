@@ -47,6 +47,13 @@ func checkImmediateExpansionsCB() {
 }
 
 // NewCheckImmediateExpansions returns a configured hook for use.
-func NewCheckImmediateExpansions(c tree.RefContext) (tree.GroupHook, error) {
-	return &CheckImmediateExpansions{tree.NewBaseHook("check-immediate-expansions", 40)}, nil
+func NewCheckImmediateExpansions(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append(
+		[]tree.HookOption{
+			tree.WithHookName("check-immediate-expansions"),
+			tree.WithHookPriority(40),
+		}, opts...,
+	)
+
+	return &CheckImmediateExpansions{tree.NewBaseHook(opts...)}, nil
 }

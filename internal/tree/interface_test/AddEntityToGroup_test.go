@@ -6,16 +6,16 @@ import (
 )
 
 func TestAddEntityToGroup(t *testing.T) {
-	m, ctx := newTreeManager(t)
+	m, db := newTreeManager(t)
 
-	addEntity(t, ctx)
-	addGroup(t, ctx)
+	addEntity(t, db)
+	addGroup(t, db)
 
 	if err := m.AddEntityToGroup(context.Background(), "entity1", "group1"); err != nil {
 		t.Fatal(err)
 	}
 
-	e, err := ctx.DB.LoadEntity(context.Background(), "entity1")
+	e, err := db.LoadEntity(context.Background(), "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

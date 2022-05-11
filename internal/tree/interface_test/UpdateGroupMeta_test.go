@@ -11,9 +11,9 @@ import (
 
 func TestUpdateGroupMeta(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addGroup(t, ctx)
+	addGroup(t, mdb)
 
 	update := &pb.Group{
 		DisplayName: proto.String("SomeGroup"),
@@ -23,7 +23,7 @@ func TestUpdateGroupMeta(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup(ctxt, "group1")
+	g, err := mdb.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

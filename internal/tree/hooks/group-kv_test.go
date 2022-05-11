@@ -81,7 +81,7 @@ func TestGroupKVAdd(t *testing.T) {
 		},
 	}
 
-	h, _ := newGroupKVAdd(tree.RefContext{})
+	h, _ := newGroupKVAdd()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
@@ -161,7 +161,7 @@ func TestGroupKVDel(t *testing.T) {
 		},
 	}
 
-	h, _ := newGroupKVDel(tree.RefContext{})
+	h, _ := newGroupKVDel()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {
@@ -227,7 +227,7 @@ func TestGroupKVReplace(t *testing.T) {
 		},
 	}
 
-	h, _ := newGroupKVReplace(tree.RefContext{})
+	h, _ := newGroupKVReplace()
 
 	for i, c := range cases {
 		if err := h.Run(context.Background(), c.e, c.de); err != c.wantErr {

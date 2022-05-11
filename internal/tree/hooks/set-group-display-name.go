@@ -29,6 +29,11 @@ func setGroupDisplayNameCB() {
 }
 
 // NewSetGroupDisplayName returns an initialized hook ready for use.
-func NewSetGroupDisplayName(c tree.RefContext) (tree.GroupHook, error) {
-	return &SetGroupDisplayName{tree.NewBaseHook("set-group-displayname", 50)}, nil
+func NewSetGroupDisplayName(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-group-displayname"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetGroupDisplayName{tree.NewBaseHook(opts...)}, nil
 }

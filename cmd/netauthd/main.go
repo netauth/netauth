@@ -271,6 +271,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	opts := []tree.Option{
+		tree.WithStorage(dbImpl),
+		tree.WithCrypto(cryptoImpl),
+		tree.WithLogger(appLogger),
+	}
+
 	// The Tree is the core component of the server.  Its the part
 	// that actually provides the interface for working with
 	// entities, working with groups, and defining the
@@ -278,7 +284,7 @@ func main() {
 	// being used, then the tree action configurations (chains)
 	// need to be reconfigured to enable the external plugin
 	// hooks.
-	tree, err := tree.New(dbImpl, cryptoImpl, appLogger)
+	tree, err := tree.New(opts...)
 	if err != nil {
 		appLogger.Error("Fatal initialization error", "error", err)
 		os.Exit(1)

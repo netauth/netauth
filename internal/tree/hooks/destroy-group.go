@@ -12,7 +12,6 @@ import (
 // DestroyGroup removes an entity from the system.
 type DestroyGroup struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will request the underlying datastore to remove the group,
@@ -24,7 +23,7 @@ func (d *DestroyGroup) Run(ctx context.Context, g, dg *pb.Group) error {
 	if g.GetName() == "" {
 		g.Name = dg.Name
 	}
-	return d.DeleteGroup(ctx, g.GetName())
+	return d.Storage().DeleteGroup(ctx, g.GetName())
 }
 
 func init() {
@@ -36,6 +35,10 @@ func destroyGroupCB() {
 }
 
 // NewDestroyGroup returns an initialized DestroyGroup hook for use.
-func NewDestroyGroup(c tree.RefContext) (tree.GroupHook, error) {
-	return &DestroyGroup{tree.NewBaseHook("destroy-group", 99), c.DB}, nil
+func NewDestroyGroup(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("destroy-group"),
+		tree.WithHookPriority(99),
+	}, opts...)
+	return &DestroyGroup{tree.NewBaseHook(opts...)}, nil
 }

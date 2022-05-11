@@ -11,16 +11,16 @@ import (
 
 func TestFetchEntity(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
-	addEntity(t, ctx)
+	addEntity(t, mdb)
 
 	e, err := m.FetchEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	le, err := ctx.DB.LoadEntity(ctxt, "entity1")
+	le, err := mdb.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -6,13 +6,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestSetGroupName(t *testing.T) {
-	hook, err := NewSetGroupName(tree.RefContext{})
+	hook, err := NewSetGroupName()
 	if err != nil {
 		t.Fatal(err)
 	}

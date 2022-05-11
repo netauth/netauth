@@ -12,7 +12,7 @@ import (
 )
 
 func TestValidateEntityUnlocked(t *testing.T) {
-	hook, err := NewValidateEntityUnlocked(tree.RefContext{})
+	hook, err := NewValidateEntityUnlocked()
 	if err != nil {
 		t.Fatal(err)
 	}

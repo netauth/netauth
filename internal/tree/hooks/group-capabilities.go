@@ -48,12 +48,22 @@ func groupCapabilitiesCB() {
 
 // NewSetGroupCapability returns a ManageGroupCapability hook
 // pre-configured into the additive mode.
-func NewSetGroupCapability(c tree.RefContext) (tree.GroupHook, error) {
-	return &ManageGroupCapabilities{tree.NewBaseHook("set-group-capability", 50), true}, nil
+func NewSetGroupCapability(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-group-capability"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageGroupCapabilities{tree.NewBaseHook(opts...), true}, nil
 }
 
 // NewRemoveGroupCapability returns a ManageGroupCapability hook
 // pre-configured into the subtractive mode.s
-func NewRemoveGroupCapability(c tree.RefContext) (tree.GroupHook, error) {
-	return &ManageGroupCapabilities{tree.NewBaseHook("remove-group-capability", 50), false}, nil
+func NewRemoveGroupCapability(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("remove-group-capability"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &ManageGroupCapabilities{tree.NewBaseHook(opts...), false}, nil
 }

@@ -13,7 +13,7 @@ import (
 
 func TestDropGroupCapability2(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
 	dg := &pb.Group{
 		Name:   proto.String("group1"),
@@ -24,7 +24,7 @@ func TestDropGroupCapability2(t *testing.T) {
 		},
 	}
 
-	if err := ctx.DB.SaveGroup(ctxt, dg); err != nil {
+	if err := mdb.SaveGroup(ctxt, dg); err != nil {
 		t.Fatal(err)
 	}
 
@@ -32,7 +32,7 @@ func TestDropGroupCapability2(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	g, err := ctx.DB.LoadGroup(ctxt, "group1")
+	g, err := mdb.LoadGroup(ctxt, "group1")
 	if err != nil {
 		t.Fatal(err)
 	}

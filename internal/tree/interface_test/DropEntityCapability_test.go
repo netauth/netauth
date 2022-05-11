@@ -13,7 +13,7 @@ import (
 
 func TestDropEntityCapability2(t *testing.T) {
 	ctxt := context.Background()
-	m, ctx := newTreeManager(t)
+	m, mdb := newTreeManager(t)
 
 	e := &pb.Entity{
 		ID:     proto.String("entity1"),
@@ -25,7 +25,7 @@ func TestDropEntityCapability2(t *testing.T) {
 			},
 		},
 	}
-	if err := ctx.DB.SaveEntity(ctxt, e); err != nil {
+	if err := mdb.SaveEntity(ctxt, e); err != nil {
 		t.Fatal(err)
 	}
 
@@ -33,7 +33,7 @@ func TestDropEntityCapability2(t *testing.T) {
 		t.Error(err)
 	}
 
-	e, err := ctx.DB.LoadEntity(ctxt, "entity1")
+	e, err := mdb.LoadEntity(ctxt, "entity1")
 	if err != nil {
 		t.Fatal(err)
 	}

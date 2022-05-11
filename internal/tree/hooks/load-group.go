@@ -14,7 +14,6 @@ import (
 // LoadGroup loads an entity from the database.
 type LoadGroup struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run attempts to load the group specified by de.Name and if
@@ -26,7 +25,7 @@ func (l *LoadGroup) Run(ctx context.Context, g, dg *pb.Group) error {
 	// to do that alters the initial contents needs to be copied
 	// in.
 
-	lg, err := l.LoadGroup(ctx, dg.GetName())
+	lg, err := l.Storage().LoadGroup(ctx, dg.GetName())
 	if err != nil {
 		return err
 	}
@@ -44,6 +43,11 @@ func loadGroupCB() {
 }
 
 // NewLoadGroup returns an initialized hook ready for use.
-func NewLoadGroup(c tree.RefContext) (tree.GroupHook, error) {
-	return &LoadGroup{tree.NewBaseHook("load-group", 0), c.DB}, nil
+func NewLoadGroup(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("load-group"),
+		tree.WithHookPriority(0),
+	}, opts...)
+
+	return &LoadGroup{tree.NewBaseHook(opts...)}, nil
 }

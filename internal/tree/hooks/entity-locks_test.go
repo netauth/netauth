@@ -6,13 +6,11 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestEntityLock(t *testing.T) {
-	hook, err := NewELMLock(tree.RefContext{})
+	hook, err := NewELMLock()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +28,7 @@ func TestEntityLock(t *testing.T) {
 }
 
 func TestEntityUnLock(t *testing.T) {
-	hook, err := NewELMUnlock(tree.RefContext{})
+	hook, err := NewELMUnlock()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -19,7 +19,7 @@ func TestSetEntitySecret(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSetEntitySecret(tree.RefContext{Crypto: crypt})
+	hook, err := NewSetEntitySecret(tree.WithHookCrypto(crypt))
 	if err != nil {
 		t.Fatal(err)
 	}

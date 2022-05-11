@@ -33,6 +33,11 @@ func ensureEntityMetaCB() {
 }
 
 // NewEnsureEntityMeta returns an initialized hook to the caller.
-func NewEnsureEntityMeta(c tree.RefContext) (tree.EntityHook, error) {
-	return &EnsureEntityMeta{tree.NewBaseHook("ensure-entity-meta", 20)}, nil
+func NewEnsureEntityMeta(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("ensure-entity-meta"),
+		tree.WithHookPriority(20),
+	}, opts...)
+
+	return &EnsureEntityMeta{tree.NewBaseHook(opts...)}, nil
 }

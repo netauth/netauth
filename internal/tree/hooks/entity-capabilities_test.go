@@ -10,7 +10,7 @@ import (
 )
 
 func TestEntityCapabilitiesEmptyList(t *testing.T) {
-	hook, err := NewSetEntityCapability(tree.RefContext{})
+	hook, err := NewSetEntityCapability()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +24,7 @@ func TestEntityCapabilitiesEmptyList(t *testing.T) {
 }
 
 func TestAddEntityCapabilities(t *testing.T) {
-	hook, err := NewSetEntityCapability(tree.RefContext{})
+	hook, err := NewSetEntityCapability()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestAddEntityCapabilities(t *testing.T) {
 }
 
 func TestRemoveEntityCapabilities(t *testing.T) {
-	hook, err := NewRemoveEntityCapability(tree.RefContext{})
+	hook, err := NewRemoveEntityCapability()
 	if err != nil {
 		t.Fatal(err)
 	}

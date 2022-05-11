@@ -18,12 +18,12 @@ func TestLoadGroup(t *testing.T) {
 	startup.DoCallbacks()
 	ctx := context.Background()
 
-	memdb, err := db.New("memory")
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewLoadGroup(tree.RefContext{DB: memdb})
+	hook, err := NewLoadGroup(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +32,7 @@ func TestLoadGroup(t *testing.T) {
 		Name:   proto.String("group"),
 		Number: proto.Int32(1),
 	}
-	if err := memdb.SaveGroup(ctx, g); err != nil {
+	if err := mdb.SaveGroup(ctx, g); err != nil {
 		t.Fatal(err)
 	}
 

@@ -17,7 +17,7 @@ import (
 	pb "github.com/netauth/protocol"
 )
 
-func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {
+func newTreeManager(t *testing.T) (*tree.Manager, tree.DB) {
 	startup.DoCallbacks()
 
 	mdb, err := db.New("memory")
@@ -30,39 +30,34 @@ func newTreeManager(t *testing.T) (*tree.Manager, tree.RefContext) {
 		t.Fatal(err)
 	}
 
-	ctx := tree.RefContext{
-		DB:     mdb,
-		Crypto: crypto,
-	}
-
-	em, err := tree.New(ctx.DB, ctx.Crypto, hclog.NewNullLogger())
+	em, err := tree.New(tree.WithStorage(mdb), tree.WithCrypto(crypto))
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	return em, ctx
+	return em, mdb
 }
 
-func addEntity(t *testing.T, ctx tree.RefContext) {
+func addEntity(t *testing.T, db tree.DB) {
 	e := &pb.Entity{
 		ID:     proto.String("entity1"),
 		Number: proto.Int32(1),
 		Secret: proto.String("entity1"),
 	}
 
-	if err := ctx.DB.SaveEntity(context.Background(), e); err != nil {
+	if err := db.SaveEntity(context.Background(), e); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func addGroup(t *testing.T, ctx tree.RefContext) {
+func addGroup(t *testing.T, db tree.DB) {
 	g := &pb.Group{
 		Name:        proto.String("group1"),
 		Number:      proto.Int32(1),
 		DisplayName: proto.String("Group One"),
 	}
 
-	if err := ctx.DB.SaveGroup(context.Background(), g); err != nil {
+	if err := db.SaveGroup(context.Background(), g); err != nil {
 		t.Fatal(err)
 	}
 }

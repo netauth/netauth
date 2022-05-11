@@ -14,7 +14,6 @@ import (
 // number.
 type SetEntityNumber struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will provision a number in one of two ways.  If the number is
@@ -25,7 +24,7 @@ type SetEntityNumber struct {
 // any mathematical progression, only uniqueness.
 func (s *SetEntityNumber) Run(ctx context.Context, e, de *pb.Entity) error {
 	if de.GetNumber() == -1 {
-		n, err := s.NextEntityNumber(ctx)
+		n, err := s.Storage().NextEntityNumber(ctx)
 		if err != nil {
 			return err
 		}
@@ -45,6 +44,11 @@ func setEntityNumberCB() {
 }
 
 // NewSetEntityNumber returns a SetEntityNumber hook ready for use.
-func NewSetEntityNumber(c tree.RefContext) (tree.EntityHook, error) {
-	return &SetEntityNumber{tree.NewBaseHook("set-entity-number", 50), c.DB}, nil
+func NewSetEntityNumber(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-entity-number"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetEntityNumber{tree.NewBaseHook(opts...)}, nil
 }

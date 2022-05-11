@@ -81,7 +81,7 @@ func (m *Manager) Shutdown() {
 func (m *Manager) RegisterEntityHooks() {
 	for i := range common.AutoEntityActions {
 		action := common.AutoEntityActions[i]
-		hc := func(r tree.RefContext) (tree.EntityHook, error) {
+		hc := func(opts ...tree.HookOption) (tree.EntityHook, error) {
 			return EntityHook{
 				action: action,
 				mref:   m,
@@ -125,7 +125,7 @@ func (m *Manager) InvokeEntityProcessing(ctx context.Context, opts common.Plugin
 func (m *Manager) RegisterGroupHooks() {
 	for i := range common.AutoGroupActions {
 		action := common.AutoGroupActions[i]
-		hc := func(r tree.RefContext) (tree.GroupHook, error) {
+		hc := func(opts ...tree.HookOption) (tree.GroupHook, error) {
 			return GroupHook{
 				action: action,
 				mref:   m,

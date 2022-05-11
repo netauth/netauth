@@ -130,7 +130,7 @@ type nullEntityHook struct{}
 func (*nullEntityHook) Name() string                                 { return "null-hook" }
 func (*nullEntityHook) Priority() int                                { return 50 }
 func (*nullEntityHook) Run(_ context.Context, _, _ *pb.Entity) error { return nil }
-func goodEntityConstructor(_ RefContext) (EntityHook, error) {
+func goodEntityConstructor(_ ...HookOption) (EntityHook, error) {
 	return &nullEntityHook{}, nil
 }
 
@@ -140,10 +140,10 @@ func (*nullEntityHook2) Name() string                                 { return "
 func (*nullEntityHook2) Priority() int                                { return 40 }
 func (*nullEntityHook2) Run(_ context.Context, _, _ *pb.Entity) error { return nil }
 
-func goodEntityConstructor2(_ RefContext) (EntityHook, error) {
+func goodEntityConstructor2(_ ...HookOption) (EntityHook, error) {
 	return &nullEntityHook2{}, nil
 }
 
-func badEntityConstructor(_ RefContext) (EntityHook, error) {
+func badEntityConstructor(_ ...HookOption) (EntityHook, error) {
 	return nil, errors.New("initialization error")
 }

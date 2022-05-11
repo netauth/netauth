@@ -12,7 +12,6 @@ import (
 // DestroyEntity removes an entity from the system.
 type DestroyEntity struct {
 	tree.BaseHook
-	tree.DB
 }
 
 // Run will request the underlying datastore to remove the entity,
@@ -24,7 +23,7 @@ func (d *DestroyEntity) Run(ctx context.Context, e, de *pb.Entity) error {
 	if e.GetID() == "" {
 		e.ID = de.ID
 	}
-	return d.DeleteEntity(ctx, e.GetID())
+	return d.Storage().DeleteEntity(ctx, e.GetID())
 }
 
 func init() {
@@ -36,6 +35,10 @@ func destroyEntityCB() {
 }
 
 // NewDestroyEntity returns an initialized DestroyEntity hook for use.
-func NewDestroyEntity(c tree.RefContext) (tree.EntityHook, error) {
-	return &DestroyEntity{tree.NewBaseHook("destroy-entity", 99), c.DB}, nil
+func NewDestroyEntity(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("destroy-entity"),
+		tree.WithHookPriority(99),
+	}, opts...)
+	return &DestroyEntity{tree.NewBaseHook(opts...)}, nil
 }

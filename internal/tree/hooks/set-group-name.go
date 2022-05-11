@@ -30,6 +30,11 @@ func setGroupNameCB() {
 }
 
 // NewSetGroupName returns an initialized hook.
-func NewSetGroupName(c tree.RefContext) (tree.GroupHook, error) {
-	return &SetGroupName{tree.NewBaseHook("set-group-name", 50)}, nil
+func NewSetGroupName(opts ...tree.HookOption) (tree.GroupHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("set-group-name"),
+		tree.WithHookPriority(50),
+	}, opts...)
+
+	return &SetGroupName{tree.NewBaseHook(opts...)}, nil
 }

@@ -10,7 +10,7 @@ import (
 )
 
 func TestCheckImmediateExpansionsDrop(t *testing.T) {
-	hook, err := NewCheckImmediateExpansions(tree.RefContext{})
+	hook, err := NewCheckImmediateExpansions()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +33,7 @@ func TestCheckImmediateExpansionsDrop(t *testing.T) {
 }
 
 func TestCheckImmediateExpansionsExisting(t *testing.T) {
-	hook, err := NewCheckImmediateExpansions(tree.RefContext{})
+	hook, err := NewCheckImmediateExpansions()
 	if err != nil {
 		t.Fatal(err)
 	}

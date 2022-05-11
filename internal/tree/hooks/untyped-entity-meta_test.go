@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestAddEntityUM(t *testing.T) {
-	hook, err := NewAddEntityUM(tree.RefContext{})
+	hook, err := NewAddEntityUM()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +30,7 @@ func TestAddEntityUM(t *testing.T) {
 }
 
 func TestDelFuzzyEntityUM(t *testing.T) {
-	hook, err := NewDelFuzzyEntityUM(tree.RefContext{})
+	hook, err := NewDelFuzzyEntityUM()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +60,7 @@ func TestDelFuzzyEntityUM(t *testing.T) {
 }
 
 func TestDelExactEntityUM(t *testing.T) {
-	hook, err := NewDelExactEntityUM(tree.RefContext{})
+	hook, err := NewDelExactEntityUM()
 	if err != nil {
 		t.Fatal(err)
 	}

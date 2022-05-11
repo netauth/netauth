@@ -27,7 +27,7 @@ func TestSetManagingGroup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSetManagingGroup(tree.RefContext{DB: mdb})
+	hook, err := NewSetManagingGroup(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,7 +3,6 @@ package tree
 import (
 	"github.com/hashicorp/go-hclog"
 
-	"github.com/netauth/netauth/internal/crypto"
 	"github.com/netauth/netauth/internal/mresolver"
 )
 
@@ -16,17 +15,16 @@ var (
 
 // New returns an initialized tree.Manager on to which all other
 // functions are bound.
-func New(db DB, crypto crypto.EMCrypto, l hclog.Logger) (*Manager, error) {
+func New(opts ...Option) (*Manager, error) {
 	x := Manager{}
-	x.log = l.Named("tree")
-	x.db = db
-	x.crypto = crypto
+	x.log = hclog.NewNullLogger()
+
+	for _, o := range opts {
+		o(&x)
+	}
+
 	x.resolver = mresolver.New()
 	x.resolver.SetParentLogger(x.log)
-	x.refContext = RefContext{
-		DB:     db,
-		Crypto: crypto,
-	}
 
 	x.db.RegisterCallback("entity-resolver", x.entityResolverCallback)
 	x.db.RegisterCallback("group-resolver", x.groupResolverCallback)

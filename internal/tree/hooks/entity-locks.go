@@ -35,11 +35,21 @@ func entityLockCB() {
 }
 
 // NewELMLock returns a configured hook in LOCK mode.
-func NewELMLock(c tree.RefContext) (tree.EntityHook, error) {
-	return &EntityLockManager{tree.NewBaseHook("lock-entity", 40), true}, nil
+func NewELMLock(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("lock-entity"),
+		tree.WithHookPriority(40),
+	}, opts...)
+
+	return &EntityLockManager{tree.NewBaseHook(opts...), true}, nil
 }
 
 // NewELMUnlock returns a configured hook in UNLOCK mode.
-func NewELMUnlock(c tree.RefContext) (tree.EntityHook, error) {
-	return &EntityLockManager{tree.NewBaseHook("unlock-entity", 40), false}, nil
+func NewELMUnlock(opts ...tree.HookOption) (tree.EntityHook, error) {
+	opts = append([]tree.HookOption{
+		tree.WithHookName("unlock-entity"),
+		tree.WithHookPriority(40),
+	}, opts...)
+
+	return &EntityLockManager{tree.NewBaseHook(opts...), false}, nil
 }

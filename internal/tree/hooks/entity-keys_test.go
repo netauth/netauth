@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestAddEntityKey(t *testing.T) {
-	hook, err := NewAddEntityKey(tree.RefContext{})
+	hook, err := NewAddEntityKey()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -32,7 +30,7 @@ func TestAddEntityKey(t *testing.T) {
 }
 
 func TestDelEntityKey(t *testing.T) {
-	hook, err := NewDelEntityKey(tree.RefContext{})
+	hook, err := NewDelEntityKey()
 	if err != nil {
 		t.Fatal(err)
 	}

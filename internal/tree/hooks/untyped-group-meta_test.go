@@ -4,13 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/netauth/netauth/internal/tree"
-
 	pb "github.com/netauth/protocol"
 )
 
 func TestAddGroupUM(t *testing.T) {
-	hook, err := NewAddGroupUM(tree.RefContext{})
+	hook, err := NewAddGroupUM()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -30,7 +28,7 @@ func TestAddGroupUM(t *testing.T) {
 }
 
 func TestDelFuzzyGroupUM(t *testing.T) {
-	hook, err := NewDelFuzzyGroupUM(tree.RefContext{})
+	hook, err := NewDelFuzzyGroupUM()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +54,7 @@ func TestDelFuzzyGroupUM(t *testing.T) {
 }
 
 func TestDelExactGroupUM(t *testing.T) {
-	hook, err := NewDelExactGroupUM(tree.RefContext{})
+	hook, err := NewDelExactGroupUM()
 	if err != nil {
 		t.Fatal(err)
 	}

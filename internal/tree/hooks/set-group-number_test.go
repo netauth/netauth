@@ -18,12 +18,12 @@ func TestSetGroupNumber(t *testing.T) {
 	startup.DoCallbacks()
 	ctx := context.Background()
 
-	db, err := db.New("memory")
+	mdb, err := db.New("memory")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	hook, err := NewSetGroupNumber(tree.RefContext{DB: db})
+	hook, err := NewSetGroupNumber(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

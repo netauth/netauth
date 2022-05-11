@@ -22,11 +22,8 @@ func TestDestroyEntity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rctx := tree.RefContext{
-		DB: mdb,
-	}
 
-	hook, err := NewDestroyEntity(rctx)
+	hook, err := NewDestroyEntity(tree.WithHookStorage(mdb))
 	if err != nil {
 		t.Fatal(err)
 	}

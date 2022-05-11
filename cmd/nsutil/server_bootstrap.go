@@ -65,7 +65,14 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Fatal crypto error: %s\n", err)
 		os.Exit(1)
 	}
-	tree, err := tree.New(dbImpl, cryptoImpl, hclog.L())
+
+	opts := []tree.Option{
+		tree.WithStorage(dbImpl),
+		tree.WithCrypto(cryptoImpl),
+		tree.WithLogger(hclog.L()),
+	}
+
+	tree, err := tree.New(opts...)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Fatal initialization error: %s\n", err)
 		os.Exit(1)
