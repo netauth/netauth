@@ -79,6 +79,7 @@ func init() {
 	viper.SetDefault("token.backend", "jwt-rsa")
 	viper.SetDefault("token.lifetime", time.Minute*10)
 	viper.SetDefault("server.port", 1729)
+	viper.SetDefault("server.readonly", false)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
 	viper.SetDefault("tls.key", "keys/tls.key")
 	viper.SetDefault("plugin.path", filepath.Join(viper.GetString("core.home"), "plugins"))
@@ -341,11 +342,10 @@ func main() {
 	rpb.RegisterNetAuth2Server(
 		grpcServer,
 		rpc2.New(
-			rpc2.Refs{
-				TokenService: tokenService,
-				Tree:         tree,
-			},
-			appLogger,
+			rpc2.WithLogger(appLogger),
+			rpc2.WithTokenService(tokenService),
+			rpc2.WithEntityTree(tree),
+			rpc2.WithDisabledWrites(viper.GetBool("server.readonly")),
 		),
 	)
 

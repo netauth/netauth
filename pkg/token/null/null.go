@@ -64,3 +64,12 @@ func (s *Service) Validate(t string) (token.Claims, error) {
 	}
 	return c, nil
 }
+
+// The KeyProvider provided here provides no keys, as they are not
+// used in the null token service.  This interface is provided
+// exclusively to satisfy the initialization requirements.
+type NullKeyProvider struct{}
+
+func NewKeyProvider() keyprovider.KeyProvider { return NullKeyProvider{} }
+
+func (nk NullKeyProvider) Provide(_, _ string) ([]byte, error) { return []byte{}, nil }

@@ -69,3 +69,6 @@ type Manager interface {
 	SetGroupCapability2(context.Context, string, *pb.Capability) error
 	DropGroupCapability2(context.Context, string, *pb.Capability) error
 }
+
+// Options configure the server
+type Option func(s *Server)

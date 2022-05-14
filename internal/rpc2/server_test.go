@@ -60,9 +60,9 @@ func newServer(t *testing.T) *Server {
 		t.Fatal(err)
 	}
 
-	n := null.New(hclog.NewNullLogger())
+	n := null.New(hclog.NewNullLogger(), null.NewKeyProvider())
 
-	return New(Refs{TokenService: n, Tree: m}, hclog.NewNullLogger())
+	return New(WithEntityTree(m), WithTokenService(n))
 }
 
 func newServerWithRefs(t *testing.T) (*Server, tree.DB, Manager) {
@@ -88,9 +88,9 @@ func newServerWithRefs(t *testing.T) (*Server, tree.DB, Manager) {
 		t.Fatal(err)
 	}
 
-	n := null.New(hclog.NewNullLogger())
+	n := null.New(hclog.NewNullLogger(), null.NewKeyProvider())
 
-	return New(Refs{TokenService: n, Tree: m}, hclog.NewNullLogger()), db, m
+	return New(WithEntityTree(m), WithTokenService(n)), db, m
 }
 
 func initTree(t *testing.T, m Manager) {
