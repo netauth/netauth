@@ -5,13 +5,19 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-hclog"
+
+	"github.com/netauth/netauth/pkg/token/keyprovider"
 )
 
 type dummyTokenService struct{}
 
 func (*dummyTokenService) Generate(Claims, Config) (string, error) { return "", nil }
 func (*dummyTokenService) Validate(string) (Claims, error)         { return Claims{}, nil }
-func newDummyTokenService(_ hclog.Logger) (Service, error)         { return new(dummyTokenService), nil }
+func newDummyTokenService(_ hclog.Logger, _ keyprovider.KeyProvider) (Service, error)         { return new(dummyTokenService), nil }
+
+type dummyKeyProvider struct{}
+
+func (*dummyKeyProvider) Provide(_, _ string) ([]byte, error) { return []byte{}, nil }
 
 func TestRegister(t *testing.T) {
 	services = make(map[string]Factory)
@@ -32,7 +38,7 @@ func TestNewKnown(t *testing.T) {
 
 	Register("dummy", newDummyTokenService)
 
-	x, err := New("dummy")
+	x, err := New("dummy", new(dummyKeyProvider))
 	if err != nil {
 		t.Error(err)
 	}
@@ -45,7 +51,7 @@ func TestNewKnown(t *testing.T) {
 func TestNewUnknown(t *testing.T) {
 	services = make(map[string]Factory)
 
-	if x, err := New("unknown"); x != nil || err != ErrUnknownTokenService {
+	if x, err := New("unknown", new(dummyKeyProvider)); x != nil || err != ErrUnknownTokenService {
 		t.Error("Undefined error behavior")
 	}
 }
