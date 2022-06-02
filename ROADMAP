@@ -157,3 +157,7 @@ v0.6.0:
   * Various internal cleanup
   * Improved internal tracing support
   * Mandate go 1.17
+
+v0.6.1:
+  * Cleaner internal configuration handling
+  * nsutil command to generate a self-signed certificate
