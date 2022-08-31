@@ -17,6 +17,14 @@ import (
 func init() {
 	viper.SetDefault("core.port", 1729)
 	viper.SetDefault("tls.certificate", "keys/tls.pem")
+	viper.SetDefault("token.cache", "fs")
+	viper.SetDefault("token.keyprovider", "fs")
+	viper.SetDefault("token.backend", "jwt-rsa")
+
+	viper.SetConfigName("config")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME/.netauth")
+	viper.AddConfigPath("/etc/netauth/")
 }
 
 // NewWithLog uses the specified logger to contruct a NetAuth client.
@@ -24,6 +32,11 @@ func init() {
 // handler that is provided should have the correct name and be
 // parented to the correct point on the log tree.
 func NewWithLog(l hclog.Logger) (*Client, error) {
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("Error reading config:", err)
+		os.Exit(1)
+	}
+
 	if viper.GetString("core.conf") == "" {
 		viper.Set("core.conf", filepath.Dir(viper.ConfigFileUsed()))
 		l.Debug("Config relative load path set", "path", viper.GetString("core.conf"))

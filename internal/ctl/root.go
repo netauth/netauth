@@ -61,15 +61,6 @@ func onInit() {
 	viper.BindPFlags(pflag.CommandLine)
 	if cfg != "" {
 		viper.SetConfigFile(cfg)
-	} else {
-		viper.SetConfigName("config")
-		viper.AddConfigPath(".")
-		viper.AddConfigPath("$HOME/.netauth")
-		viper.AddConfigPath("/etc/netauth/")
-	}
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println("Error reading config:", err)
-		os.Exit(1)
 	}
 	viper.Set("client.ServiceName", "netauth")
 
