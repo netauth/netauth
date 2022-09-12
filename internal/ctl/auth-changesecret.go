@@ -53,9 +53,15 @@ func authChangeSecretRun(cmd *cobra.Command, args []string) {
 		csEntity = viper.GetString("entity")
 	}
 
-	// Get either secret or token
+	// Get the secret, and possibly check token
 	if csEntity == viper.GetString("entity") {
 		s = getSecret("Old Secret: ")
+
+		// Force the token to renew since we have the old
+		// secret.
+		refreshTokenWithSecret(s)
+	} else {
+		refreshTokenWithSecret(getSecret("Your secret: "))
 	}
 
 	// Get the secret if it wasn't specified on the line

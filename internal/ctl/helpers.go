@@ -60,7 +60,12 @@ func tokenIsExpired(t string) bool {
 // trying.  This is meant for CLI use only, and thus we call exit here
 // if necessary to handle errors.
 func refreshToken() string {
-	t, err := rpc.AuthGetToken(ctx, viper.GetString("entity"), getSecret(""))
+	return refreshTokenWithSecret(getSecret(""))
+}
+
+// refreshTokenWithSecret performs an immediate refresh of the token.
+func refreshTokenWithSecret(secret string) string {
+	t, err := rpc.AuthGetToken(ctx, viper.GetString("entity"), secret)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
