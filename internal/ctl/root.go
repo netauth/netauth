@@ -67,8 +67,9 @@ func onInit() {
 	user, err := user.Current()
 	if err != nil {
 		fmt.Println("Could not get default user:", err)
+	} else {
+		viper.SetDefault("entity", user.Username)
 	}
-	viper.SetDefault("entity", user.Username)
 }
 
 // Execute serves as the entrypoint to the ctl package.
