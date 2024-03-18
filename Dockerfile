@@ -10,7 +10,7 @@ WORKDIR /netauth
 COPY . .
 ARG TARGET=netauthd
 RUN go mod vendor && \
-        CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o /n cmd/$TARGET/main.go && \
+        CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o /n ./cmd/$TARGET && \
         apk add upx binutils && \
         strip /n && \
         upx /n && \
