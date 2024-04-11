@@ -23,12 +23,33 @@ import (
 )
 
 var (
+	noRebootstrap      bool
 	serverBootstrapCmd = &cobra.Command{
-		Use:   "bootstrap <username>",
+		Use:   "bootstrap [--no-rebootstrap] <username>",
 		Short: "Make or update a user and provide them root authority",
 		Long:  serverBootstrapCmdLongDocs,
 		Run:   serverBootstrapCmdRun,
-		Args:  cobra.ExactArgs(1),
+		Args: func(cmd *cobra.Command, args []string) error {
+			switch len(args) {
+			case 0:
+				if os.Getenv("NETAUTH_UNATTENDED_BOOTSTRAP_NAME") == "" {
+					return fmt.Errorf("Need an entity name either on the commandline or the NETAUTH_UNATTENDED_BOOTSTRAP_NAME environment variable")
+				}
+				return nil
+			case 1:
+				if args[0] == "--no-rebootstrap" && os.Getenv("NETAUTH_UNATTENDED_BOOTSTRAP_NAME") == "" {
+					return fmt.Errorf("Need an entity name either on the commandline or the NETAUTH_UNATTENDED_BOOTSTRAP_NAME environment variable")
+				}
+				return nil
+			case 2:
+				if args[0] == "--no-rebootstrap" || args[1] == "--no-rebootstrap" {
+					return nil
+				}
+				return fmt.Errorf("The only valid arguments are the entity name and the --no-rebootstrap flag")
+			default:
+				return fmt.Errorf("The only valid flag is --no-rebootstrap and the user is optional")
+			}
+		},
 	}
 
 	serverBootstrapCmdLongDocs = `
@@ -37,6 +58,11 @@ an existing one of the same ID.  The password will be reset and the
 user will be directly assigned the GLOBAL_ROOT capability flag, which
 will permit further bootstrapping tasks.
 
+Bootstrap will optionally read the bootstrap secret and user from
+environment variables:
+NETAUTH_UNATTENDED_BOOTSTRAP_NAME
+NETAUTH_UNATTENDED_BOOTSTRAP_SECRET
+
 !!! ACHTUNG !!!
 You must only run this command with the server stopped to ensure your
 data storage remains consistent.
@@ -44,6 +70,7 @@ data storage remains consistent.
 )
 
 func init() {
+	serverBootstrapCmd.Flags().BoolVarP(&noRebootstrap, "no-rebootstrap", "", false, "Skip entity unlocking if it already exists")
 	rootCmd.AddCommand(serverBootstrapCmd)
 }
 
@@ -78,36 +105,51 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	_, err = tree.FetchEntity(ctx, args[0])
+	entity := os.Getenv("NETAUTH_UNATTENDED_BOOTSTRAP_NAME")
+	if entity == "" {
+		entity = args[0]
+	}
+
+	_, err = tree.FetchEntity(ctx, entity)
 	if err != db.ErrUnknownEntity && err != nil {
 		fmt.Fprintf(os.Stderr, "Error checking for entity existence: %s\n", err)
 	}
 	if err == db.ErrUnknownEntity {
-		if err := tree.CreateEntity(ctx, args[0], -1, ""); err != nil {
+		if err := tree.CreateEntity(ctx, entity, -1, ""); err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating entity: %s\n", err)
 			os.Exit(1)
 		}
+	} else if noRebootstrap {
+		appLogger.Info("Bootstrap killed early since the entity exists")
+		os.Exit(0)
 	}
 
 	// Reset the password
-	secret, err := speakeasy.Ask(fmt.Sprintf("New secret for %s: ", args[0]))
+	secret := os.Getenv("NETAUTH_UNATTENDED_BOOTSTRAP_SECRET")
+	if secret == "" {
+		secret, err = speakeasy.Ask(fmt.Sprintf("New secret for %s: ", entity))
+	} else {
+		fmt.Printf("Secret for %s provided via the environment", entity)
+	}
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error prompting secret: %s", err)
 		os.Exit(1)
 	}
-	if err := tree.SetSecret(ctx, args[0], secret); err != nil {
+	if err := tree.SetSecret(ctx, entity, secret); err != nil {
 		fmt.Fprintf(os.Stderr, "Error setting secret: %s\n", err)
 		os.Exit(1)
 	}
 
 	// Ensure the entity is unlocked
-	if err := tree.UnlockEntity(ctx, args[0]); err != nil {
+	if err := tree.UnlockEntity(ctx, entity); err != nil {
 		fmt.Fprintf(os.Stderr, "Error unlocking entity: %s\n", err)
 		os.Exit(1)
 	}
 
 	// Bestow GLOBAL_ROOT capability
-	if err := tree.SetEntityCapability2(ctx, args[0], pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
+	if err := tree.SetEntityCapability2(ctx, entity, pb.Capability_GLOBAL_ROOT.Enum()); err != nil {
 		fmt.Fprintf(os.Stderr, "Error setting GLOBAL_ROOT: %s\n", err)
 	}
+
+	appLogger.Info("Bootstrap complete, enter when ready")
 }
