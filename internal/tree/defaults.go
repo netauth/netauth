@@ -3,6 +3,7 @@ package tree
 var (
 	defaultEntityChains = map[string][]string{
 		"CREATE": {
+			"fail-on-empty-entity",
 			"fail-on-existing-entity",
 			"set-entity-id",
 			"set-entity-number",
