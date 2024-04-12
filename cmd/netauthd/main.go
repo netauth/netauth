@@ -256,6 +256,17 @@ func main() {
 	// system.
 	pluginManager := doPluginEarlySetup()
 
+	// These bootstrap environment variables are dangerous and should
+	// not be present while the server is running.
+	if _, exists := os.LookupEnv("NETAUTH_UNATTENDED_BOOTSTRAP_NAME"); exists {
+		appLogger.Error("Unattended bootstrap environment variables are set")
+		os.Exit(1)
+	}
+	if _, exists := os.LookupEnv("NETAUTH_UNATTENDED_BOOTSTRAP_SECRET"); exists {
+		appLogger.Error("Unattended bootstrap environment secret is set")
+		os.Exit(1)
+	}
+
 	// The data storage layer and cryptographic engine are next to
 	// initialize.  These modules provide core services to the
 	// entity tree which initializes immediately afterwards.
