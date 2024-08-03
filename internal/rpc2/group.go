@@ -231,6 +231,15 @@ func (s *Server) GroupKVAdd(ctx context.Context, r *pb.KV2Request) (*pb.Empty, e
 			"client", getClientName(ctx),
 		)
 		return &pb.Empty{}, ErrDoesNotExist
+	case tree.ErrKeyExists:
+		s.log.Warn("Error Updating Group",
+			"entity", r.GetTarget(),
+			"authority", getTokenClaims(ctx).EntityID,
+			"service", getServiceName(ctx),
+			"client", getClientName(ctx),
+			"error", err,
+		)
+		return &pb.Empty{}, ErrExists
 	case nil:
 		s.log.Info("Group KV Updated Dumped",
 			"group", r.GetTarget(),

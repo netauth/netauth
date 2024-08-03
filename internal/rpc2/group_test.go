@@ -433,6 +433,17 @@ func TestGroupKVAdd(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			ro:  false,
+			ctx: PrivilegedContext,
+			req: &pb.KV2Request{
+				Target: proto.String("group1"),
+				Data: &types.KVData{
+					Key: proto.String("key1"),
+				},
+			},
+			wantErr: ErrExists,
+		},
+		{
 			ro:      false,
 			ctx:     UnprivilegedContext,
 			req:     &pb.KV2Request{Target: proto.String("group1")},
