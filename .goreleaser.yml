@@ -20,13 +20,13 @@ builds:
       - darwin
       - freebsd
       - linux
-      - windows
 
 archives:
   - files:
     - LICENSE
     - NOTICE
     - README.md
+    allow_different_binary_count: true
 
 checksum:
   name_template: 'checksums.txt'
