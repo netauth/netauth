@@ -1,3 +1,5 @@
+project_name: netauth
+version: 2
 before:
   hooks:
     - go mod vendor
@@ -19,21 +21,26 @@ builds:
       - freebsd
       - linux
       - windows
+
 archives:
-- files:
+  - files:
     - LICENSE
     - NOTICE
     - README.md
+
 checksum:
   name_template: 'checksums.txt'
+
 snapshot:
-  name_template: "{{ .Tag }}-next"
+  version_template: "{{ incpatch .Version }}-next"
+
 changelog:
   sort: asc
   filters:
     exclude:
     - '^docs:'
     - '^test:'
+
 release:
   github:
     owner: NetAuth
