@@ -128,12 +128,12 @@ func serverBootstrapCmdRun(c *cobra.Command, args []string) {
 	secret := os.Getenv("NETAUTH_UNATTENDED_BOOTSTRAP_SECRET")
 	if secret == "" {
 		secret, err = speakeasy.Ask(fmt.Sprintf("New secret for %s: ", entity))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error prompting secret: %s", err)
+			os.Exit(1)
+		}
 	} else {
 		fmt.Printf("Secret for %s provided via the environment", entity)
-	}
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error prompting secret: %s", err)
-		os.Exit(1)
 	}
 	if err := tree.SetSecret(ctx, entity, secret); err != nil {
 		fmt.Fprintf(os.Stderr, "Error setting secret: %s\n", err)
